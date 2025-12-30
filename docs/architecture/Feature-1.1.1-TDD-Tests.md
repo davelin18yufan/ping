@@ -522,9 +522,9 @@ describe('Mobile - Google OAuth Login E2E', () => {
 1. QA Agent 在上述三個檔案位置撰寫測試
 2. 各 agent 執行測試，確認全部 FAIL
    ```bash
-   cd backend && npm test -- auth-oauth.spec.ts
-   cd frontend && npm test -- oauth-flow.spec.tsx
-   cd mobile && npm run test:e2e -- oauth-flow.e2e.ts
+   cd backend && bun test auth-oauth.spec.ts
+   cd frontend && pnpm test oauth-flow.spec.tsx
+   cd mobile && pnpm run test:e2e oauth-flow.e2e.ts
    ```
 
 ### Phase 2: GREEN（實作，讓測試通過 ✅）

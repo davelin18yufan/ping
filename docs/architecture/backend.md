@@ -2,7 +2,7 @@
 
 ## 一、技術棧總覽（後端部分）
 
-- Runtime: Node.js 24+
+- Runtime: bun 1.3.5
 - Web框架: Hono
 - GraphQL Server: GraphQL Yoga
 - ORM: Prisma

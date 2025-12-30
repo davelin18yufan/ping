@@ -6,75 +6,233 @@
 
 ## 一、Feature 優先級列表（MVP Phase 1）
 
-### Phase 1.1：認證系統（Week 1-2）
+### Phase 1.0：基礎設施完整初始化（Week 1）
 
-#### ✅ Feature 1.1.1 - OAuth Google 登入（Backend + Frontend + Mobile）
+#### 🔴 Feature 1.0.1 - Backend 基礎設施設定
 
 | 欄位 | 內容 |
 |------|------|
 | **狀態** | 🔴 待開始 |
+| **優先級** | P0（Critical - 阻止所有功能） |
+| **負責** | Architect + Backend |
+| **SDD 參考** | backend.md、database.md |
+| **預期完成日期** | 2025-01-02 |
+
+**子任務分解**：
+1. **Prisma 初始化與 Schema 設計**（Backend）- 2 小時
+   - 建立 `/backend/prisma/schema.prisma`
+   - 定義 Better Auth 所需 tables（User, Session, Account, Verification）
+   - 定義業務 tables（Friendship, Conversation, ConversationParticipant, Message, MessageStatus）
+   - 執行初始 migration：`bun prisma migrate dev --name init`
+   - 建立 seed data（測試用戶）
+   - **🔔 Commit Checkpoint**: `[chore] setup Prisma schema with Better Auth integration`
+
+2. **Redis 設定**（Backend）- 1 小時
+   - 建立 `/backend/src/lib/redis.ts`
+   - 設定 Redis client 連線
+   - 測試連線成功
+   - 文件化使用方式（online status, unread count, socket mapping）
+   - **🔔 Commit Checkpoint**: `[feat] setup Redis client and connection`
+
+3. **Better Auth 整合**（Backend）- 2 小時
+   - 建立 `/backend/src/lib/auth.ts`
+   - 設定 OAuth providers（Google, GitHub, Apple）環境變數範本
+   - 整合 Prisma adapter
+   - 建立 auth middleware (`/backend/src/middleware.ts`)
+   - 測試 session 驗證流程
+   - **🔔 Commit Checkpoint**: `[feat] integrate Better Auth with OAuth providers`
+
+4. **GraphQL Yoga 設定**（Backend）- 1.5 小時
+   - 建立 `/backend/src/graphql/schema.ts`（基礎 schema）
+   - 設定 GraphQL Yoga server
+   - 整合 auth middleware（從 cookie 注入 userId）
+   - 建立範例 query `me` 測試認證
+   - **🔔 Commit Checkpoint**: `[feat] setup GraphQL Yoga with auth middleware`
+
+5. **Socket.io 設定**（Backend）- 1.5 小時
+   - 建立 `/backend/src/socket/index.ts`
+   - 設定 Socket.io server with auth
+   - 建立基礎 connection/disconnect handlers
+   - 測試 WebSocket 連線
+   - **🔔 Commit Checkpoint**: `[feat] setup Socket.io server with authentication`
+
+**當前狀況**：
+- ✅ Bun + Hono 基礎 server 已建立
+- ⏳ Prisma、Redis、Better Auth、GraphQL、Socket.io 待設定
+- **產出**：完整可運行的 backend 基礎設施
+
+---
+
+#### 🔲 Feature 1.0.2 - Frontend (Web) 基礎設施設定
+
+| 欄位 | 內容 |
+|------|------|
+| **狀態** | 🔲 待開始 |
+| **優先級** | P0 |
+| **負責** | Full-Stack Frontend |
+| **SDD 參考** | frontend.md |
+| **依賴** | Feature 1.0.1（需要 GraphQL endpoint） |
+| **預期完成日期** | 2025-01-02 |
+
+**子任務分解**：
+1. **Apollo Client 設定**（2 小時）
+   - 建立 `/frontend/src/lib/apollo.ts`
+   - 設定 HTTP link + WebSocket link（for subscriptions）
+   - 配置 InMemoryCache
+   - 整合 Better Auth session（credentials: 'include'）
+   - 建立 Apollo Provider 在 root layout
+
+2. **Socket.io Client 設定**（1 小時）
+   - 建立 `/frontend/src/lib/socket.ts`
+   - 設定 Socket.io client with auth
+   - 建立 useSocket hook
+
+3. **Better Auth Client 設定**（1 小時）
+   - 安裝 `@better-auth/react`
+   - 建立 Better Auth provider
+   - 測試 OAuth 流程（僅前端部分）
+
+**產出**：Web 前端可連接 Backend API
+
+---
+
+#### 🔲 Feature 1.0.3 - Mobile 基礎設施設定
+
+| 欄位 | 內容 |
+|------|------|
+| **狀態** | 🔲 待開始 |
+| **優先級** | P0 |
+| **負責** | Full-Stack Frontend |
+| **SDD 參考** | mobile.md |
+| **依賴** | Feature 1.0.1（需要 GraphQL endpoint） |
+| **預期完成日期** | 2025-01-03 |
+
+**子任務分解**：
+1. **NativeWind 設定**（1 小時）
+   - 安裝 `nativewind` 和相關依賴
+   - 配置 `tailwind.config.js`
+   - 設定 `babel.config.js`
+   - 測試 Tailwind classes 運作正常
+
+2. **Apollo Client 設定（Expo 適配）**（1.5 小時）
+   - 建立 `/mobile/src/lib/apollo.ts`
+   - 設定 HTTP link（Expo 環境）
+   - 配置 InMemoryCache
+   - 整合 Better Auth session
+
+3. **Socket.io Client 設定**（1 小時）
+   - 建立 `/mobile/src/lib/socket.ts`
+   - 設定 Socket.io client（Expo 環境）
+   - 建立 useSocket hook
+
+4. **Better Auth Expo 設定**（1.5 小時）
+   - 安裝 `@better-auth/expo`
+   - 配置 Deep Linking (`app.config.ts`)
+   - 設定 OAuth redirect URIs
+   - 建立 Better Auth provider
+
+**產出**：Mobile 前端可連接 Backend API + NativeWind 正常運作
+
+---
+
+#### 🔲 Feature 1.0.4 - 測試框架設定
+
+| 欄位 | 內容 |
+|------|------|
+| **狀態** | 🔲 待開始 |
+| **優先級** | P0 |
+| **負責** | Architect + Backend + Full-Stack Frontend |
+| **預期完成日期** | 2025-01-03 |
+
+**子任務分解**：
+1. **Backend 測試框架**（Backend）- 1.5 小時
+   - 設定 Bun test（內建測試）
+   - 建立測試 helpers (`/backend/tests/setup.ts`)
+   - 建立測試 database 配置
+   - 範例測試：測試 Prisma 連線
+
+2. **Frontend 測試框架**（Full-Stack Frontend）- 1.5 小時
+   - 設定 Vitest + React Testing Library
+   - 建立測試 setup
+   - 範例測試：測試 Apollo provider
+
+3. **Mobile 測試框架**（Full-Stack Frontend）- 2 小時
+   - 設定 Jest + React Native Testing Library
+   - 設定 Detox E2E（基礎配置）
+   - 範例測試：測試基本渲染
+
+**產出**：所有三個平台測試框架就緒，可開始 TDD
+
+---
+
+### Phase 1.1：認證系統（Week 1-2）
+
+#### 🔴 Feature 1.1.1 - OAuth Google 登入（Backend + Frontend + Mobile）
+
+| 欄位 | 內容 |
+|------|------|
+| **狀態** | 🔲 待開始（等待 Phase 1.0 完成） |
 | **優先級** | P0（阻止其他功能） |
-| **負責** | Backend + Frontend + Mobile + QA |
+| **負責** | Architect + Backend + Full-Stack Frontend |
 | **SDD 參考** | backend.md §III、frontend.md §II、mobile.md §III |
-| **預期完成日期** | 2025-01-05 |
+| **依賴** | Feature 1.0.1, 1.0.2, 1.0.3, 1.0.4 |
+| **預期完成日期** | 2025-01-06 |
 
-**子任務分解：**
+**子任務分解（3 Agents 配置）：**
 
-1. **QA Agent：寫測試 (RED)** - 預計 2 小時
-   - 檔案：`/backend/tests/integration/auth-oauth.spec.ts`
-   - 測試：
-     ```typescript
-     describe('Google OAuth Authentication', () => {
-       it('should exchange Google auth code for session', async () => {
-         // POST /graphql
-         // mutation { authenticateWithGoogle(code: "google_code_123") { user { id, email } } }
-         // 期望：201, user 物件帶 email
-       });
+1. **Architect Agent：撰寫測試規格 (RED)** - 預計 2 小時
+   - 產出：`/docs/architecture/Feature-1.1.1-TDD-Tests.md` ✅ 已完成
+   - 內容包括：
+     - Backend 測試規格（7+ 測試案例）
+       - 檔案位置：`/backend/tests/integration/auth-oauth.spec.ts`
+       - 涵蓋：成功驗證、無效 code、重複登入、session 儲存、空 code
+     - Frontend (Web) 測試規格（6+ 測試案例）
+       - 檔案位置：`/frontend/tests/integration/oauth-flow.spec.tsx`
+       - 涵蓋：按鈕點擊、導航、錯誤處理、loading 狀態、多 OAuth provider
+     - Frontend (Mobile) E2E 測試規格（6+ 測試案例）
+       - 檔案位置：`/mobile/tests/e2e/oauth-flow.e2e.ts`
+       - 涵蓋：按鈕顯示、瀏覽器開啟、deep link callback、錯誤處理
+   - Fixtures 與 mocks 定義
 
-       it('should return 401 for invalid code', async () => {
-         // 期望：401 InvalidOAuthCode
-       });
-     });
-     ```
-   - 檔案：`/frontend/tests/integration/oauth-flow.spec.tsx`
-   - 測試：
-     ```typescript
-     it('should call signIn.social when Google button clicked', async () => {
-       // render LoginScreen
-       // fireEvent.press(googleButton)
-       // expect(mockAuthClient.signIn.social).toHaveBeenCalledWith({ provider: 'google' })
-     });
-     ```
-   - 檔案：`/mobile/tests/e2e/oauth-flow.e2e.ts`
-   - 測試：Detox deep link handling
-
-2. **Backend Agent：實作 (GREEN)** - 預計 4 小時
+2. **Backend Agent：實作後端 (GREEN)** - 預計 5 小時
    - Resolver：`/backend/src/graphql/resolvers/auth.ts` - `authenticateWithGoogle` mutation
    - Service：`/backend/src/services/auth.ts` - OAuth 驗證邏輯
    - Middleware：Better Auth 設定在 `/backend/src/middleware.ts`
    - 執行測試直到綠燈
 
-3. **Frontend Agent：實作 (GREEN)** - 預計 3 小時
-   - Component：`/frontend/src/components/auth/LoginForm.tsx`
-   - Page：`/frontend/src/app/auth/page.tsx`
-   - 調用 Better Auth client
-   - 執行測試直到綠燈
+3. **Full-Stack Frontend Agent：實作前端 (GREEN)** - 預計 7 小時
+   - **Web 實作**（3 小時）：
+     - Component：`/frontend/src/components/auth/LoginForm.tsx`
+     - Page：`/frontend/src/app/auth/page.tsx`
+     - Better Auth client 整合
+     - 執行 Web 測試直到綠燈
+   - **Mobile 實作**（3 小時）：
+     - Screen：`/mobile/src/screens/auth/LoginScreen.tsx`
+     - Deep link 配置：`/mobile/app.config.ts`
+     - Better Auth Expo 整合
+     - 執行 Mobile E2E 測試直到綠燈
+   - **共享程式碼抽取**（1 小時）：
+     - 抽取共享 types：`/shared/types/auth.ts`
+     - 抽取共享 hooks（如有）：`/shared/hooks/useOAuth.ts`
+     - 確保所有測試仍綠燈
 
-4. **Mobile Agent：實作 (GREEN)** - 預計 3 小時
-   - Screen：`/mobile/src/screens/auth/LoginScreen.tsx`
-   - Deep link 配置：`/mobile/app.config.ts`
-   - 執行測試直到綠燈
+4. **All Agents：Refactor & Review** - 預計 1 小時
+   - Architect：Code review 所有 PR
+   - Backend + Frontend：Refactor 重複程式碼
+   - 確保所有測試綠燈
+   - 更新 `MULTI_AGENT_PLAN.md` 狀態為 ✅ Done
 
-5. **Refactor** - 預計 1 小時
-   - 抽取共享 hooks（如 `useOAuthLogin`）到 `/shared/hooks/`
-   - 確保測試仍綠燈
-   - 更新狀態為 ✅ Done
-
-**當前狀況：**
-- 設計文件：✅ 完成（overview.md、backend.md 已定義）
-- 測試文件：⏳ 待 QA Agent 撰寫
-- 實作：⏳ 等待測試完成
+**當前狀況（3 Agents 配置）：**
+- 設計文件：✅ 完成（overview.md、backend.md、frontend.md、mobile.md 已定義）
+- 測試規格：✅ 完成（Feature-1.1.1-TDD-Tests.md 已撰寫）
+- Backend 實作：⏳ 待 Backend Agent 開始
+- Frontend 實作：⏳ 待 Full-Stack Frontend Agent 開始
 - 預期完成：2025-01-05
+
+**Agent 配置說明**：
+- **3 Agents 模式**：Architect (兼測試規格設計) + Backend + Full-Stack Frontend
+- 優勢：協調成本低、Web/Mobile 共享程式碼更統一、適合 MVP 快速迭代
+- Full-Stack Frontend Agent 負責 Web + Mobile 雙平台開發，優先建立共享邏輯
 
 **備註：** 此 feature 是後續所有功能的基礎，務必確保 100% 測試覆蓋。
 
@@ -166,18 +324,41 @@
 ## 二、當前衝刺（Sprint）
 
 ### 衝刺目標
-完成 Feature 1.1.1（Google OAuth 登入）的所有層級實作。
+**Week 1 (2025-01-01 ~ 2025-01-03)**: 完成 Phase 1.0 基礎設施完整初始化
 
-### 開發分工
+### 開發分工（3 Agents 配置）
+
+#### Sprint 1: Phase 1.0 基礎設施初始化
 
 | Agent | 分配任務 | 預計時間 | 狀態 |
 |-------|---------|---------|------|
-| **Architect** | 檢視 SDD 完整性，準備答疑 | 0.5 小時 | ✅ |
-| **QA** | 撰寫 auth-oauth.spec.ts 與 oauth-flow.spec.tsx | 2 小時 | ⏳ |
-| **Backend** | 實作 resolver + service | 4 小時 | ⏳ |
-| **Frontend** | 實作 LoginForm + page | 3 小時 | ⏳ |
-| **Mobile** | 實作 LoginScreen + deep link | 3 小時 | ⏳ |
-| **All** | Refactor + merge | 1 小時 | ⏳ |
+| **Architect** | 1. 檢視並完善 Prisma schema 設計<br>2. 審查 Better Auth 整合方案<br>3. 審查 Feature 1.0.4 測試框架設定 | 2 小時 | 🔴 |
+| **Backend** | **Feature 1.0.1**: <br>1. Prisma schema + migrations<br>2. Redis 設定<br>3. Better Auth 整合<br>4. GraphQL Yoga 設定<br>5. Socket.io 設定<br>**Feature 1.0.4 (Backend)**: 測試框架 | 9.5 小時 | 🔴 |
+| **Full-Stack Frontend** | **Feature 1.0.2**: Web 基礎設施（Apollo + Socket.io + Better Auth）<br>**Feature 1.0.3**: Mobile 基礎設施（NativeWind + Apollo + Socket.io + Better Auth）<br>**Feature 1.0.4 (Frontend)**: 測試框架 | 11 小時 | 🔴 |
+
+**總計**：約 22.5 小時（約 3 個工作日）
+
+**完成標準**：
+- ✅ Backend 可啟動並連接 PostgreSQL + Redis
+- ✅ GraphQL endpoint 可訪問（`http://localhost:3000/graphql`）
+- ✅ Socket.io 可連接（`ws://localhost:3000`）
+- ✅ Web 可連接 GraphQL 並執行簡單 query
+- ✅ Mobile 可連接 GraphQL 並執行簡單 query
+- ✅ NativeWind 在 Mobile 正常運作
+- ✅ 測試框架在三個平台都可運行
+
+---
+
+#### Sprint 2: Feature 1.1.1 OAuth 登入（計畫於 2025-01-04 開始）
+
+| Agent | 分配任務 | 預計時間 | 狀態 |
+|-------|---------|---------|------|
+| **Architect** | 1. 檢視測試規格完整性<br>2. 答疑與 code review | 2 小時 | 🔲 |
+| **Backend** | 1. 讀取測試規格<br>2. 實作 resolver + service<br>3. 通過所有後端測試 | 5 小時 | 🔲 |
+| **Full-Stack Frontend** | 1. 讀取測試規格<br>2. 實作 Web + Mobile OAuth UI<br>3. 抽取共享程式碼<br>4. 通過所有測試 | 7 小時 | 🔲 |
+| **All** | Refactor + code review + merge | 1 小時 | 🔲 |
+
+**總計**：約 15 小時（約 2 個工作日）
 
 ---
 
@@ -216,6 +397,8 @@
 - [ ] Architect 檢視 MULTI_AGENT_PLAN.md，確認優先級
 - [ ] 各 agent 讀取計畫，確認自己的任務與依賴
 - [ ] 測試執行結果回報在對應 feature 旁
+- [ ] 更新 feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成）
+- [ ] **每完成一個子任務，提醒使用者 commit**
 
 ### 每週五（Weekly Sync）
 - [ ] 審視本週完成情況，更新狀態
@@ -233,8 +416,11 @@
 
 | 風險 | 影響 | Mitigation |
 |------|------|-----------|
-| Better Auth OAuth 流程複雜性 | 認證層可能遇冷 | QA 提早寫測試，確保邊界條件 |
-| Web + Mobile Socket.io 不同步 | 實時通訊不可靠 | 優先完成 Feature 1.3.2，充分測試 |
+| **Phase 1.0 基礎設施配置錯誤** | 後續所有功能受阻 | Architect 仔細審查每個設定，建立驗證清單，每個 Feature 完成後測試 |
+| **NativeWind 設定問題** | Mobile UI 無法正常顯示 | Feature 1.0.3 優先測試 NativeWind，確保 Tailwind classes 正常運作 |
+| **Better Auth + Prisma 整合問題** | 認證層崩潰 | Feature 1.0.1 建立最小化測試，確認 session 正確儲存到 DB |
+| Better Auth OAuth 流程複雜性 | 認證層可能遇冷 | 先完成 Feature 1.0.1 確保 Better Auth 基礎正確 |
+| Web + Mobile Socket.io 不同步 | 實時通訊不可靠 | Feature 1.0.1 完成後立即測試 Socket.io 連線 |
 | PostgreSQL 初期設定錯誤 | 資料一致性 | Architect 預先驗證 schema.prisma，Prisma migration dry-run |
 | 圖片壓縮效能 | 行動網路卡頓 | Feature 1.4.1 前進行 PoC 測試 |
 
@@ -263,8 +449,9 @@
 
 ---
 
-**最後更新**：2025-12-29  
-**下次計畫更新**：2025-12-30 09:00
+**最後更新**：2025-12-30
+**下次計畫更新**：2025-12-31 09:00
+**當前 Sprint**：Sprint 1 - Phase 1.0 基礎設施初始化
 
 ---
 

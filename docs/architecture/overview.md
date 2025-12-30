@@ -26,7 +26,7 @@
                               |
                               v
 
-                          [Backend Server (Hono + Node.js)]
+                          [Backend Server (Hono + Bun 1.3.5)]
                           - Better Auth Handler (/api/auth/*)
                           - GraphQL Yoga (/graphql)
                           - Socket.io (/socket.io)
@@ -74,7 +74,7 @@
 - 邊界：同 Web，使用相同 Apollo + Socket.io client，認證用 @better-auth/expo
 - 特殊：背景/前景切換時管理 Socket 連線、expo-secure-store 儲存 session
 
-### 3.3 Backend (Hono on Node.js)
+### 3.3 Backend (Hono on Bun)
 - 職責：
   - Better Auth 整合（OAuth + Session 管理）
   - GraphQL Yoga Resolver（業務邏輯）

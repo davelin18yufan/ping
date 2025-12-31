@@ -75,14 +75,14 @@
 
 #### 1.2 GraphQL 基礎
 - [ ] **GraphQL Server 設定**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: GraphQL Yoga 設定、Context、Error handling
   - 狀態: 待規格化
   - 優先度: P0
   - 依賴: Better Auth 整合
 
 - [ ] **基本 Schema 定義**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: User、Friendship、Conversation、Message types
   - 狀態: 待規格化
   - 優先度: P0
@@ -90,14 +90,14 @@
 
 #### 1.3 WebSocket 基礎
 - [ ] **Socket.io 設定**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: Socket.io server、認證、事件架構
   - 狀態: 待規格化
   - 優先度: P0
   - 依賴: Better Auth 整合
 
 - [ ] **Redis 整合**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: Redis client、快取策略、Pub/Sub
   - 狀態: 待規格化
   - 優先度: P0
@@ -119,7 +119,7 @@
   - **包含**: Backend GraphQL mutation + Web 登入頁面 + Mobile 登入畫面
 
 - [ ] **Session 管理**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: Session 建立、驗證、登出
   - 狀態: 待規格化
   - 優先度: P0
@@ -127,7 +127,7 @@
   - 測試案例: 10
 
 - [ ] **Magic Link (可選)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: Email 發送、連結驗證、過期處理
   - 狀態: 待規格化
   - 優先度: P2 (Nice to have)
@@ -135,7 +135,7 @@
 
 #### 2.2 用戶資料管理
 - [ ] **查詢用戶資料 (me query)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 取得當前用戶資料
   - 狀態: 待規格化
   - 優先度: P0
@@ -143,7 +143,7 @@
   - 測試案例: 5
 
 - [ ] **更新個人資料 (updateProfile)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 更新 displayName、驗證
   - 狀態: 待規格化
   - 優先度: P1
@@ -151,7 +151,7 @@
   - 測試案例: 8
 
 - [ ] **上傳頭像 (uploadAvatar)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 圖片上傳、壓縮、儲存
   - 狀態: 待規格化
   - 優先度: P1
@@ -159,7 +159,7 @@
   - 測試案例: 10
 
 - [ ] **搜尋用戶 (searchUsers)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 依 displayName/email 搜尋
   - 狀態: 待規格化
   - 優先度: P1
@@ -172,7 +172,7 @@
 
 #### 3.1 好友邀請
 - [ ] **發送好友邀請 (sendFriendRequest)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 建立邀請、驗證、通知
   - 狀態: 待規格化
   - 優先度: P0
@@ -181,7 +181,7 @@
   - 範例: 已有完整範例 (EXAMPLE_WALKTHROUGH.md)
 
 - [ ] **接受好友邀請 (acceptFriendRequest)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 更新狀態、雙向通知
   - 狀態: 待規格化
   - 優先度: P0
@@ -189,7 +189,7 @@
   - 測試案例: 12
 
 - [ ] **拒絕好友邀請 (rejectFriendRequest)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 更新狀態、通知
   - 狀態: 待規格化
   - 優先度: P0
@@ -198,7 +198,7 @@
 
 #### 3.2 好友管理
 - [ ] **查詢好友列表 (friends query)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 取得 ACCEPTED 狀態的好友、在線狀態
   - 狀態: 待規格化
   - 優先度: P0
@@ -206,7 +206,7 @@
   - 測試案例: 8
 
 - [ ] **查詢待處理邀請 (pendingFriendRequests)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 取得收到的 PENDING 邀請
   - 狀態: 待規格化
   - 優先度: P0
@@ -214,7 +214,7 @@
   - 測試案例: 6
 
 - [ ] **查詢已發送邀請 (sentFriendRequests)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 取得自己發出的 PENDING 邀請
   - 狀態: 待規格化
   - 優先度: P1
@@ -222,7 +222,7 @@
   - 測試案例: 5
 
 - [ ] **移除好友 (removeFriend)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 刪除好友關係、通知
   - 狀態: 待規格化
   - 優先度: P1
@@ -235,7 +235,7 @@
 
 #### 4.1 對話管理
 - [ ] **建立或取得對話 (getOrCreateConversation)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 一對一對話建立、去重
   - 狀態: 待規格化
   - 優先度: P0
@@ -243,7 +243,7 @@
   - 測試案例: 10
 
 - [ ] **查詢對話列表 (conversations)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 取得用戶所有對話、排序、未讀計數
   - 狀態: 待規格化
   - 優先度: P0
@@ -251,7 +251,7 @@
   - 測試案例: 8
 
 - [ ] **查詢單一對話 (conversation)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 取得對話詳細資料
   - 狀態: 待規格化
   - 優先度: P0
@@ -259,7 +259,7 @@
   - 測試案例: 5
 
 - [ ] **刪除對話 (deleteConversation)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 軟刪除對話（實際是退出）
   - 狀態: 待規格化
   - 優先度: P1
@@ -268,7 +268,7 @@
 
 #### 4.2 訊息管理
 - [ ] **發送文字訊息 (sendMessage)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 建立訊息、即時推送、狀態更新
   - 狀態: 待規格化
   - 優先度: P0
@@ -276,7 +276,7 @@
   - 測試案例: 15
 
 - [ ] **發送圖片訊息 (sendImageMessage)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 上傳圖片、建立訊息、推送
   - 狀態: 待規格化
   - 優先度: P0
@@ -284,7 +284,7 @@
   - 測試案例: 12
 
 - [ ] **查詢訊息歷史 (messages)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 游標分頁、時間排序
   - 狀態: 待規格化
   - 優先度: P0
@@ -292,7 +292,7 @@
   - 測試案例: 10
 
 - [ ] **標記訊息已讀 (markMessagesAsRead)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 批量更新狀態、推送更新
   - 狀態: 待規格化
   - 優先度: P0
@@ -305,7 +305,7 @@
 
 #### 5.1 在線狀態
 - [ ] **在線狀態追蹤**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: Redis 追蹤、心跳機制、離線偵測
   - 狀態: 待規格化
   - 優先度: P0
@@ -313,7 +313,7 @@
   - 測試案例: 12
 
 - [ ] **在線狀態廣播 (userOnlineStatusChanged)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: WebSocket 事件、訂閱管理
   - 狀態: 待規格化
   - 優先度: P0
@@ -322,7 +322,7 @@
 
 #### 5.2 輸入提示
 - [ ] **輸入狀態追蹤 (typing_start/stop)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: Redis TTL、去抖動
   - 狀態: 待規格化
   - 優先度: P1
@@ -330,7 +330,7 @@
   - 測試案例: 10
 
 - [ ] **輸入提示廣播 (typingStatusChanged)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 對話內廣播、防濫用
   - 狀態: 待規格化
   - 優先度: P1
@@ -339,7 +339,7 @@
 
 #### 5.3 訊息狀態同步
 - [ ] **訊息狀態更新 (messageStatusUpdated)**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: SENT → DELIVERED → READ 同步
   - 狀態: 待規格化
   - 優先度: P0
@@ -369,28 +369,28 @@
   - 測試: `/frontend/tests/integration/oauth-flow.spec.tsx`
 
 - [ ] **對話列表頁面**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Fullstack Frontend Developer → Architect (Review)
   - 任務: 對話列表、未讀徽章、即時更新
   - 狀態: 待規格化
   - 優先度: P0
   - 依賴: 登入頁面
 
 - [ ] **聊天室頁面**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Fullstack Frontend Developer → Architect (Review)
   - 任務: 訊息顯示、發送、無限滾動
   - 狀態: 待規格化
   - 優先度: P0
   - 依賴: 對話列表頁面
 
 - [ ] **好友管理頁面**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Fullstack Frontend Developer → Architect (Review)
   - 任務: 好友列表、邀請管理、搜尋
   - 狀態: 待規格化
   - 優先度: P0
   - 依賴: 登入頁面
 
 - [ ] **個人資料頁面**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Fullstack Frontend Developer → Architect (Review)
   - 任務: 資料顯示、編輯、頭像上傳
   - 狀態: 待規格化
   - 優先度: P1
@@ -415,21 +415,21 @@
   - 測試: `/mobile/tests/e2e/oauth-flow.e2e.ts`
 
 - [ ] **對話列表畫面**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Fullstack Frontend Developer → Architect (Review)
   - 任務: FlatList、下拉刷新
   - 狀態: 待規格化
   - 優先度: P1
   - 依賴: 登入畫面
 
 - [ ] **聊天室畫面**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Fullstack Frontend Developer → Architect (Review)
   - 任務: 反向列表、鍵盤處理
   - 狀態: 待規格化
   - 優先度: P1
   - 依賴: 對話列表畫面
 
 - [ ] **好友管理畫面**
-  - Agent: Spec → Test → Impl → Review
+  - Agent: Architect → Fullstack Frontend Developer → Architect (Review)
   - 任務: 同 Web 功能
   - 狀態: 待規格化
   - 優先度: P1
@@ -505,25 +505,22 @@ E2E Tests: 目標涵蓋主要流程
 
 ## 📋 當前任務分配
 
-### Specification Agent
-**當前任務**: 分析階段 1 所有功能的規格
-**進度**: 0/8
-**預計完成**: Week 1 Day 2
+### Architect Agent
+**當前任務**: 完成 Feature 1.1.1 的設計與測試規格（已完成 ✅），準備下一個功能的規格設計
+**進度**: Feature 1.1.1 測試規格已完成
+**下一步**: 監督 Backend 和 Frontend 實作，準備 Feature 1.2 規格
 
-### Test Agent
-**當前任務**: 等待規格完成
-**進度**: 待命
-**預計開始**: Week 1 Day 2
+### Backend Developer
+**當前任務**: 等待開始 Feature 1.1.1 實作（GREEN Phase）
+**進度**: 待命，測試規格已就緒
+**預計開始**: 即將開始（測試規格已完成）
+**負責範圍**: `/backend/**`（Prisma schema、GraphQL resolvers、Better Auth 配置）
 
-### Implementation Agent
-**當前任務**: 等待測試案例
-**進度**: 待命
-**預計開始**: Week 1 Day 3
-
-### Review Agent
-**當前任務**: 等待實作完成
-**進度**: 待命
-**預計開始**: Week 1 Day 4
+### Fullstack Frontend Developer
+**當前任務**: 等待開始 Feature 1.1.1 實作（GREEN Phase）
+**進度**: 待命，測試規格已就緒
+**預計開始**: 可與 Backend 並行開始
+**負責範圍**: `/frontend/**`（Web）、`/mobile/**`（Mobile）、`/shared/**`（共享程式碼）
 
 ---
 
@@ -554,8 +551,10 @@ E2E Tests: 目標涵蓋主要流程
 3. 下週開始階段 1 開發
 
 **行動項目**:
-- [ ] 所有 Agent 閱讀協作流程文件
-- [ ] Specification Agent 準備階段 1 規格分析
+- [x] 所有 Agent 閱讀協作流程文件 ✅
+- [x] Architect Agent 完成 Feature 1.1.1 規格設計與測試規格 ✅
+- [ ] Backend Developer 開始 Feature 1.1.1 實作
+- [ ] Fullstack Frontend Developer 開始 Feature 1.1.1 實作
 
 ---
 

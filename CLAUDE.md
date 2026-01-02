@@ -20,6 +20,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 **重要提醒**：
 - Mobile 開發**必須使用 NativeWind**（Tailwind CSS for React Native），不使用 `StyleSheet.create`
 - Web 和 Mobile 使用相同的 Tailwind class names，提高程式碼共享度
+- 開發要遵循經典的 git flow，不要互相汙染影響
 
 ---
 

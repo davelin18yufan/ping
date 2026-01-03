@@ -35,13 +35,25 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
    ↓
 3. 撰寫測試規格文件（Feature-X.X.X-TDD-Tests.md）
    ↓
-4. 分配給 Backend Developer / Fullstack Frontend Developer 開發
+4. 建立功能分支（feature/X.X.X-feature-name）
    ↓
-5. 執行測試檢查（確保全部通過 ✅）
+5. 分配給 Backend Developer / Fullstack Frontend Developer 開發
    ↓
-6. 通過 → Architect 更新 task-board.md
+6. Developer 在分支上實作並通過測試
    ↓
-7. 回到步驟 1（下一個功能）
+7. 執行測試檢查（確保全部通過 ✅）
+   ↓
+8. Developer 提交 Pull Request
+   ↓
+9. Architect Review PR（檢查規格符合度、測試覆蓋率、程式碼品質）
+   ↓
+10. Review 通過 → Architect Merge PR
+    ↓
+11. Architect 更新 task-board.md（標記完成）
+    ↓
+12. 刪除功能分支
+    ↓
+13. 回到步驟 1（下一個功能）
 ```
 
 ### 各階段詳細說明

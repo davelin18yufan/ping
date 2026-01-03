@@ -1,0 +1,176 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================
+// Better Auth Tables
+// ============================================
+
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  emailVerified DateTime?
+  name          String?
+  image         String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  accounts                 Account[]
+  sessions                 Session[]
+  sentMessages             Message[]
+  messageStatuses          MessageStatus[]
+  friendshipsAsUser1       Friendship[]              @relation("FriendshipUser1")
+  friendshipsAsUser2       Friendship[]              @relation("FriendshipUser2")
+  friendshipsRequested     Friendship[]              @relation("FriendshipRequester")
+  conversationParticipants ConversationParticipant[]
+}
+
+model Account {
+  id                String  @id @default(uuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+}
+
+model Session {
+  id           String   @id @default(uuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model Verification {
+  id         String   @id @default(uuid())
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ============================================
+// Business Tables
+// ============================================
+
+// Friendship Management
+model Friendship {
+  id          String           @id @default(uuid())
+  userId1     String
+  userId2     String
+  status      FriendshipStatus @default(PENDING)
+  requestedBy String
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+
+  user1     User @relation("FriendshipUser1", fields: [userId1], references: [id], onDelete: Cascade)
+  user2     User @relation("FriendshipUser2", fields: [userId2], references: [id], onDelete: Cascade)
+  requester User @relation("FriendshipRequester", fields: [requestedBy], references: [id], onDelete: Cascade)
+
+  @@unique([userId1, userId2])
+  @@index([userId1, status])
+  @@index([userId2, status])
+}
+
+// Conversation Management
+model Conversation {
+  id        String           @id @default(uuid())
+  type      ConversationType @default(ONE_TO_ONE)
+  createdAt DateTime         @default(now())
+
+  participants ConversationParticipant[]
+  messages     Message[]
+}
+
+model ConversationParticipant {
+  id             String    @id @default(uuid())
+  conversationId String
+  userId         String
+  joinedAt       DateTime  @default(now())
+  lastReadAt     DateTime?
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([userId])
+}
+
+// Message Management
+model Message {
+  id             String      @id @default(uuid())
+  conversationId String
+  senderId       String
+  content        String?     @db.Text
+  messageType    MessageType @default(TEXT)
+  imageUrl       String?
+  createdAt      DateTime    @default(now())
+
+  conversation Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User            @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  statuses     MessageStatus[]
+
+  @@index([conversationId, createdAt(sort: Desc)])
+}
+
+model MessageStatus {
+  id        String            @id @default(uuid())
+  messageId String
+  userId    String
+  status    MessageStatusType @default(SENT)
+  updatedAt DateTime          @updatedAt
+
+  message Message @relation(fields: [messageId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([messageId, userId])
+  @@index([messageId])
+}
+
+// ============================================
+// Enums
+// ============================================
+
+enum FriendshipStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}
+
+enum ConversationType {
+  ONE_TO_ONE
+  GROUP
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+}
+
+enum MessageStatusType {
+  SENT
+  DELIVERED
+  READ
+}

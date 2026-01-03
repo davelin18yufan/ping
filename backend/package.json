@@ -3,10 +3,10 @@
   "type": "module",
   "scripts": {
     "dev": "bun run --hot src/index.ts",
-    "db:migrate": "prisma migrate dev",
-    "db:seed": "prisma db seed",
-    "db:studio": "prisma studio",
-    "db:generate": "prisma generate"
+    "db:migrate": "bunx --bun prisma migrate dev",
+    "db:seed": "bunx --bun prisma db seed",
+    "db:studio": "bunx --bun prisma studio",
+    "db:generate": "bunx --bun prisma generate"
   },
   "prisma": {
     "seed": "bun run prisma/seed.ts"

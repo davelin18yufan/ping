@@ -3,35 +3,35 @@ import { PrismaPg } from "@prisma/adapter-pg"
 
 const databaseUrl = process.env.DATABASE_URL
 if (!databaseUrl) {
-  throw new Error("DATABASE_URL environment variable is not defined")
+	throw new Error("DATABASE_URL environment variable is not defined")
 }
 
 const adapter = new PrismaPg({
-  connectionString: databaseUrl,
+	connectionString: databaseUrl,
 })
 
 const prisma = new PrismaClient({ adapter })
 
 async function testConnection() {
-  try {
-    console.log("🔍 Testing Prisma connection...")
+	try {
+		console.log("🔍 Testing Prisma connection...")
 
-    const users = await prisma.user.findMany()
+		const users = await prisma.user.findMany()
 
-    console.log("✅ Connection successful!")
-    console.log(`📊 Found ${users.length} users in database:`)
+		console.log("✅ Connection successful!")
+		console.log(`📊 Found ${users.length} users in database:`)
 
-    users.forEach((user, index) => {
-      console.log(`  ${index + 1}. ${user.name} (${user.email})`)
-    })
+		users.forEach((user, index) => {
+			console.log(`  ${index + 1}. ${user.name} (${user.email})`)
+		})
 
-    return true
-  } catch (error) {
-    console.error("❌ Connection failed:", error)
-    return false
-  } finally {
-    await prisma.$disconnect()
-  }
+		return true
+	} catch (error) {
+		console.error("❌ Connection failed:", error)
+		return false
+	} finally {
+		await prisma.$disconnect()
+	}
 }
 
 testConnection()

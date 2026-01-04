@@ -1,0 +1,33 @@
+{
+	"folders": [
+		{
+			"name": "Backend",
+			"path": "backend"
+		},
+		{
+			"name": "Frontend",
+			"path": "frontend"
+		},
+		{
+			"name": "Mobile",
+			"path": "mobile"
+		},
+		{
+			"name": "Docs",
+			"path": "docs"
+		}
+	],
+	"settings": {
+		// Global settings
+		"files.eol": "\n",
+		"files.exclude": {
+			"**/node_modules": true,
+			"**/dist": true,
+			"**/build": true,
+			"**/coverage": true
+		}
+	},
+	"extensions": {
+		"recommendations": ["oxc.oxc-vscode"]
+	}
+}

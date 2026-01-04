@@ -1,0 +1,46 @@
+{
+	// Global settings for monorepo
+	// Formatting is handled by each sub-project's .vscode/settings.json
+
+	// Disable global formatters (use sub-project configs)
+	"editor.formatOnSave": false,
+	"editor.defaultFormatter": null,
+
+	// Disable built-in formatters
+	"javascript.format.enable": false,
+	"typescript.format.enable": false,
+	"json.format.enable": false,
+
+	// Global editor settings
+	"editor.tabSize": 4,
+	"editor.insertSpaces": true,
+	"files.eol": "\n",
+	"files.trimTrailingWhitespace": true,
+	"files.insertFinalNewline": true,
+
+	// Disable ESLint extension (using Oxlint in sub-projects)
+	"eslint.enable": false,
+
+	// Files to exclude from explorer
+	"files.exclude": {
+		"**/node_modules": true,
+		"**/dist": true,
+		"**/build": true,
+		"**/coverage": true,
+		"**/generated": true,
+		"**/.next": true,
+		"**/.expo": true
+	},
+
+	// Search settings
+	"search.exclude": {
+		"**/node_modules": true,
+		"**/dist": true,
+		"**/build": true,
+		"**/coverage": true,
+		"**/generated": true,
+		"**/bun.lock": true,
+		"**/pnpm-lock.yaml": true,
+		"**/package-lock.json": true
+	}
+}

@@ -6,7 +6,8 @@
     "db:migrate": "bunx --bun prisma migrate dev",
     "db:seed": "bunx --bun prisma db seed",
     "db:studio": "bunx --bun prisma studio",
-    "db:generate": "bunx --bun prisma generate"
+    "db:generate": "bunx --bun prisma generate",
+    "test:redis": "bun run test-redis.ts"
   },
   "prisma": {
     "seed": "bun run prisma/seed.ts"
@@ -15,6 +16,7 @@
     "@prisma/adapter-pg": "^7.2.0",
     "@prisma/client": "^7.2.0",
     "hono": "^4.11.3",
+    "ioredis": "^5.8.2",
     "pg": "^8.16.3",
     "prisma": "^7.2.0"
   },

@@ -8,39 +8,43 @@
 
 ### Phase 1.0：基礎設施完整初始化（Week 1）
 
-#### 🔴 Feature 1.0.1 - Backend 基礎設施設定
+#### ⏳ Feature 1.0.1 - Backend 基礎設施設定
 
 | 欄位 | 內容 |
 |------|------|
-| **狀態** | 🔴 待開始 |
+| **狀態** | ⏳ 進行中（2/5 子任務完成） |
 | **優先級** | P0（Critical - 阻止所有功能） |
 | **負責** | Architect + Backend |
 | **SDD 參考** | backend.md、database.md |
-| **預期完成日期** | 2025-01-02 |
+| **預期完成日期** | 2025-01-05（已調整）|
 
 **子任務分解**：
-1. **Prisma 初始化與 Schema 設計**（Backend）- 2 小時
-   - 建立 `/backend/prisma/schema.prisma`
-   - 定義 Better Auth 所需 tables（User, Session, Account, Verification）
-   - 定義業務 tables（Friendship, Conversation, ConversationParticipant, Message, MessageStatus）
-   - 執行初始 migration：`bun prisma migrate dev --name init`
-   - 建立 seed data（測試用戶）
-   - **🔔 Commit Checkpoint**: `[chore] setup Prisma schema with Better Auth integration`
+1. **Prisma 初始化與 Schema 設計**（Backend）- 2 小時 ✅
+   - ✅ 建立 `/backend/prisma/schema.prisma`
+   - ✅ 定義 Better Auth 所需 tables（User, Session, Account, Verification）
+   - ✅ 定義業務 tables（Friendship, Conversation, ConversationParticipant, Message, MessageStatus）
+   - ✅ 執行初始 migration：`bun prisma migrate dev --name init`
+   - ✅ 建立 seed data（測試用戶）
+   - ✅ **Commit**: `f6f3c62 [chore] improve Prisma scripts and architect agent config`
+   - ✅ **PR #1 & #2**: Merged to main
 
-2. **Redis 設定**（Backend）- 1 小時
-   - 建立 `/backend/src/lib/redis.ts`
-   - 設定 Redis client 連線
-   - 測試連線成功
-   - 文件化使用方式（online status, unread count, socket mapping）
-   - **🔔 Commit Checkpoint**: `[feat] setup Redis client and connection`
+2. **Redis 設定**（Backend）- 1 小時 ✅
+   - ✅ 建立 `/backend/src/lib/redis.ts`（193 行，包含完整 helper functions）
+   - ✅ 設定 Redis client 連線（retry strategy, event handlers）
+   - ✅ 建立測試工具 `/backend/test-redis.ts`（6 個測試案例全部通過）
+   - ✅ 文件化使用方式（online status, unread count, socket mapping, typing indicators）
+   - ✅ **Commit**: `efb992e [feat] setup Redis client with comprehensive helper functions`
+   - ✅ **PR #3**: Merged to main (2025-01-04)
 
-3. **Better Auth 整合**（Backend）- 2 小時
+3. **Better Auth 整合**（Backend）- 2 小時 ⏳
+   - ✅ 測試規格文件已完成：`/docs/architecture/Feature-1.0.1-Subtask-3-TDD-Tests.md`
    - 建立 `/backend/src/lib/auth.ts`
    - 設定 OAuth providers（Google, GitHub, Apple）環境變數範本
    - 整合 Prisma adapter
    - 建立 auth middleware (`/backend/src/middleware.ts`)
-   - 測試 session 驗證流程
+   - 測試 session 驗證流程（11 個測試案例）
    - **🔔 Commit Checkpoint**: `[feat] integrate Better Auth with OAuth providers`
+   - **狀態**: 等待 Backend Agent 實作（GREEN Phase）
 
 4. **GraphQL Yoga 設定**（Backend）- 1.5 小時
    - 建立 `/backend/src/graphql/schema.ts`（基礎 schema）
@@ -58,8 +62,12 @@
 
 **當前狀況**：
 - ✅ Bun + Hono 基礎 server 已建立
-- ⏳ Prisma、Redis、Better Auth、GraphQL、Socket.io 待設定
+- ✅ Prisma Schema 已完成（PR #1, #2 已合併）
+- ✅ Redis 配置已完成（PR #3 已合併）
+- ⏳ Better Auth 整合進行中（測試規格撰寫中）
+- ⏳ GraphQL、Socket.io 待設定
 - **產出**：完整可運行的 backend 基礎設施
+- **完成度**: 40% (2/5 subtasks)
 
 ---
 

@@ -36,15 +36,24 @@
    - ✅ **Commit**: `efb992e [feat] setup Redis client with comprehensive helper functions`
    - ✅ **PR #3**: Merged to main (2025-01-04)
 
-3. **Better Auth 整合**（Backend）- 2 小時 ⏳
+3. **基礎建設及Better Auth 整合**（Backend）- 2 小時 ⏳
    - ✅ 測試規格文件已完成：`/docs/architecture/Feature-1.0.1-Subtask-3-TDD-Tests.md`
-   - 建立 `/backend/src/lib/auth.ts`
-   - 設定 OAuth providers（Google, GitHub, Apple）環境變數範本
-   - 整合 Prisma adapter
-   - 建立 auth middleware (`/backend/src/middleware.ts`)
-   - 測試 session 驗證流程（11 個測試案例）
-   - **🔔 Commit Checkpoint**: `[feat] integrate Better Auth with OAuth providers`
-   - **狀態**: 等待 Backend Agent 實作（GREEN Phase）
+   - ✅ 建立基礎設定檔 `tsconfig`, `oxlint`, `oxfmt`
+     - `.oxlintrc.json` - 嚴謹的 linting 規則（correctness: error, suspicious: warn）
+     - `.oxfmtrc.json` - 格式化規則（100 char, 2 space, semicolons）
+     - `tsconfig.json` - 完整的 TypeScript 配置（ES2024, strict mode, Bun 專用）
+   - ✅ 建立 CI/CD（GitHub Actions workflow）
+     - `.github/workflows/backend-ci.yml` - Lint + Format + Type Check jobs
+     - `package.json` - 新增 CI scripts（type-check, prisma:generate, prisma:migrate:deploy）
+     - `backend/README.md` - 完整的 CI/CD 使用文檔
+   - ⏳ 建立 `/backend/src/lib/auth.ts`（待實作）
+   - ⏳ 設定 OAuth providers（Google, GitHub, Apple）環境變數範本（待實作）
+   - ⏳ 整合 Prisma adapter（待實作）
+   - ⏳ 建立 auth middleware (`/backend/src/middleware.ts`)（待實作）
+   - ⏳ 測試 session 驗證流程（11 個測試案例）（待實作）
+   - **🔔 Commit Checkpoint 1**: `[chore] setup GitHub Actions CI/CD for Backend`（尚未提交）
+   - **🔔 Commit Checkpoint 2**: `[feat] integrate Better Auth with OAuth providers`（待實作）
+   - **狀態**: 基礎建設完成 50%，Better Auth 整合待開始（GREEN Phase）
 
 4. **GraphQL Yoga 設定**（Backend）- 1.5 小時
    - 建立 `/backend/src/graphql/schema.ts`（基礎 schema）
@@ -64,10 +73,11 @@
 - ✅ Bun + Hono 基礎 server 已建立
 - ✅ Prisma Schema 已完成（PR #1, #2 已合併）
 - ✅ Redis 配置已完成（PR #3 已合併）
-- ⏳ Better Auth 整合進行中（測試規格撰寫中）
+- ✅ 基礎建設完成 50%（Linter/Formatter/CI/CD 已配置）
+- ⏳ Better Auth 整合待開始（測試規格已完成，等待實作）
 - ⏳ GraphQL、Socket.io 待設定
 - **產出**：完整可運行的 backend 基礎設施
-- **完成度**: 40% (2/5 subtasks)
+- **完成度**: 50% (2.5/5 subtasks)
 
 ---
 
@@ -457,8 +467,8 @@
 
 ---
 
-**最後更新**：2025-12-30
-**下次計畫更新**：2025-12-31 09:00
+**最後更新**：2026-01-05
+**下次計畫更新**：2026-01-06 09:00
 **當前 Sprint**：Sprint 1 - Phase 1.0 基礎設施初始化
 
 ---

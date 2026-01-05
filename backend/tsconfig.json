@@ -37,9 +37,11 @@
         // Paths
         "baseUrl": ".",
         "paths": {
-            "@/*": ["src/*"]
+            "@/*": ["src/*"],
+            "@tests/*": ["tests/*"],
+            "@generated/*": ["generated/*"]
         }
     },
-    "include": ["src/**/*", "prisma/**/*", "*.ts"],
+    "include": ["src/**/*", "prisma/**/*", "tests/**/*", "*.ts"],
     "exclude": ["node_modules", "dist", "build", "generated"]
 }

@@ -7,6 +7,9 @@
         "db:seed": "bunx --bun prisma db seed",
         "db:studio": "bunx --bun prisma studio",
         "db:generate": "bunx --bun prisma generate",
+        "test": "bun test",
+        "test:watch": "bun test --watch",
+        "test:coverage": "bun test --coverage",
         "test:redis": "bun run test-redis.ts",
         "lint": "oxlint",
         "lint:fix": "oxlint --fix",
@@ -19,6 +22,7 @@
     "dependencies": {
         "@prisma/adapter-pg": "^7.2.0",
         "@prisma/client": "^7.2.0",
+        "better-auth": "^1.4.10",
         "hono": "^4.11.3",
         "ioredis": "^5.8.2",
         "pg": "^8.16.3",

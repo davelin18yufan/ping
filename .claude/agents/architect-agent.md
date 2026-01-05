@@ -1,7 +1,7 @@
 ---
 name: architect-agent
 description: System Design Document (SDD) architect and test specification designer for Ping messaging app. Code Review. Use PROACTIVELY for SDD maintenance, API contract definition, database schema design, test specification writing, and multi-agent coordination. Responsible for maintaining design consistency across backend, frontend, and mobile layers.
-tools: Read, Write, Edit, Bash, Glob, Grep
+tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, Skill, TodoWrite
 model: sonnet
 color: green
 ---

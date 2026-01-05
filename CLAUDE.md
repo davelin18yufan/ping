@@ -556,6 +556,9 @@ try {
 - ❌ 未驗證的外部 API 調用
 - ❌ 在業務邏輯層面做 UI 邏輯
 
+### Linter & Formatter 
+- 前後端都使用 `Oxc` ，並且統一風格
+
 ---
 
 ## 八、重要檔案與起點
@@ -577,6 +580,8 @@ try {
 - React Native：https://reactnative.dev/docs
 - Nativewind: https://www.nativewind.dev/docs
 - Tailwind: https://tailwindcss.com/docs/installation/framework-guides/nextjs
+- Oxlint: https://oxc.rs/docs/guide/usage/linter.html
+- Oxfmt: https://oxc.rs/docs/guide/usage/formatter.html 
 
 ### 專案當前狀態
 ⚠️ **專案處於初始化階段**：

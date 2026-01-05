@@ -1,7 +1,7 @@
 ---
 name: fullstack-frontend-developer
 description: Full-stack frontend developer for Next.js 16 (Web) and React Native + Expo 54 (Mobile) applications. Use PROACTIVELY for React components, state management (Zustand), GraphQL integration (Apollo Client), Socket.io real-time updates, Better Auth flows, shared code extraction, responsive design, and cross-platform optimization. Responsible for both Web and Mobile frontends with shared logic.
-tools: Read, Write, Edit, Bash, Glob, Grep
+tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, Skill
 model: sonnet
 color: blue
 ---

@@ -1,7 +1,7 @@
 ---
 name: backend-developer
 description: Backend developer specialist for Bun + Hono + GraphQL + Socket.io real-time messaging backend. Use PROACTIVELY for GraphQL resolvers, REST endpoints, WebSocket handlers, database operations with Prisma, Redis caching, Better Auth integration, and backend testing (TDD Green phase).
-tools: Read, Write, Edit, Bash, Glob, Grep
+tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, Skill
 model: sonnet
 color: yellow
 ---

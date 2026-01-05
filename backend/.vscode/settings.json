@@ -1,45 +1,50 @@
 {
-	"editor.codeActionsOnSave": {
-		"source.fixAll.oxc": "explicit",
-		"source.organizeImports": "explicit"
-	},
+    "editor.codeActionsOnSave": {
+        "source.fixAll.oxc": "explicit",
+        "source.organizeImports": "explicit"
+    },
 
-	// Enable format on save with Oxc
-	"editor.formatOnSave": true,
-	"editor.defaultFormatter": "oxc.oxc-vscode",
+    // Enable format on save with Oxc
+    "editor.formatOnSave": true,
+    "editor.defaultFormatter": "oxc.oxc-vscode",
 
-	// Oxc extension - use local binary
-	"oxc.enable": true,
-	"oxc.formatter.enable": true,
+    // Oxc extension - specify binary paths (Windows .exe)
+    "oxc.enable": true,
+    "oxc.path.oxlint": "${workspaceFolder}/node_modules/.bin/oxlint.exe",
+    "oxc.path.oxfmt": "${workspaceFolder}/node_modules/.bin/oxfmt.exe",
 
-	// Disable built-in formatters
-	"javascript.format.enable": false,
-	"typescript.format.enable": false,
-	"json.format.enable": false,
+    "oxc.fmt.configPath": "${workspaceFolder}/.oxfmtrc.json",
+    "oxc.configPath": "${workspaceFolder}/.oxlintrc.json",
+    "oxc.tsConfigPath": "${workspaceFolder}/tsconfig.json",
 
-	// Language-specific settings
-	"[typescript]": {
-		"editor.formatOnSave": true,
-		"editor.defaultFormatter": "oxc.oxc-vscode"
-	},
-	"[javascript]": {
-		"editor.formatOnSave": true,
-		"editor.defaultFormatter": "oxc.oxc-vscode"
-	},
-	"[json]": {
-		"editor.formatOnSave": true,
-		"editor.defaultFormatter": "oxc.oxc-vscode"
-	},
-	"[jsonc]": {
-		"editor.formatOnSave": true,
-		"editor.defaultFormatter": "oxc.oxc-vscode"
-	},
+    // Disable built-in formatters
+    "javascript.format.enable": false,
+    "typescript.format.enable": false,
+    "json.format.enable": false,
 
-	// Editor settings (matching .oxfmtrc.json)
-	"editor.tabSize": 4,
-	"editor.insertSpaces": true,
-	"files.eol": "\n",
+    // Language-specific settings
+    "[typescript]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "oxc.oxc-vscode"
+    },
+    "[javascript]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "oxc.oxc-vscode"
+    },
+    "[json]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "oxc.oxc-vscode"
+    },
+    "[jsonc]": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "oxc.oxc-vscode"
+    },
 
-	// Disable ESLint
-	"eslint.enable": false,
+    // Editor settings (matching .oxfmtrc.json)
+    "editor.tabSize": 4,
+    "editor.insertSpaces": true,
+    "files.eol": "\n",
+
+    // Disable ESLint
+    "eslint.enable": false
 }

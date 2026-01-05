@@ -1,34 +1,37 @@
 {
-	"name": "ping-server",
-	"type": "module",
-	"scripts": {
-		"dev": "bun run --hot src/index.ts",
-		"db:migrate": "bunx --bun prisma migrate dev",
-		"db:seed": "bunx --bun prisma db seed",
-		"db:studio": "bunx --bun prisma studio",
-		"db:generate": "bunx --bun prisma generate",
-		"test:redis": "bun run test-redis.ts",
-		"lint": "oxlint",
-		"lint:fix": "oxlint --fix",
-		"format": "oxfmt",
-		"format:check": "oxfmt --check"
-	},
-	"dependencies": {
-		"@prisma/adapter-pg": "^7.2.0",
-		"@prisma/client": "^7.2.0",
-		"hono": "^4.11.3",
-		"ioredis": "^5.8.2",
-		"pg": "^8.16.3",
-		"prisma": "^7.2.0"
-	},
-	"devDependencies": {
-		"@types/bun": "latest",
-		"@types/node": "^25.0.3",
-		"@types/pg": "^8.16.0",
-		"oxfmt": "^0.21.0",
-		"oxlint": "^1.36.0"
-	},
-	"prisma": {
-		"seed": "bun run prisma/seed.ts"
-	}
+    "name": "ping-server",
+    "type": "module",
+    "scripts": {
+        "dev": "bun run --hot src/index.ts",
+        "db:migrate": "bunx --bun prisma migrate dev",
+        "db:seed": "bunx --bun prisma db seed",
+        "db:studio": "bunx --bun prisma studio",
+        "db:generate": "bunx --bun prisma generate",
+        "test:redis": "bun run test-redis.ts",
+        "lint": "oxlint",
+        "lint:fix": "oxlint --fix",
+        "format": "oxfmt",
+        "format:check": "oxfmt --check",
+        "type-check": "bunx --bun tsc --noEmit",
+        "prisma:generate": "bunx --bun prisma generate",
+        "prisma:migrate:deploy": "bunx --bun prisma migrate deploy"
+    },
+    "dependencies": {
+        "@prisma/adapter-pg": "^7.2.0",
+        "@prisma/client": "^7.2.0",
+        "hono": "^4.11.3",
+        "ioredis": "^5.8.2",
+        "pg": "^8.16.3",
+        "prisma": "^7.2.0"
+    },
+    "devDependencies": {
+        "@types/bun": "latest",
+        "@types/node": "^25.0.3",
+        "@types/pg": "^8.16.0",
+        "oxfmt": "^0.21.0",
+        "oxlint": "^1.36.0"
+    },
+    "prisma": {
+        "seed": "bun run prisma/seed.ts"
+    }
 }

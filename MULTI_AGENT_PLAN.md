@@ -1,5 +1,6 @@
 # MULTI_AGENT_PLAN.md - 多 Agent 協作計畫面板
 
+> 由 `Architect agent` 負責維護
 > 這是團隊的「日常進度看板」，每天更新。所有 agent 都應先讀這份文件，了解當前狀態與優先級。
 
 ---
@@ -12,11 +13,11 @@
 
 | 欄位 | 內容 |
 |------|------|
-| **狀態** | ⏳ 進行中（2/5 子任務完成） |
+| **狀態** | ⏳ 進行中（3/5 子任務完成 - 70%） |
 | **優先級** | P0（Critical - 阻止所有功能） |
 | **負責** | Architect + Backend |
 | **SDD 參考** | backend.md、database.md |
-| **預期完成日期** | 2025-01-05（已調整）|
+| **預期完成日期** | 2026-01-06（調整 +1 天）|
 
 **子任務分解**：
 1. **Prisma 初始化與 Schema 設計**（Backend）- 2 小時 ✅
@@ -36,7 +37,7 @@
    - ✅ **Commit**: `efb992e [feat] setup Redis client with comprehensive helper functions`
    - ✅ **PR #3**: Merged to main (2025-01-04)
 
-3. **基礎建設及Better Auth 整合**（Backend）- 2 小時 ⏳
+3. **基礎建設及Better Auth 整合**（Backend）- 2 小時 ✅
    - ✅ 測試規格文件已完成：`/docs/architecture/Feature-1.0.1-Subtask-3-TDD-Tests.md`
    - ✅ 建立基礎設定檔 `tsconfig`, `oxlint`, `oxfmt`
      - `.oxlintrc.json` - 嚴謹的 linting 規則（correctness: error, suspicious: warn）
@@ -46,14 +47,17 @@
      - `.github/workflows/backend-ci.yml` - Lint + Format + Type Check jobs
      - `package.json` - 新增 CI scripts（type-check, prisma:generate, prisma:migrate:deploy）
      - `backend/README.md` - 完整的 CI/CD 使用文檔
-   - ⏳ 建立 `/backend/src/lib/auth.ts`（待實作）
-   - ⏳ 設定 OAuth providers（Google, GitHub, Apple）環境變數範本（待實作）
-   - ⏳ 整合 Prisma adapter（待實作）
-   - ⏳ 建立 auth middleware (`/backend/src/middleware.ts`)（待實作）
-   - ⏳ 測試 session 驗證流程（11 個測試案例）（待實作）
-   - **🔔 Commit Checkpoint 1**: `[chore] setup GitHub Actions CI/CD for Backend`（尚未提交）
-   - **🔔 Commit Checkpoint 2**: `[feat] integrate Better Auth with OAuth providers`（待實作）
-   - **狀態**: 基礎建設完成 50%，Better Auth 整合待開始（GREEN Phase）
+   - ✅ 建立 `/backend/src/lib/auth.ts`（OAuth providers 配置完成）
+   - ✅ 設定 OAuth providers（Google, GitHub, Apple）環境變數範本
+   - ✅ 整合 Prisma adapter（已整合並通過測試）
+   - ✅ 建立 auth middleware (`/backend/src/middleware.ts`)（session 驗證完成）
+   - ✅ 測試 session 驗證流程（11 個測試案例全部通過 ✅）
+   - ✅ 測試框架設定（Bun test + fixtures + setup）
+   - ✅ 測試覆蓋率：86.20% 函數 / 90.88% 行（超過 80% 目標）
+   - **🔔 Commit Checkpoint 1**: `b8a7eeb [refactor] improve Prisma initialization with factory pattern`（已提交）
+   - **🔔 Commit Checkpoint 2**: `eb197e1 [feat] integrate Better Auth with OAuth providers and add comprehensive tests`（已提交）
+   - **完成時間**: 2026-01-05
+   - **狀態**: ✅ 完成（GREEN Phase - 測試全通過，REFACTOR - 程式碼優化完成）
 
 4. **GraphQL Yoga 設定**（Backend）- 1.5 小時
    - 建立 `/backend/src/graphql/schema.ts`（基礎 schema）
@@ -73,11 +77,16 @@
 - ✅ Bun + Hono 基礎 server 已建立
 - ✅ Prisma Schema 已完成（PR #1, #2 已合併）
 - ✅ Redis 配置已完成（PR #3 已合併）
-- ✅ 基礎建設完成 50%（Linter/Formatter/CI/CD 已配置）
-- ⏳ Better Auth 整合待開始（測試規格已完成，等待實作）
-- ⏳ GraphQL、Socket.io 待設定
-- **產出**：完整可運行的 backend 基礎設施
-- **完成度**: 50% (2.5/5 subtasks)
+- ✅ 基礎建設完成 100%（Linter/Formatter/CI/CD 已配置）
+- ✅ Better Auth 整合完成（測試規格已完成，實作已通過 11 個測試）
+  - Commits: `b8a7eeb` (Prisma 重構) + `eb197e1` (Better Auth 整合)
+  - 測試覆蓋率：86.20% 函數 / 90.88% 行
+  - OAuth Providers: Google, GitHub, Apple 已配置
+  - Session Middleware: 已實作並通過驗證
+- ⏳ GraphQL Yoga 設定（下一步）
+- ⏳ Socket.io 設定（下一步）
+- **產出**：完整可運行的 backend 基礎設施（已完成 60%）
+- **完成度**: 70% (3.5/5 subtasks)
 
 ---
 
@@ -350,9 +359,9 @@
 
 | Agent | 分配任務 | 預計時間 | 狀態 |
 |-------|---------|---------|------|
-| **Architect** | 1. 檢視並完善 Prisma schema 設計<br>2. 審查 Better Auth 整合方案<br>3. 審查 Feature 1.0.4 測試框架設定 | 2 小時 | 🔴 |
-| **Backend** | **Feature 1.0.1**: <br>1. Prisma schema + migrations<br>2. Redis 設定<br>3. Better Auth 整合<br>4. GraphQL Yoga 設定<br>5. Socket.io 設定<br>**Feature 1.0.4 (Backend)**: 測試框架 | 9.5 小時 | 🔴 |
-| **Full-Stack Frontend** | **Feature 1.0.2**: Web 基礎設施（Apollo + Socket.io + Better Auth）<br>**Feature 1.0.3**: Mobile 基礎設施（NativeWind + Apollo + Socket.io + Better Auth）<br>**Feature 1.0.4 (Frontend)**: 測試框架 | 11 小時 | 🔴 |
+| **Architect** | 1. ✅ 檢視並完善 Prisma schema 設計<br>2. ✅ 審查 Better Auth 整合方案<br>3. ⏳ 準備 GraphQL Yoga 測試規格 | 2 小時 | ⏳ 70% 完成 |
+| **Backend** | **Feature 1.0.1**: <br>1. ✅ Prisma schema + migrations<br>2. ✅ Redis 設定<br>3. ✅ Better Auth 整合（11 測試通過）<br>4. ⏳ GraphQL Yoga 設定（下一步）<br>5. ⏳ Socket.io 設定（下一步）<br>**Feature 1.0.4 (Backend)**: ✅ 測試框架已設定 | 9.5 小時 | ⏳ 70% 完成 |
+| **Full-Stack Frontend** | **Feature 1.0.2**: Web 基礎設施（Apollo + Socket.io + Better Auth）<br>**Feature 1.0.3**: Mobile 基礎設施（NativeWind + Apollo + Socket.io + Better Auth）<br>**Feature 1.0.4 (Frontend)**: 測試框架 | 11 小時 | 🔴 待開始 |
 
 **總計**：約 22.5 小時（約 3 個工作日）
 
@@ -467,9 +476,13 @@
 
 ---
 
-**最後更新**：2026-01-05
+**最後更新**：2026-01-05 19:30
 **下次計畫更新**：2026-01-06 09:00
-**當前 Sprint**：Sprint 1 - Phase 1.0 基礎設施初始化
+**當前 Sprint**：Sprint 1 - Phase 1.0 基礎設施初始化（70% 完成）
+**最新進展**：Feature 1.0.1 Subtask 3 (Better Auth 整合) 完成 ✅
+  - Commits: `b8a7eeb` + `eb197e1`
+  - 測試覆蓋率：86.20% 函數 / 90.88% 行
+  - 11 個整合測試全部通過
 
 ---
 

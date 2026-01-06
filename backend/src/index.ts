@@ -17,6 +17,7 @@ import { withPrisma } from "./lib/prisma";
 import { sessionMiddleware, getAuthUserId } from "./middleware";
 import { schema } from "./graphql/schema";
 import { buildGraphQLContext } from "./graphql/context";
+import { initializeSocketIO } from "./socket";
 
 /**
  * App Context with Prisma and Auth
@@ -217,7 +218,60 @@ app.onError((err, c) => {
 });
 
 // ============================================================================
-// Server Export
+// Socket.io Initialization
 // ============================================================================
 
-export default app;
+/**
+ * Initialize Socket.io with Bun Engine
+ *
+ * Must be called before starting the server to enable WebSocket support.
+ */
+const { engine } = initializeSocketIO();
+
+// ============================================================================
+// Server Startup
+// ============================================================================
+
+/**
+ * Start server with Bun.serve
+ *
+ * Supports both HTTP (Hono) and WebSocket (Socket.io) connections.
+ */
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000;
+
+const server = Bun.serve({
+  port: PORT,
+  // Use Bun Engine handler configuration
+  ...engine.handler(),
+
+  /**
+   * HTTP request handler override
+   *
+   * Routes:
+   * - /socket.io/* -> Socket.io WebSocket handler (via engine.handleRequest)
+   * - All others -> Hono app
+   */
+  async fetch(request, server) {
+    const url = new URL(request.url);
+
+    // Route Socket.io requests to Bun Engine
+    if (url.pathname.startsWith("/socket.io/")) {
+      return engine.handleRequest(request, server);
+    }
+
+    // Route all other requests to Hono
+    return app.fetch(request);
+  },
+});
+
+console.log(`
+┌─────────────────────────────────────────────┐
+│  Ping Backend Server                        │
+├─────────────────────────────────────────────┤
+│  HTTP:       http://localhost:${PORT}      │
+│  GraphQL:    http://localhost:${PORT}/graphql │
+│  Socket.io:  ws://localhost:${PORT}/socket.io/ │
+└─────────────────────────────────────────────┘
+`);
+
+export default server;

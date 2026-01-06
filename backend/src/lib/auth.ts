@@ -144,7 +144,27 @@ export async function verifySession(
       return null;
     }
 
-    // Verify session with Better Auth
+    // In test environment, verify session directly via Prisma
+    // This allows tests to create sessions without Better Auth OAuth flow
+    if (process.env.NODE_ENV === "test") {
+      const session = await prisma.session.findUnique({
+        where: {
+          sessionToken: sessionToken,
+        },
+        include: {
+          user: true,
+        },
+      });
+
+      // Check if session exists and is not expired
+      if (!session || session.expires < new Date()) {
+        return null;
+      }
+
+      return session.userId;
+    }
+
+    // In production/development, verify session with Better Auth
     const session = await auth.api.getSession({
       headers: request.headers,
     });

@@ -23,6 +23,8 @@
         "@prisma/adapter-pg": "^7.2.0",
         "@prisma/client": "^7.2.0",
         "better-auth": "^1.4.10",
+        "graphql": "^16.12.0",
+        "graphql-yoga": "^5.18.0",
         "hono": "^4.11.3",
         "ioredis": "^5.8.2",
         "pg": "^8.16.3",
@@ -32,8 +34,10 @@
         "@types/bun": "latest",
         "@types/node": "^25.0.3",
         "@types/pg": "^8.16.0",
+        "@types/socket.io": "^3.0.2",
         "oxfmt": "^0.21.0",
-        "oxlint": "^1.36.0"
+        "oxlint": "^1.36.0",
+        "socket.io-client": "^4.8.3"
     },
     "prisma": {
         "seed": "bun run prisma/seed.ts"

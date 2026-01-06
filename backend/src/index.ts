@@ -10,10 +10,13 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import { createYoga } from "graphql-yoga";
 import type { PrismaClient } from "@generated/prisma/client";
 import { authHandler } from "./lib/auth";
 import { withPrisma } from "./lib/prisma";
 import { sessionMiddleware, getAuthUserId } from "./middleware";
+import { schema } from "./graphql/schema";
+import { buildGraphQLContext } from "./graphql/context";
 
 /**
  * App Context with Prisma and Auth
@@ -29,6 +32,29 @@ type AppContext = {
 };
 
 const app = new Hono<AppContext>();
+
+// ============================================================================
+// GraphQL Yoga Setup
+// ============================================================================
+
+/**
+ * GraphQL Yoga instance
+ *
+ * Configured with:
+ * - Custom schema with User queries
+ * - Context builder that extracts auth from Hono
+ * - CORS handled by Hono middleware
+ */
+const yoga = createYoga({
+  schema,
+  context: buildGraphQLContext,
+  // Let Hono handle CORS
+  cors: false,
+  // GraphiQL enabled in development
+  graphiql: process.env.NODE_ENV === "development",
+  // Logging
+  logging: process.env.NODE_ENV === "development" ? "debug" : "error",
+});
 
 // ============================================================================
 // Middleware Setup
@@ -126,12 +152,34 @@ app.get("/api/me", sessionMiddleware, (c) => {
 });
 
 // ============================================================================
-// GraphQL Routes (to be implemented)
+// GraphQL Routes
 // ============================================================================
 
-// TODO: Add GraphQL Yoga integration here
-// app.use('/graphql', sessionMiddleware);
-// app.all('/graphql', graphqlHandler);
+/**
+ * GraphQL endpoint at /graphql
+ *
+ * Protected by sessionMiddleware to inject userId into context.
+ * Supports both GET (GraphiQL) and POST (queries/mutations) requests.
+ *
+ * Available queries:
+ * - me: Get current authenticated user
+ */
+app.use("/graphql", sessionMiddleware);
+app.all("/graphql", async (c) => {
+  // Attach auth data to request for Yoga context builder
+  const request = c.req.raw as Request & {
+    _userId?: string | null;
+    _isAuthenticated?: boolean;
+    _prisma?: PrismaClient;
+  };
+
+  request._userId = c.get("userId");
+  request._isAuthenticated = c.get("isAuthenticated");
+  request._prisma = c.get("prisma");
+
+  // Pass request to GraphQL Yoga
+  return yoga.fetch(request);
+});
 
 // ============================================================================
 // Error Handling

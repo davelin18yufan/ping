@@ -22,7 +22,6 @@ import { describe, test, expect, beforeEach, afterEach } from "bun:test";
 import { PrismaClient } from "@generated/prisma/client";
 import { createTestPrismaClient, cleanupTestPrisma } from "@tests/fixtures/prisma";
 import { auth } from "@/lib/auth";
-import { resetPrisma } from "@/lib/prisma";
 
 describe("Better Auth Integration", () => {
   let testPrisma: PrismaClient;
@@ -33,7 +32,6 @@ describe("Better Auth Integration", () => {
 
   afterEach(async () => {
     await cleanupTestPrisma(testPrisma);
-    await resetPrisma();
   });
 
   /**

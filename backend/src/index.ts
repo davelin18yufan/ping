@@ -10,10 +10,25 @@
 import { Hono } from "hono";
 import { cors } from "hono/cors";
 import { logger } from "hono/logger";
+import type { PrismaClient } from "@generated/prisma/client";
 import { authHandler } from "./lib/auth";
+import { withPrisma } from "./lib/prisma";
 import { sessionMiddleware, getAuthUserId } from "./middleware";
 
-const app = new Hono();
+/**
+ * App Context with Prisma and Auth
+ *
+ * Defines all context variables available in route handlers.
+ */
+type AppContext = {
+  Variables: {
+    prisma: PrismaClient;
+    userId: string | null;
+    isAuthenticated: boolean;
+  };
+};
+
+const app = new Hono<AppContext>();
 
 // ============================================================================
 // Middleware Setup
@@ -37,6 +52,9 @@ app.use(
     credentials: true,
   }),
 );
+
+// Prisma middleware (inject Prisma client into context)
+app.use("*", withPrisma);
 
 // ============================================================================
 // Better Auth Routes

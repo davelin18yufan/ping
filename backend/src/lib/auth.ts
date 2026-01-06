@@ -9,7 +9,7 @@
 
 import { betterAuth } from "better-auth";
 import { prismaAdapter } from "better-auth/adapters/prisma";
-import { getPrisma } from "./prisma";
+import { prisma } from "./prisma";
 
 // Validate required environment variables
 const requiredEnvVars = ["BETTER_AUTH_SECRET", "BETTER_AUTH_URL"] as const;
@@ -45,7 +45,7 @@ if (!hasGoogleOAuth && !hasGitHubOAuth) {
  */
 export const auth = betterAuth({
   // Database adapter
-  database: prismaAdapter(getPrisma(), {
+  database: prismaAdapter(prisma, {
     provider: "postgresql",
   }),
 

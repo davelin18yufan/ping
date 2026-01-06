@@ -1,88 +1,87 @@
 /**
- * Prisma Client Instance
+ * Prisma Client with Middleware Pattern
  *
- * Factory function pattern to ensure proper singleton management
- * and test isolation.
+ * Follows Prisma's official Hono integration guide.
+ * Provides type-safe Prisma client access via Hono context.
+ *
+ * @see https://www.prisma.io/docs/guides/hono
  */
 
 import { PrismaClient } from "@generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
+import type { Context, Next } from "hono";
 
 /**
- * Module-level singleton instance
- * Managed via getPrisma() factory function
+ * Singleton Prisma instance
+ *
+ * Initialized once and reused across all requests for optimal performance.
  */
-let prismaInstance: PrismaClient | undefined;
+const adapter = new PrismaPg({
+  connectionString: process.env.DATABASE_URL!,
+});
+
+export const prisma = new PrismaClient({ adapter });
 
 /**
- * Create new Prisma Client instance with PostgreSQL adapter
+ * Type definition for Hono context with Prisma
  *
- * @returns New PrismaClient instance
- * @throws Error if DATABASE_URL is not defined
- */
-function createPrismaClient(): PrismaClient {
-  const databaseUrl = process.env.DATABASE_URL;
-  if (!databaseUrl) {
-    throw new Error("DATABASE_URL environment variable is not defined");
-  }
-
-  const adapter = new PrismaPg({
-    connectionString: databaseUrl,
-  });
-
-  return new PrismaClient({
-    adapter,
-  });
-}
-
-/**
- * Get or create Prisma Client singleton instance
- *
- * Factory function that manages singleton instance creation.
- * Safe for production and development (hot reload).
- *
- * @returns PrismaClient singleton instance
+ * Extend your Hono app context with this type to get full TypeScript support.
  *
  * @example
  * ```typescript
- * import { getPrisma } from '@/lib/prisma';
+ * import type { ContextWithPrisma } from '@/lib/prisma';
  *
- * const prisma = getPrisma();
- * const users = await prisma.user.findMany();
+ * type AppContext = ContextWithPrisma & {
+ *   Variables: {
+ *     userId: string | null;
+ *     // ... other context variables
+ *   };
+ * };
+ *
+ * const app = new Hono<AppContext>();
  * ```
  */
-export function getPrisma(): PrismaClient {
-  if (!prismaInstance) {
-    prismaInstance = createPrismaClient();
-  }
-  return prismaInstance;
-}
+export type ContextWithPrisma = {
+  Variables: {
+    prisma: PrismaClient;
+  };
+};
 
 /**
- * Reset Prisma Client instance
+ * Prisma middleware for Hono
  *
- * Disconnects current instance and clears singleton.
- * **Only use in tests for test isolation.**
+ * Injects Prisma client into Hono context, making it available in all route handlers.
+ *
+ * @param c - Hono context
+ * @param next - Next middleware function
  *
  * @example
  * ```typescript
- * import { resetPrisma } from '@/lib/prisma';
+ * import { withPrisma } from '@/lib/prisma';
  *
- * afterEach(async () => {
- *   await resetPrisma();
+ * // Apply globally to all routes
+ * app.use('*', withPrisma);
+ *
+ * // Or apply to specific routes
+ * app.get('/users', withPrisma, async (c) => {
+ *   const prisma = c.get('prisma');
+ *   const users = await prisma.user.findMany();
+ *   return c.json({ users });
  * });
  * ```
  */
-export async function resetPrisma(): Promise<void> {
-  if (prismaInstance) {
-    await prismaInstance.$disconnect();
-    prismaInstance = undefined;
+export function withPrisma(c: Context, next: Next) {
+  if (!c.get("prisma")) {
+    c.set("prisma", prisma);
   }
+  return next();
 }
 
 /**
- * Graceful shutdown - disconnect Prisma on app termination
+ * Graceful shutdown
+ *
+ * Disconnects Prisma client when the application terminates.
  */
 process.on("beforeExit", async () => {
-  await resetPrisma();
+  await prisma.$disconnect();
 });

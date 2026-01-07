@@ -9,15 +9,15 @@
 
 ### Phase 1.0：基礎設施完整初始化（Week 1）
 
-#### ⏳ Feature 1.0.1 - Backend 基礎設施設定
+#### ✅ Feature 1.0.1 - Backend 基礎設施設定
 
 | 欄位 | 內容 |
 |------|------|
-| **狀態** | ⏳ 進行中（3/5 子任務完成 - 70%） |
+| **狀態** | ✅ 完成（5/5 子任務完成 - 100%） |
 | **優先級** | P0（Critical - 阻止所有功能） |
 | **負責** | Architect + Backend |
 | **SDD 參考** | backend.md、database.md |
-| **預期完成日期** | 2026-01-06（調整 +1 天）|
+| **實際完成日期** | 2026-01-07 |
 
 **子任務分解**：
 1. **Prisma 初始化與 Schema 設計**（Backend）- 2 小時 ✅
@@ -59,19 +59,23 @@
    - **完成時間**: 2026-01-05
    - **狀態**: ✅ 完成（GREEN Phase - 測試全通過，REFACTOR - 程式碼優化完成）
 
-4. **GraphQL Yoga 設定**（Backend）- 1.5 小時
-   - 建立 `/backend/src/graphql/schema.ts`（基礎 schema）
-   - 設定 GraphQL Yoga server
-   - 整合 auth middleware（從 cookie 注入 userId）
-   - 建立範例 query `me` 測試認證
-   - **🔔 Commit Checkpoint**: `[feat] setup GraphQL Yoga with auth middleware`
+4. **GraphQL Yoga 設定**（Backend）- 1.5 小時 ✅
+   - ✅ 建立 `/backend/src/graphql/schema.ts`（完整 GraphQL Schema）
+   - ✅ 建立 `/backend/src/graphql/context.ts`（Context builder）
+   - ✅ 建立 `/backend/src/graphql/resolvers/user.ts`（`me` Query resolver）
+   - ✅ 設定 GraphQL Yoga server（CORS、GraphiQL、session middleware）
+   - ✅ 整合 auth middleware（從 cookie 注入 userId）
+   - ✅ 建立 8 個整合測試（認證、DB 查詢、錯誤處理、introspection）
+   - ✅ **Commit**: `13efc71 [feat] setup GraphQL Yoga with auth middleware`
 
-5. **Socket.io 設定**（Backend）- 1.5 小時
-   - 建立 `/backend/src/socket/index.ts`
-   - 設定 Socket.io server with auth
-   - 建立基礎 connection/disconnect handlers
-   - 測試 WebSocket 連線
-   - **🔔 Commit Checkpoint**: `[feat] setup Socket.io server with authentication`
+5. **Socket.io 設定**（Backend）- 1.5 小時 ✅
+   - ✅ 建立 `/backend/src/socket/index.ts`（Socket.io server with Bun Engine）
+   - ✅ 建立 `/backend/src/socket/middleware.ts`（Socket 認證中間件）
+   - ✅ 建立 `/backend/src/socket/handlers/connection.ts`（Connection/Disconnect handlers）
+   - ✅ 設定 Socket.io server with auth（handshake 驗證）
+   - ✅ 建立基礎 connection/disconnect handlers（Redis 同步、在線狀態管理）
+   - ✅ 建立 8 個整合測試（認證、多裝置、Redis cleanup）
+   - ✅ **Commit**: `c74b7cd [feat] setup Socket.io server with Bun Engine and authentication`
 
 **當前狀況**：
 - ✅ Bun + Hono 基礎 server 已建立
@@ -83,10 +87,11 @@
   - 測試覆蓋率：86.20% 函數 / 90.88% 行
   - OAuth Providers: Google, GitHub, Apple 已配置
   - Session Middleware: 已實作並通過驗證
-- ⏳ GraphQL Yoga 設定（下一步）
-- ⏳ Socket.io 設定（下一步）
-- **產出**：完整可運行的 backend 基礎設施（已完成 60%）
-- **完成度**: 70% (3.5/5 subtasks)
+- ✅ GraphQL Yoga 設定完成（8 個測試全部通過）
+- ✅ Socket.io 設定完成（8 個測試全部通過）
+- **產出**：完整可運行的 backend 基礎設施（已完成 100%）
+- **完成度**: 100% (5/5 subtasks)
+- **測試結果**：27/27 測試全部通過 ✅（11 Better Auth + 8 GraphQL + 8 Socket.io）
 
 ---
 
@@ -476,13 +481,17 @@
 
 ---
 
-**最後更新**：2026-01-05 19:30
-**下次計畫更新**：2026-01-06 09:00
-**當前 Sprint**：Sprint 1 - Phase 1.0 基礎設施初始化（70% 完成）
-**最新進展**：Feature 1.0.1 Subtask 3 (Better Auth 整合) 完成 ✅
-  - Commits: `b8a7eeb` + `eb197e1`
-  - 測試覆蓋率：86.20% 函數 / 90.88% 行
-  - 11 個整合測試全部通過
+**最後更新**：2026-01-07 10:00
+**下次計畫更新**：2026-01-08 09:00
+**當前 Sprint**：Sprint 1 - Phase 1.0 基礎設施初始化（87.5% 完成）
+**最新進展**：Feature 1.0.1 (Backend 基礎設施) 完成 ✅
+  - Commits: `b8a7eeb` + `eb197e1` + `d4553d3` + `13efc71` + `c74b7cd`
+  - 測試結果：27/27 測試全部通過（100%）
+    - Better Auth：11/11 ✅
+    - GraphQL Yoga：8/8 ✅
+    - Socket.io：8/8 ✅
+  - TypeScript 編譯：無錯誤 ✅
+  - Lint/Format：通過 ✅
 
 ---
 

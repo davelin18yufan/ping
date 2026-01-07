@@ -5,8 +5,8 @@
  * Uses GraphQL Yoga's createSchema for type-safe schema building.
  */
 
-import { createSchema } from "graphql-yoga";
-import { userResolvers } from "./resolvers";
+import { createSchema } from "graphql-yoga"
+import { userResolvers } from "./resolvers"
 
 /**
  * GraphQL Schema
@@ -17,7 +17,7 @@ import { userResolvers } from "./resolvers";
  * - Query.me (get current authenticated user)
  */
 export const schema = createSchema({
-  typeDefs: /* GraphQL */ `
+    typeDefs: /* GraphQL */ `
     """
     User represents an authenticated user in the Ping application.
     Matches the Prisma User model from Better Auth integration.
@@ -87,9 +87,9 @@ export const schema = createSchema({
       _empty: String
     }
   `,
-  resolvers: {
-    Query: {
-      ...userResolvers.Query,
+    resolvers: {
+        Query: {
+            ...userResolvers.Query,
+        },
     },
-  },
-});
+})

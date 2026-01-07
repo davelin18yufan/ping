@@ -5,8 +5,8 @@
  * Ensures test isolation by using separate instances and cleanup.
  */
 
-import { PrismaClient } from "@generated/prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaClient } from "@generated/prisma/client"
+import { PrismaPg } from "@prisma/adapter-pg"
 
 /**
  * Create test Prisma Client instance
@@ -27,22 +27,19 @@ import { PrismaPg } from "@prisma/adapter-pg";
  * ```
  */
 export function createTestPrismaClient(): PrismaClient {
-  const testDatabaseUrl =
-    process.env.TEST_DATABASE_URL || process.env.DATABASE_URL;
+    const testDatabaseUrl = process.env.TEST_DATABASE_URL || process.env.DATABASE_URL
 
-  if (!testDatabaseUrl) {
-    throw new Error(
-      "TEST_DATABASE_URL or DATABASE_URL environment variable is not configured",
-    );
-  }
+    if (!testDatabaseUrl) {
+        throw new Error("TEST_DATABASE_URL or DATABASE_URL environment variable is not configured")
+    }
 
-  const adapter = new PrismaPg({
-    connectionString: testDatabaseUrl,
-  });
+    const adapter = new PrismaPg({
+        connectionString: testDatabaseUrl,
+    })
 
-  return new PrismaClient({
-    adapter,
-  });
+    return new PrismaClient({
+        adapter,
+    })
 }
 
 /**
@@ -66,22 +63,20 @@ export function createTestPrismaClient(): PrismaClient {
  * });
  * ```
  */
-export async function cleanupTestPrisma(
-  prisma: PrismaClient,
-): Promise<void> {
-  try {
-    // Delete in order respecting foreign key constraints
-    await prisma.session.deleteMany();
-    await prisma.account.deleteMany();
-    await prisma.verification.deleteMany();
-    await prisma.user.deleteMany();
+export async function cleanupTestPrisma(prisma: PrismaClient): Promise<void> {
+    try {
+        // Delete in order respecting foreign key constraints
+        await prisma.session.deleteMany()
+        await prisma.account.deleteMany()
+        await prisma.verification.deleteMany()
+        await prisma.user.deleteMany()
 
-    // Disconnect Prisma Client
-    await prisma.$disconnect();
-  } catch (error) {
-    console.error("Error during test cleanup:", error);
-    // Always try to disconnect even if cleanup fails
-    await prisma.$disconnect();
-    throw error;
-  }
+        // Disconnect Prisma Client
+        await prisma.$disconnect()
+    } catch (error) {
+        console.error("Error during test cleanup:", error)
+        // Always try to disconnect even if cleanup fails
+        await prisma.$disconnect()
+        throw error
+    }
 }

@@ -5,8 +5,8 @@
  * Injects userId into socket instance for use in handlers.
  */
 
-import type { Socket } from "socket.io";
-import { verifySession } from "../lib/auth";
+import type { Socket } from "socket.io"
+import { verifySession } from "../lib/auth"
 
 /**
  * Authenticated Socket Interface
@@ -14,7 +14,7 @@ import { verifySession } from "../lib/auth";
  * Extends Socket with userId property.
  */
 export interface AuthenticatedSocket extends Socket {
-  userId: string;
+    userId: string
 }
 
 /**
@@ -27,38 +27,38 @@ export interface AuthenticatedSocket extends Socket {
  * @param next - Callback to continue or reject connection
  */
 export async function socketAuthMiddleware(
-  socket: Socket,
-  next: (err?: Error) => void,
+    socket: Socket,
+    next: (err?: Error) => void
 ): Promise<void> {
-  try {
-    // Get cookie header from handshake
-    const cookieHeader = socket.handshake.headers.cookie;
+    try {
+        // Get cookie header from handshake
+        const cookieHeader = socket.handshake.headers.cookie
 
-    if (!cookieHeader) {
-      return next(new Error("Unauthorized: No session cookie"));
+        if (!cookieHeader) {
+            return next(new Error("Unauthorized: No session cookie"))
+        }
+
+        // Create a mock Request object for verifySession
+        const mockRequest = new Request("http://localhost", {
+            headers: {
+                cookie: cookieHeader,
+            },
+        })
+
+        // Verify session using Better Auth
+        const userId = await verifySession(mockRequest)
+
+        if (!userId) {
+            return next(new Error("Unauthorized: Invalid session"))
+        }
+
+        // Inject userId into socket
+        ;(socket as AuthenticatedSocket).userId = userId
+
+        // Allow connection
+        next()
+    } catch (error) {
+        console.error("Socket authentication failed:", error)
+        next(new Error("Unauthorized: Authentication failed"))
     }
-
-    // Create a mock Request object for verifySession
-    const mockRequest = new Request("http://localhost", {
-      headers: {
-        cookie: cookieHeader,
-      },
-    });
-
-    // Verify session using Better Auth
-    const userId = await verifySession(mockRequest);
-
-    if (!userId) {
-      return next(new Error("Unauthorized: Invalid session"));
-    }
-
-    // Inject userId into socket
-    (socket as AuthenticatedSocket).userId = userId;
-
-    // Allow connection
-    next();
-  } catch (error) {
-    console.error("Socket authentication failed:", error);
-    next(new Error("Unauthorized: Authentication failed"));
-  }
 }

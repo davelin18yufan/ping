@@ -5,8 +5,8 @@
  * Manages user online status tracking via Redis.
  */
 
-import type { AuthenticatedSocket } from "../middleware";
-import { redis } from "../../lib/redis";
+import type { AuthenticatedSocket } from "../middleware"
+import { redis } from "../../lib/redis"
 
 /**
  * Handle Socket Connection
@@ -20,35 +20,33 @@ import { redis } from "../../lib/redis";
  *
  * @param socket - Authenticated socket instance
  */
-export async function handleConnection(
-  socket: AuthenticatedSocket,
-): Promise<void> {
-  const { userId } = socket;
+export async function handleConnection(socket: AuthenticatedSocket): Promise<void> {
+    const { userId } = socket
 
-  try {
-    // Add socket to user's socket list in Redis
-    // Format: user:sockets:{userId} -> Set of socket IDs
-    await redis.sadd(`user:sockets:${userId}`, socket.id);
+    try {
+        // Add socket to user's socket list in Redis
+        // Format: user:sockets:{userId} -> Set of socket IDs
+        await redis.sadd(`user:sockets:${userId}`, socket.id)
 
-    // Set user online status in Redis
-    // Format: user:online:{userId} -> "true"
-    await redis.set(`user:online:${userId}`, "true");
+        // Set user online status in Redis
+        // Format: user:online:{userId} -> "true"
+        await redis.set(`user:online:${userId}`, "true")
 
-    // Send authenticated event to client
-    socket.emit("authenticated", {
-      userId,
-      socketId: socket.id,
-      timestamp: new Date().toISOString(),
-    });
+        // Send authenticated event to client
+        socket.emit("authenticated", {
+            userId,
+            socketId: socket.id,
+            timestamp: new Date().toISOString(),
+        })
 
-    console.log(`✓ User ${userId} connected (socket: ${socket.id})`);
+        console.log(`✓ User ${userId} connected (socket: ${socket.id})`)
 
-    // Register disconnect handler
-    socket.on("disconnect", (reason) => handleDisconnect(socket, reason));
-  } catch (error) {
-    console.error(`Failed to handle connection for user ${userId}:`, error);
-    socket.disconnect(true);
-  }
+        // Register disconnect handler
+        socket.on("disconnect", (reason) => handleDisconnect(socket, reason))
+    } catch (error) {
+        console.error(`Failed to handle connection for user ${userId}:`, error)
+        socket.disconnect(true)
+    }
 }
 
 /**
@@ -63,29 +61,26 @@ export async function handleConnection(
  * @param socket - Authenticated socket instance
  * @param reason - Disconnection reason
  */
-export async function handleDisconnect(
-  socket: AuthenticatedSocket,
-  reason: string,
-): Promise<void> {
-  const { userId } = socket;
+export async function handleDisconnect(socket: AuthenticatedSocket, reason: string): Promise<void> {
+    const { userId } = socket
 
-  try {
-    // Remove socket from user's socket list
-    await redis.srem(`user:sockets:${userId}`, socket.id);
+    try {
+        // Remove socket from user's socket list
+        await redis.srem(`user:sockets:${userId}`, socket.id)
 
-    // Check if user has other active sockets
-    const remainingSockets = await redis.smembers(`user:sockets:${userId}`);
+        // Check if user has other active sockets
+        const remainingSockets = await redis.smembers(`user:sockets:${userId}`)
 
-    // If no other sockets, set user offline
-    if (remainingSockets.length === 0) {
-      await redis.del(`user:online:${userId}`);
-      console.log(`✓ User ${userId} went offline (reason: ${reason})`);
-    } else {
-      console.log(
-        `✓ User ${userId} disconnected one socket (${remainingSockets.length} remaining)`,
-      );
+        // If no other sockets, set user offline
+        if (remainingSockets.length === 0) {
+            await redis.del(`user:online:${userId}`)
+            console.log(`✓ User ${userId} went offline (reason: ${reason})`)
+        } else {
+            console.log(
+                `✓ User ${userId} disconnected one socket (${remainingSockets.length} remaining)`
+            )
+        }
+    } catch (error) {
+        console.error(`Failed to handle disconnection for user ${userId}:`, error)
     }
-  } catch (error) {
-    console.error(`Failed to handle disconnection for user ${userId}:`, error);
-  }
 }

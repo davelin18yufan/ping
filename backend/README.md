@@ -35,9 +35,11 @@ Open http://localhost:3000
 ## Available Scripts
 
 ### Development
+
 - `bun run dev` - Start development server with hot reload
 
 ### Database
+
 - `bun run db:migrate` - Run Prisma migrations (development)
 - `bun run db:seed` - Seed the database
 - `bun run db:studio` - Open Prisma Studio
@@ -46,6 +48,7 @@ Open http://localhost:3000
 - `bun run prisma:migrate:deploy` - Deploy migrations (production)
 
 ### Code Quality
+
 - `bun run lint` - Run Oxlint checks
 - `bun run lint:fix` - Auto-fix linting issues
 - `bun run format` - Format code with Oxfmt
@@ -53,6 +56,7 @@ Open http://localhost:3000
 - `bun run type-check` - Run TypeScript type checking
 
 ### Testing
+
 - `bun test` - Run all tests (not yet configured)
 - `bun run test:redis` - Test Redis connection
 
@@ -63,23 +67,24 @@ Open http://localhost:3000
 The backend has automated CI/CD configured in `.github/workflows/backend-ci.yml`.
 
 **Triggers:**
+
 - Push to `main` or `feature/**` branches (when `backend/**` files change)
 - Pull requests targeting `main` (when `backend/**` files change)
 
 **Jobs:**
 
 1. **Lint and Format Check**
-   - Runs Oxlint to check code quality
-   - Verifies code formatting with Oxfmt
+    - Runs Oxlint to check code quality
+    - Verifies code formatting with Oxfmt
 
 2. **TypeScript Type Check**
-   - Generates Prisma Client
-   - Runs TypeScript compiler in no-emit mode
+    - Generates Prisma Client
+    - Runs TypeScript compiler in no-emit mode
 
 3. **Tests** (commented out, will be enabled when tests are implemented)
-   - Spins up PostgreSQL and Redis services
-   - Runs database migrations
-   - Executes test suite
+    - Spins up PostgreSQL and Redis services
+    - Runs database migrations
+    - Executes test suite
 
 ### Running CI Checks Locally
 
@@ -106,6 +111,7 @@ bun run lint:fix
 ## VS Code Setup
 
 This project includes VS Code configuration for automatic formatting and linting:
+
 - Auto-format on save with Oxfmt
 - Auto-fix linting issues on save with Oxlint
 - Organized imports on save

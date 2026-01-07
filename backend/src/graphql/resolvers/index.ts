@@ -5,7 +5,7 @@
  * Makes it easy to import resolvers in schema.ts.
  */
 
-export { userResolvers } from "./user";
+export { userResolvers } from "./user"
 
 /**
  * Future resolver exports:

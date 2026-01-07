@@ -7,15 +7,15 @@
  * - WebSocket connections
  */
 
-import type { Context, Next } from "hono";
-import { verifySession } from "./lib/auth";
+import type { Context, Next } from "hono"
+import { verifySession } from "./lib/auth"
 
 /**
  * Extended Hono context with user authentication
  */
 export interface AuthContext {
-  userId: string | null;
-  isAuthenticated: boolean;
+    userId: string | null
+    isAuthenticated: boolean
 }
 
 /**
@@ -31,24 +31,24 @@ export interface AuthContext {
  * ```
  */
 export async function sessionMiddleware(c: Context, next: Next) {
-  try {
-    // Verify session from request cookies
-    const userId = await verifySession(c.req.raw);
+    try {
+        // Verify session from request cookies
+        const userId = await verifySession(c.req.raw)
 
-    // Inject auth context into Hono context
-    c.set("userId", userId);
-    c.set("isAuthenticated", userId !== null);
+        // Inject auth context into Hono context
+        c.set("userId", userId)
+        c.set("isAuthenticated", userId !== null)
 
-    await next();
-  } catch (error) {
-    console.error("Session middleware error:", error);
+        await next()
+    } catch (error) {
+        console.error("Session middleware error:", error)
 
-    // Set unauthenticated context on error
-    c.set("userId", null);
-    c.set("isAuthenticated", false);
+        // Set unauthenticated context on error
+        c.set("userId", null)
+        c.set("isAuthenticated", false)
 
-    await next();
-  }
+        await next()
+    }
 }
 
 /**
@@ -63,19 +63,19 @@ export async function sessionMiddleware(c: Context, next: Next) {
  * ```
  */
 export async function requireAuth(c: Context, next: Next) {
-  const isAuthenticated = c.get("isAuthenticated");
+    const isAuthenticated = c.get("isAuthenticated")
 
-  if (!isAuthenticated) {
-    return c.json(
-      {
-        error: "Unauthorized",
-        message: "You must be logged in to access this resource",
-      },
-      401,
-    );
-  }
+    if (!isAuthenticated) {
+        return c.json(
+            {
+                error: "Unauthorized",
+                message: "You must be logged in to access this resource",
+            },
+            401
+        )
+    }
 
-  await next();
+    await next()
 }
 
 /**
@@ -95,7 +95,7 @@ export async function requireAuth(c: Context, next: Next) {
  * ```
  */
 export function getAuthUserId(c: Context): string | null {
-  return c.get("userId") ?? null;
+    return c.get("userId") ?? null
 }
 
 /**
@@ -115,11 +115,11 @@ export function getAuthUserId(c: Context): string | null {
  * ```
  */
 export function requireAuthUserId(c: Context): string {
-  const userId = c.get("userId");
+    const userId = c.get("userId")
 
-  if (!userId) {
-    throw new Error("User not authenticated");
-  }
+    if (!userId) {
+        throw new Error("User not authenticated")
+    }
 
-  return userId;
+    return userId
 }

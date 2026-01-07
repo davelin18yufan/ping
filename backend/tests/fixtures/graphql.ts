@@ -4,8 +4,8 @@
  * Helper functions for testing GraphQL endpoints.
  */
 
-import type { PrismaClient } from "@generated/prisma/client";
-import app from "@/index";
+import type { PrismaClient } from "@generated/prisma/client"
+import app from "@/index"
 
 /**
  * Execute a GraphQL query/mutation
@@ -18,29 +18,29 @@ import app from "@/index";
  * @returns Response from GraphQL endpoint
  */
 export async function executeGraphQL(
-  query: string,
-  variables?: Record<string, unknown>,
-  sessionToken?: string,
+    query: string,
+    variables?: Record<string, unknown>,
+    sessionToken?: string
 ): Promise<Response> {
-  const headers: Record<string, string> = {
-    "Content-Type": "application/json",
-  };
+    const headers: Record<string, string> = {
+        "Content-Type": "application/json",
+    }
 
-  // Add session cookie if provided
-  if (sessionToken) {
-    headers["Cookie"] = `better-auth.session_token=${sessionToken}`;
-  }
+    // Add session cookie if provided
+    if (sessionToken) {
+        headers["Cookie"] = `better-auth.session_token=${sessionToken}`
+    }
 
-  const request = new Request("http://localhost/graphql", {
-    method: "POST",
-    headers,
-    body: JSON.stringify({
-      query,
-      variables,
-    }),
-  });
+    const request = new Request("http://localhost/graphql", {
+        method: "POST",
+        headers,
+        body: JSON.stringify({
+            query,
+            variables,
+        }),
+    })
 
-  return app.fetch(request);
+    return app.fetch(request)
 }
 
 /**
@@ -53,47 +53,47 @@ export async function executeGraphQL(
  * @returns Object with user, session, and sessionToken
  */
 export async function createTestUserWithSession(prisma: PrismaClient): Promise<{
-  user: {
-    id: string;
-    email: string;
-    name: string | null;
-    image: string | null;
-    emailVerified: Date | null;
-    createdAt: Date;
-    updatedAt: Date;
-  };
-  session: {
-    id: string;
-    sessionToken: string;
-    userId: string;
-    expires: Date;
-  };
-  sessionToken: string;
+    user: {
+        id: string
+        email: string
+        name: string | null
+        image: string | null
+        emailVerified: Date | null
+        createdAt: Date
+        updatedAt: Date
+    }
+    session: {
+        id: string
+        sessionToken: string
+        userId: string
+        expires: Date
+    }
+    sessionToken: string
 }> {
-  // Create test user
-  const user = await prisma.user.create({
-    data: {
-      email: `test-graphql-${Date.now()}@example.com`,
-      name: "GraphQL Test User",
-      emailVerified: new Date(),
-    },
-  });
+    // Create test user
+    const user = await prisma.user.create({
+        data: {
+            email: `test-graphql-${Date.now()}@example.com`,
+            name: "GraphQL Test User",
+            emailVerified: new Date(),
+        },
+    })
 
-  // Create valid session (expires in 7 days)
-  const sessionToken = `test-graphql-session-${Date.now()}`;
-  const session = await prisma.session.create({
-    data: {
-      userId: user.id,
-      sessionToken: sessionToken,
-      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
-    },
-  });
+    // Create valid session (expires in 7 days)
+    const sessionToken = `test-graphql-session-${Date.now()}`
+    const session = await prisma.session.create({
+        data: {
+            userId: user.id,
+            sessionToken: sessionToken,
+            expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
+        },
+    })
 
-  return {
-    user,
-    session,
-    sessionToken,
-  };
+    return {
+        user,
+        session,
+        sessionToken,
+    }
 }
 
 /**
@@ -105,50 +105,48 @@ export async function createTestUserWithSession(prisma: PrismaClient): Promise<{
  * @param prisma - Prisma client instance
  * @returns Object with user, session, and sessionToken
  */
-export async function createTestUserWithExpiredSession(
-  prisma: PrismaClient,
-): Promise<{
-  user: {
-    id: string;
-    email: string;
-    name: string | null;
-    image: string | null;
-    emailVerified: Date | null;
-    createdAt: Date;
-    updatedAt: Date;
-  };
-  session: {
-    id: string;
-    sessionToken: string;
-    userId: string;
-    expires: Date;
-  };
-  sessionToken: string;
+export async function createTestUserWithExpiredSession(prisma: PrismaClient): Promise<{
+    user: {
+        id: string
+        email: string
+        name: string | null
+        image: string | null
+        emailVerified: Date | null
+        createdAt: Date
+        updatedAt: Date
+    }
+    session: {
+        id: string
+        sessionToken: string
+        userId: string
+        expires: Date
+    }
+    sessionToken: string
 }> {
-  // Create test user
-  const user = await prisma.user.create({
-    data: {
-      email: `test-expired-${Date.now()}@example.com`,
-      name: "Expired Session User",
-      emailVerified: new Date(),
-    },
-  });
+    // Create test user
+    const user = await prisma.user.create({
+        data: {
+            email: `test-expired-${Date.now()}@example.com`,
+            name: "Expired Session User",
+            emailVerified: new Date(),
+        },
+    })
 
-  // Create expired session (expired 1 hour ago)
-  const sessionToken = `expired-session-${Date.now()}`;
-  const session = await prisma.session.create({
-    data: {
-      userId: user.id,
-      sessionToken: sessionToken,
-      expires: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
-    },
-  });
+    // Create expired session (expired 1 hour ago)
+    const sessionToken = `expired-session-${Date.now()}`
+    const session = await prisma.session.create({
+        data: {
+            userId: user.id,
+            sessionToken: sessionToken,
+            expires: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+        },
+    })
 
-  return {
-    user,
-    session,
-    sessionToken,
-  };
+    return {
+        user,
+        session,
+        sessionToken,
+    }
 }
 
 /**
@@ -160,20 +158,20 @@ export async function createTestUserWithExpiredSession(
  * @returns Parsed GraphQL response with data and errors
  */
 export async function parseGraphQLResponse<T = unknown>(
-  response: Response,
+    response: Response
 ): Promise<{
-  data?: T;
-  errors?: Array<{
-    message: string;
-    extensions?: Record<string, unknown>;
-  }>;
-}> {
-  const json = await response.json();
-  return json as {
-    data?: T;
+    data?: T
     errors?: Array<{
-      message: string;
-      extensions?: Record<string, unknown>;
-    }>;
-  };
+        message: string
+        extensions?: Record<string, unknown>
+    }>
+}> {
+    const json = await response.json()
+    return json as {
+        data?: T
+        errors?: Array<{
+            message: string
+            extensions?: Record<string, unknown>
+        }>
+    }
 }

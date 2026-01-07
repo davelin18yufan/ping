@@ -7,9 +7,9 @@
  * @see https://www.prisma.io/docs/guides/hono
  */
 
-import { PrismaClient } from "@generated/prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
-import type { Context, Next } from "hono";
+import { PrismaClient } from "@generated/prisma/client"
+import { PrismaPg } from "@prisma/adapter-pg"
+import type { Context, Next } from "hono"
 
 /**
  * Singleton Prisma instance
@@ -17,10 +17,11 @@ import type { Context, Next } from "hono";
  * Initialized once and reused across all requests for optimal performance.
  */
 const adapter = new PrismaPg({
-  connectionString: process.env.DATABASE_URL!,
-});
+    // oxlint-disable-next-line typescript/no-non-null-assertion
+    connectionString: process.env.DATABASE_URL!,
+})
 
-export const prisma = new PrismaClient({ adapter });
+export const prisma = new PrismaClient({ adapter })
 
 /**
  * Type definition for Hono context with Prisma
@@ -42,10 +43,10 @@ export const prisma = new PrismaClient({ adapter });
  * ```
  */
 export type ContextWithPrisma = {
-  Variables: {
-    prisma: PrismaClient;
-  };
-};
+    Variables: {
+        prisma: PrismaClient
+    }
+}
 
 /**
  * Prisma middleware for Hono
@@ -71,10 +72,10 @@ export type ContextWithPrisma = {
  * ```
  */
 export function withPrisma(c: Context, next: Next) {
-  if (!c.get("prisma")) {
-    c.set("prisma", prisma);
-  }
-  return next();
+    if (!c.get("prisma")) {
+        c.set("prisma", prisma)
+    }
+    return next()
 }
 
 /**
@@ -83,5 +84,5 @@ export function withPrisma(c: Context, next: Next) {
  * Disconnects Prisma client when the application terminates.
  */
 process.on("beforeExit", async () => {
-  await prisma.$disconnect();
-});
+    await prisma.$disconnect()
+})

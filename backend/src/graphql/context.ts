@@ -5,8 +5,8 @@
  * Extracts authentication and Prisma client from Hono context.
  */
 
-import type { PrismaClient } from "@generated/prisma/client";
-import type { YogaInitialContext } from "graphql-yoga";
+import type { PrismaClient } from "@generated/prisma/client"
+import type { YogaInitialContext } from "graphql-yoga"
 
 /**
  * GraphQL Context Interface
@@ -18,23 +18,23 @@ import type { YogaInitialContext } from "graphql-yoga";
  * - prisma: Prisma client for database operations
  */
 export interface GraphQLContext {
-  /**
-   * Current authenticated user ID
-   * Null if user is not authenticated
-   */
-  userId: string | null;
+    /**
+     * Current authenticated user ID
+     * Null if user is not authenticated
+     */
+    userId: string | null
 
-  /**
-   * Authentication status flag
-   * True if user has valid session
-   */
-  isAuthenticated: boolean;
+    /**
+     * Authentication status flag
+     * True if user has valid session
+     */
+    isAuthenticated: boolean
 
-  /**
-   * Prisma client for database operations
-   * Injected from Hono context via withPrisma middleware
-   */
-  prisma: PrismaClient;
+    /**
+     * Prisma client for database operations
+     * Injected from Hono context via withPrisma middleware
+     */
+    prisma: PrismaClient
 }
 
 /**
@@ -47,18 +47,16 @@ export interface GraphQLContext {
  * @param yogaContext - GraphQL Yoga initial context (contains request)
  * @returns GraphQL context with auth and Prisma
  */
-export function buildGraphQLContext(
-  yogaContext: YogaInitialContext,
-): GraphQLContext {
-  const request = yogaContext.request as Request & {
-    _userId?: string | null;
-    _isAuthenticated?: boolean;
-    _prisma?: PrismaClient;
-  };
+export function buildGraphQLContext(yogaContext: YogaInitialContext): GraphQLContext {
+    const request = yogaContext.request as Request & {
+        _userId?: string | null
+        _isAuthenticated?: boolean
+        _prisma?: PrismaClient
+    }
 
-  return {
-    userId: request._userId ?? null,
-    isAuthenticated: request._isAuthenticated ?? false,
-    prisma: request._prisma!,
-  };
+    return {
+        userId: request._userId ?? null,
+        isAuthenticated: request._isAuthenticated ?? false,
+        prisma: request._prisma!, // oxlint-disable-line typescript/no-non-null-assertion
+    }
 }

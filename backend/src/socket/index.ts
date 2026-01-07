@@ -5,22 +5,22 @@
  * Handles real-time messaging, online status, and typing indicators.
  */
 
-import { Server as SocketIOServer } from "socket.io";
-import { Server as BunEngine } from "@socket.io/bun-engine";
-import { socketAuthMiddleware } from "./middleware";
-import { registerConnectionHandlers } from "./handlers";
+import { Server as SocketIOServer } from "socket.io"
+import { Server as BunEngine } from "@socket.io/bun-engine"
+import { socketAuthMiddleware } from "./middleware"
+import { registerConnectionHandlers } from "./handlers"
 
 /**
  * Socket.io Server Instance
  */
-let io: SocketIOServer | null = null;
+let io: SocketIOServer | null = null
 
 /**
  * Bun Engine Instance
  *
  * Required for Socket.io to work with Bun runtime.
  */
-let engine: BunEngine | null = null;
+let engine: BunEngine | null = null
 
 /**
  * Initialize Socket.io Server
@@ -33,45 +33,44 @@ let engine: BunEngine | null = null;
  * @returns Object with Socket.io instance and Bun Engine
  */
 export function initializeSocketIO(): {
-  io: SocketIOServer;
-  engine: BunEngine;
+    io: SocketIOServer
+    engine: BunEngine
 } {
-  // Create Bun Engine
-  engine = new BunEngine({
-    pingInterval: 25000, // 25 seconds
-    pingTimeout: 20000, // 20 seconds
-  });
+    // Create Bun Engine
+    engine = new BunEngine({
+        pingInterval: 25000, // 25 seconds
+        pingTimeout: 20000, // 20 seconds
+    })
 
-  // Create Socket.io server
-  io = new SocketIOServer({
-    // CORS configuration (match Hono settings)
-    cors: {
-      origin:
-        process.env.CORS_ORIGIN?.split(",") ?? [
-          "http://localhost:3001", // Frontend Web
-          "http://localhost:8081", // Mobile Expo
-        ],
-      credentials: true,
-    },
-    // Connection state recovery
-    connectionStateRecovery: {
-      maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
-      skipMiddlewares: true,
-    },
-  });
+    // Create Socket.io server
+    io = new SocketIOServer({
+        // CORS configuration (match Hono settings)
+        cors: {
+            origin: process.env.CORS_ORIGIN?.split(",") ?? [
+                "http://localhost:3001", // Frontend Web
+                "http://localhost:8081", // Mobile Expo
+            ],
+            credentials: true,
+        },
+        // Connection state recovery
+        connectionStateRecovery: {
+            maxDisconnectionDuration: 2 * 60 * 1000, // 2 minutes
+            skipMiddlewares: true,
+        },
+    })
 
-  // Bind Bun Engine to Socket.io
-  io.bind(engine);
+    // Bind Bun Engine to Socket.io
+    io.bind(engine)
 
-  // Register authentication middleware
-  io.use(socketAuthMiddleware);
+    // Register authentication middleware
+    io.use(socketAuthMiddleware)
 
-  // Register connection handlers
-  registerConnectionHandlers(io);
+    // Register connection handlers
+    registerConnectionHandlers(io)
 
-  console.log("✓ Socket.io initialized with Bun Engine");
+    console.log("✓ Socket.io initialized with Bun Engine")
 
-  return { io, engine };
+    return { io, engine }
 }
 
 /**
@@ -84,12 +83,10 @@ export function initializeSocketIO(): {
  * @throws Error if server not initialized
  */
 export function getIO(): SocketIOServer {
-  if (!io) {
-    throw new Error(
-      "Socket.io not initialized. Call initializeSocketIO() first.",
-    );
-  }
-  return io;
+    if (!io) {
+        throw new Error("Socket.io not initialized. Call initializeSocketIO() first.")
+    }
+    return io
 }
 
 /**
@@ -102,10 +99,8 @@ export function getIO(): SocketIOServer {
  * @throws Error if engine not initialized
  */
 export function getEngine(): BunEngine {
-  if (!engine) {
-    throw new Error(
-      "Bun Engine not initialized. Call initializeSocketIO() first.",
-    );
-  }
-  return engine;
+    if (!engine) {
+        throw new Error("Bun Engine not initialized. Call initializeSocketIO() first.")
+    }
+    return engine
 }

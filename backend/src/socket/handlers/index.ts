@@ -4,9 +4,9 @@
  * Centralized registration of all Socket.io event handlers.
  */
 
-import type { Server as SocketIOServer } from "socket.io";
-import type { AuthenticatedSocket } from "../middleware";
-import { handleConnection } from "./connection";
+import type { Server as SocketIOServer } from "socket.io"
+import type { AuthenticatedSocket } from "../middleware"
+import { handleConnection } from "./connection"
 
 /**
  * Register Connection Handlers
@@ -18,9 +18,9 @@ import { handleConnection } from "./connection";
  * @param io - Socket.io server instance
  */
 export function registerConnectionHandlers(io: SocketIOServer): void {
-  io.on("connection", (socket) => {
-    handleConnection(socket as AuthenticatedSocket);
-  });
+    io.on("connection", (socket) => {
+        handleConnection(socket as AuthenticatedSocket)
+    })
 
-  console.log("✓ Socket.io connection handlers registered");
+    console.log("✓ Socket.io connection handlers registered")
 }

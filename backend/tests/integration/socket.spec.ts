@@ -15,7 +15,7 @@
  * 8. Expired session token rejection
  */
 
-import { describe, test, expect, beforeEach, afterEach } from "bun:test"
+import { describe, test, expect, beforeAll, beforeEach, afterEach, afterAll } from "bun:test"
 import { PrismaClient } from "@generated/prisma/client"
 import type { Socket } from "socket.io-client"
 import { createTestPrismaClient, cleanupTestPrisma } from "@tests/fixtures/prisma"
@@ -27,11 +27,22 @@ import {
     waitForSocketConnect,
     disconnectSocket,
 } from "@tests/fixtures/socket"
+import { startTestServer, stopTestServer } from "@tests/fixtures/server"
 import { redis } from "@/lib/redis"
 
 describe("Socket.io Integration", () => {
     let testPrisma: PrismaClient
     const connectedSockets: Socket[] = []
+
+    beforeAll(async () => {
+        // Start test server with Socket.io support
+        await startTestServer()
+    })
+
+    afterAll(async () => {
+        // Stop test server
+        await stopTestServer()
+    })
 
     beforeEach(() => {
         testPrisma = createTestPrismaClient()

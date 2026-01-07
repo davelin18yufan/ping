@@ -5,7 +5,7 @@
  */
 
 import type { PrismaClient } from "@generated/prisma/client"
-import app from "@/index"
+import app from "@/index" // Import Hono app (not server)
 
 /**
  * Execute a GraphQL query/mutation

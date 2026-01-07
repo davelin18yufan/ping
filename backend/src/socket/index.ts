@@ -36,6 +36,11 @@ export function initializeSocketIO(): {
     io: SocketIOServer
     engine: BunEngine
 } {
+    // Return existing instances if already initialized
+    if (io && engine) {
+        return { io, engine }
+    }
+
     // Create Bun Engine
     engine = new BunEngine({
         pingInterval: 25000, // 25 seconds

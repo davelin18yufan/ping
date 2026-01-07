@@ -225,53 +225,58 @@ app.onError((err, c) => {
  * Initialize Socket.io with Bun Engine
  *
  * Must be called before starting the server to enable WebSocket support.
+ * Only initialize if not in test environment.
  */
-const { engine } = initializeSocketIO()
+// Only start server if not in test environment
+if (process.env.NODE_ENV !== "test") {
+    const { engine } = initializeSocketIO()
 
-// ============================================================================
-// Server Startup
-// ============================================================================
-
-/**
- * Start server with Bun.serve
- *
- * Supports both HTTP (Hono) and WebSocket (Socket.io) connections.
- */
-const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000
-
-const server = Bun.serve({
-    port: PORT,
-    // Use Bun Engine handler configuration
-    ...engine.handler(),
+    // ============================================================================
+    // Server Startup
+    // ============================================================================
 
     /**
-     * HTTP request handler override
+     * Start server with Bun.serve
      *
-     * Routes:
-     * - /socket.io/* -> Socket.io WebSocket handler (via engine.handleRequest)
-     * - All others -> Hono app
+     * Supports both HTTP (Hono) and WebSocket (Socket.io) connections.
      */
-    async fetch(request, server) {
-        const url = new URL(request.url)
+    const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000
 
-        // Route Socket.io requests to Bun Engine
-        if (url.pathname.startsWith("/socket.io/")) {
-            return engine.handleRequest(request, server)
-        }
+    Bun.serve({
+        port: PORT,
+        // Use Bun Engine handler configuration
+        ...engine.handler(),
 
-        // Route all other requests to Hono
-        return app.fetch(request)
-    },
-})
+        /**
+         * HTTP request handler override
+         *
+         * Routes:
+         * - /socket.io/* -> Socket.io WebSocket handler (via engine.handleRequest)
+         * - All others -> Hono app
+         */
+        async fetch(request, server) {
+            const url = new URL(request.url)
 
-console.log(`
-┌─────────────────────────────────────────────┐
-│  Ping Backend Server                        │
-├─────────────────────────────────────────────┤
-│  HTTP:       http://localhost:${PORT}      │
-│  GraphQL:    http://localhost:${PORT}/graphql │
-│  Socket.io:  ws://localhost:${PORT}/socket.io/ │
-└─────────────────────────────────────────────┘
-`)
+            // Route Socket.io requests to Bun Engine
+            if (url.pathname.startsWith("/socket.io/")) {
+                return engine.handleRequest(request, server)
+            }
 
-export default server
+            // Route all other requests to Hono
+            return app.fetch(request)
+        },
+    })
+
+    console.log(`
+      ┌───────────────────────────────────────────────┐
+      │  Ping Backend Server                          │
+      ├───────────────────────────────────────────────┤
+      │  HTTP:       http://localhost:${PORT}         │
+      │  GraphQL:    http://localhost:${PORT}/graphql │
+      │  Socket.io:  ws://localhost:${PORT}/socket.io/│
+      └───────────────────────────────────────────────┘
+    `)
+}
+
+// Export app for testing (without starting server)
+export default app

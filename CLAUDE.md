@@ -433,6 +433,7 @@ feature/[功能名稱]-[agent]
 **所有 Agent 在完成子任務後都應該**：
 1. 總結完成的工作
 2. 列出變更的檔案
+3. 確認無誤之後跑 `linter` `formatter`才能 commit
 3. 建議 commit message
 4. **詢問使用者是否要 commit**
 
@@ -466,6 +467,12 @@ bun test auth.spec.ts
 
 # Watch mode
 bun test -- --watch
+
+# Lint 檢查
+bun lint
+
+# formatter 檢查
+bun format
 ```
 
 ### Frontend
@@ -483,6 +490,9 @@ pnpm start
 
 # Lint 檢查
 pnpm lint
+
+# formatter 檢查
+pnpm format
 
 # 執行測試（尚未配置）
 pnpm test
@@ -506,6 +516,9 @@ pnpm web
 
 # Lint 檢查
 pnpm lint
+
+# formatter 檢查
+pnpm format
 
 # 執行測試（尚未配置）
 pnpm test
@@ -556,6 +569,9 @@ try {
 - ❌ 未驗證的外部 API 調用
 - ❌ 在業務邏輯層面做 UI 邏輯
 
+### Linter & Formatter
+- 前後端都使用 `Oxc` ，並且統一風格
+
 ---
 
 ## 八、重要檔案與起點
@@ -577,6 +593,8 @@ try {
 - React Native：https://reactnative.dev/docs
 - Nativewind: https://www.nativewind.dev/docs
 - Tailwind: https://tailwindcss.com/docs/installation/framework-guides/nextjs
+- Oxlint: https://oxc.rs/docs/guide/usage/linter.html
+- Oxfmt: https://oxc.rs/docs/guide/usage/formatter.html
 
 ### 專案當前狀態
 ⚠️ **專案處於初始化階段**：

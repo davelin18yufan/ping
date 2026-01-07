@@ -56,52 +56,61 @@
   - 優先度: P0 (Critical)
   - 產出: backend/, frontend/, mobile/, shared/ 結構
 
-- [ ] **Better Auth 整合（Feature 1.1.1）**
-  - Agent: Architect → Backend → Full-Stack Frontend → Architect (Review)
-  - 任務: OAuth 設定 (Google, GitHub, Apple)、Session 管理
-  - 狀態: 設計階段 → RED 測試（測試規格已完成）
+- [x] **Better Auth 整合（Feature 1.0.1 Subtask 3）** ✅
+  - Agent: Architect → Backend → Architect (Review)
+  - 任務: OAuth 設定 (Google, GitHub, Apple)、Session 管理、Middleware
+  - 狀態: ✅ 完成（2026-01-05）
   - 優先度: P0
-  - 依賴: 專案初始化 ✅
-  - TDD 文件: `/docs/architecture/Feature-1.1.1-TDD-Tests.md` ✅
-  - 測試案例: Backend 7+, Frontend 6+, Mobile 6+
+  - 依賴: 專案初始化 ✅、Prisma Schema ✅、Redis ✅
+  - TDD 文件: `/docs/architecture/Feature-1.0.1-Subtask-3-TDD-Tests.md` ✅
+  - 測試案例: Backend 11 個測試全部通過 ✅
+  - 測試覆蓋率: 86.20% 函數 / 90.88% 行（超過 80% 目標）
+  - Commits: `b8a7eeb` + `eb197e1`
 
-- [ ] **資料庫 Schema 建立**
+- [x] **資料庫 Schema 建立（Feature 1.0.1 Subtask 1）** ✅
   - Agent: Architect (設計) → Backend (實作)
   - 任務: Prisma schema、migrations、seed data
-  - 狀態: 待開始（與 Feature 1.1.1 並行）
+  - 狀態: ✅ 完成（2026-01-05）
   - 優先度: P0
-  - 依賴: Better Auth 整合（Better Auth 會自動建立 User/Session/Account tables）
-  - 包含: User, Friendship, Conversation, ConversationParticipant, Message, MessageStatus
+  - 依賴: Better Auth 整合 ✅
+  - 包含: User, Session, Account, Verification, Friendship, Conversation, ConversationParticipant, Message, MessageStatus
+  - Commits: PR #1, #2 已合併
 
 #### 1.2 GraphQL 基礎
-- [ ] **GraphQL Server 設定**
+- [x] **GraphQL Server 設定（Feature 1.0.1 Subtask 4）** ✅
   - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: GraphQL Yoga 設定、Context、Error handling
-  - 狀態: 待規格化
+  - 狀態: ✅ 完成（2026-01-07）
   - 優先度: P0
-  - 依賴: Better Auth 整合
+  - 依賴: Better Auth 整合 ✅
+  - 測試案例: 8 個整合測試全部通過 ✅
+  - Commit: `13efc71 [feat] setup GraphQL Yoga with auth middleware`
 
-- [ ] **基本 Schema 定義**
+- [x] **基本 Schema 定義（Feature 1.0.1 Subtask 4）** ✅
   - Agent: Architect → Backend Developer → Architect (Review)
-  - 任務: User、Friendship、Conversation、Message types
-  - 狀態: 待規格化
+  - 任務: User type、Query (me)、Mutation、Subscription
+  - 狀態: ✅ 完成（2026-01-07）
   - 優先度: P0
-  - 依賴: GraphQL Server 設定
+  - 依賴: GraphQL Server 設定 ✅
+  - 產出: `/backend/src/graphql/schema.ts`、`/backend/src/graphql/resolvers/user.ts`
 
 #### 1.3 WebSocket 基礎
-- [ ] **Socket.io 設定**
+- [x] **Socket.io 設定（Feature 1.0.1 Subtask 5）** ✅
   - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: Socket.io server、認證、事件架構
-  - 狀態: 待規格化
+  - 狀態: ✅ 完成（2026-01-07）
   - 優先度: P0
-  - 依賴: Better Auth 整合
+  - 依賴: Better Auth 整合 ✅
+  - 測試案例: 8 個整合測試全部通過 ✅
+  - Commit: `c74b7cd [feat] setup Socket.io server with Bun Engine and authentication`
 
-- [ ] **Redis 整合**
+- [x] **Redis 整合（Feature 1.0.1 Subtask 2）** ✅
   - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: Redis client、快取策略、Pub/Sub
-  - 狀態: 待規格化
+  - 狀態: ✅ 完成（2026-01-04）
   - 優先度: P0
-  - 依賴: Socket.io 設定
+  - 依賴: Socket.io 設定 ✅
+  - Commit: PR #3 已合併
 
 ---
 
@@ -442,33 +451,51 @@
 ### 整體進度
 ```
 總功能數: 48
-已完成: 3 (專案初始化、Web 架構、Mobile 架構)
-進行中: 1 (Feature 1.1.1 - OAuth 登入，處於 RED 測試階段)
-待開始: 44
-完成率: 6.25%
+已完成: 8 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis)
+進行中: 0
+待開始: 40
+完成率: 16.67%
 ```
 
 ### 階段進度
 ```
-階段 1 (基礎設施): 3/8   (37.5%) - 專案架構已完成，OAuth 登入進行中
-階段 2 (認證用戶):  0/7   (0%)    - OAuth 登入在階段 1
-階段 3 (好友系統):  0/8   (0%)
-階段 4 (一對一聊天): 0/8   (0%)
-階段 5 (即時功能):  0/7   (0%)
+階段 1 (基礎設施): 7/8   (87.5%) - Backend 基礎設施完成 ✅
+  ✅ 專案初始化
+  ✅ Prisma Schema 設計
+  ✅ Redis 配置
+  ✅ Backend 基礎建設（Linter/Formatter/CI/CD）
+  ✅ Better Auth 整合（11 測試通過，86.20% 覆蓋率）
+  ✅ GraphQL Yoga 設定（8 測試通過）
+  ✅ Socket.io 設定（8 測試通過）
+  🔲 測試框架設定（Backend 已完成，Frontend 待開始）
+階段 2 (認證用戶):  0/7   (0%)    - 依賴階段 1 完成
+階段 3 (好友系統):  0/8   (0%)    - 依賴階段 2 完成
+階段 4 (一對一聊天): 0/8   (0%)    - 依賴階段 3 完成
+階段 5 (即時功能):  0/7   (0%)    - 依賴階段 4 完成
 階段 6 (前端開發):  2/9   (22.2%) - Web 和 Mobile 架構已完成
 ```
 
-### 當前 Sprint 狀態（Feature 1.1.1）
+### 當前 Sprint 狀態（Feature 1.0.1 - Backend 基礎設施）
 ```
-TDD 階段: RED 測試（測試規格已完成）
-- ✅ 設計階段: SDD 更新完成
-- ✅ RED 測試: 測試規格文件已撰寫
-- ⏳ GREEN 實作: Backend Agent 待開始
-- ⏳ GREEN 實作: Full-Stack Frontend Agent 待開始
-- ⏳ REFACTOR: 待完成
-- ⏳ Code Review: 待完成
+TDD 階段: ✅ 完成（100%）
+- ✅ Subtask 1: Prisma 初始化與 Schema 設計（已完成）
+- ✅ Subtask 2: Redis 設定（已完成）
+- ✅ Subtask 3: Better Auth 整合（已完成 - 2026-01-05）
+  - 測試規格文件已撰寫 ✅
+  - Backend 實作完成 ✅
+  - 11 個整合測試全部通過 ✅
+  - 測試覆蓋率：86.20% 函數 / 90.88% 行 ✅
+  - Code Review 完成 ✅
+  - Commits: `b8a7eeb` + `eb197e1` ✅
+- ✅ Subtask 4: GraphQL Yoga 設定（已完成 - 2026-01-07）
+  - 8 個整合測試全部通過 ✅
+  - Commit: `13efc71` ✅
+- ✅ Subtask 5: Socket.io 設定（已完成 - 2026-01-07）
+  - 8 個整合測試全部通過 ✅
+  - Commit: `c74b7cd` ✅
 
-預計完成: 2025-01-05 (約 2 個工作日，15 小時)
+實際完成: 2026-01-07
+測試結果: 27/27 測試全部通過 ✅（11 Better Auth + 8 GraphQL + 8 Socket.io）
 ```
 
 ### 測試覆蓋目標
@@ -486,40 +513,56 @@ E2E Tests: 目標涵蓋主要流程
 ### 本週聚焦: 階段 1 - 核心基礎設施
 
 **目標**:
-- [ ] 完成專案架構設定
-- [ ] 完成 Better Auth 整合
-- [ ] 完成資料庫 Schema
-- [ ] 完成 GraphQL Server 基礎
+- [x] 完成專案架構設定 ✅
+- [x] 完成資料庫 Schema ✅
+- [x] 完成 Backend 基礎建設（Linter/Formatter/CI/CD）✅
+- [x] 完成 Better Auth 整合 ✅
+- [x] 完成 GraphQL Server 基礎 ✅
+- [x] 完成 Socket.io Server 基礎 ✅
 
 **關鍵里程碑**:
-- Day 1-2: 專案初始化
-- Day 3-4: Better Auth + Database
-- Day 5: GraphQL Server + 基本測試
+- ✅ Day 1-2: 專案初始化、Prisma Schema（已完成）
+- ✅ Day 3-4: Redis 配置、Backend 基礎建設（已完成）
+- ✅ Day 5: Better Auth 整合（已完成 - 11 測試通過，86.20% 覆蓋率）
+- ✅ Day 6-7: GraphQL Yoga 設定、Socket.io 設定（已完成 - 27/27 測試通過）
 
-**預期產出**:
-- 可運行的後端伺服器
-- 基本的 OAuth 登入流程
-- 完整的測試框架
+**實際產出**:
+- ✅ 可運行的後端伺服器（HTTP + GraphQL + Socket.io）
+- ✅ 基本的 OAuth 登入流程（Better Auth 整合完成）
+- ✅ 完整的測試框架與 CI/CD pipeline（27 個整合測試）
 
 ---
 
 ## 📋 當前任務分配
 
 ### Architect Agent
-**當前任務**: 完成 Feature 1.1.1 的設計與測試規格（已完成 ✅），準備下一個功能的規格設計
-**進度**: Feature 1.1.1 測試規格已完成
-**下一步**: 監督 Backend 和 Frontend 實作，準備 Feature 1.2 規格
+**當前任務**: Feature 1.0.1 完成，準備下一階段規劃
+**進度**:
+  - ✅ Feature 1.0.1 全部子任務完成並審查通過（5/5）
+  - ✅ 27/27 測試全部通過（100%）
+  - ✅ 專案文件已更新同步
+**下一步**:
+  - 選項 A：規劃 Feature 1.0.2 & 1.0.3（Frontend 基礎設施）
+  - 選項 B：規劃其他 Backend 功能
 
 ### Backend Developer
-**當前任務**: 等待開始 Feature 1.1.1 實作（GREEN Phase）
-**進度**: 待命，測試規格已就緒
-**預計開始**: 即將開始（測試規格已完成）
-**負責範圍**: `/backend/**`（Prisma schema、GraphQL resolvers、Better Auth 配置）
+**當前任務**: Feature 1.0.1 完成 ✅
+**進度**:
+  - ✅ Prisma 初始化與 Schema 設計完成
+  - ✅ Redis 配置完成
+  - ✅ Better Auth 整合完成（11 測試通過，86.20% 覆蓋率）
+  - ✅ GraphQL Yoga 設定完成（8 測試通過）
+  - ✅ Socket.io 設定完成（8 測試通過）
+  - ✅ TypeScript 類型檢查通過
+  - ✅ Lint/Format 檢查通過
+  - ✅ 測試結果：27/27 通過（100%）
+**完成日期**: 2026-01-07
+**下一步任務**: 建立 GitHub Actions CI/CD Pipeline（自動化測試與部署）
 
 ### Fullstack Frontend Developer
-**當前任務**: 等待開始 Feature 1.1.1 實作（GREEN Phase）
-**進度**: 待命，測試規格已就緒
-**預計開始**: 可與 Backend 並行開始
+**當前任務**: 待命
+**進度**: 等待 Feature 1.0.2 & 1.0.3 規劃
+**依賴**: Feature 1.0.1 已完成 ✅
 **負責範圍**: `/frontend/**`（Web）、`/mobile/**`（Mobile）、`/shared/**`（共享程式碼）
 
 ---
@@ -543,6 +586,102 @@ E2E Tests: 目標涵蓋主要流程
 
 ## 📝 每日站會記錄
 
+### 2026-01-07
+**參與者**: Architect Agent, Backend Developer
+**決議**:
+1. ✅ 完成 Feature 1.0.1 全部子任務（5/5）
+2. ✅ 修復 TypeScript 類型錯誤（Socket.io 測試）
+3. ✅ 所有測試通過（27/27，100%）
+4. ✅ 更新專案文件（MULTI_AGENT_PLAN.md、task-board.md）
+5. 下一步：建立 GitHub Actions CI/CD Pipeline
+
+**產出**:
+- ✅ GraphQL Yoga 完整設定（schema、context、resolvers、8 測試）
+- ✅ Socket.io 完整設定（server、middleware、handlers、8 測試）
+- ✅ TypeScript 類型修復（socket.id 非空斷言處理）
+- ✅ 文件同步更新（進度、測試結果、完成日期）
+
+**測試結果**:
+- 27/27 測試全部通過 ✅（100%）
+  - Better Auth：11/11 ✅
+  - GraphQL Yoga：8/8 ✅
+  - Socket.io：8/8 ✅
+- TypeScript 編譯：無錯誤 ✅
+- Lint：9 個警告（建議性）✅
+- Format：通過 ✅
+
+**Commits**:
+- `13efc71` - [feat] setup GraphQL Yoga with auth middleware
+- `c74b7cd` - [feat] setup Socket.io server with Bun Engine and authentication
+- 待提交：[fix] resolve TypeScript type errors in Socket.io tests
+- 待提交：[docs] update project status after Feature 1.0.1 completion
+
+**行動項目**:
+- [x] Backend Developer 完成 GraphQL Yoga 設定 ✅
+- [x] Backend Developer 完成 Socket.io 設定 ✅
+- [x] Backend Developer 修復 TypeScript 類型錯誤 ✅
+- [x] Backend Developer 通過所有測試 ✅
+- [x] Architect Agent 更新專案文件 ✅
+- [ ] 建立 commit（等待使用者確認）
+- [ ] 下一步：建立 GitHub Actions CI/CD Pipeline
+
+### 2026-01-05（下午）
+**參與者**: Architect Agent, Backend Developer
+**決議**:
+1. ✅ 完成 Better Auth 整合（Feature 1.0.1 Subtask 3）
+2. ✅ 確認測試覆蓋率超過 80% 目標（達到 86.20%）
+3. ✅ 完成 Code Review 並提交 commits
+4. 準備下一步：GraphQL Yoga 和 Socket.io 設定
+
+**產出**:
+- `/backend/src/lib/prisma.ts` - Prisma 工廠函數模式（移除 globalThis）
+- `/backend/src/lib/auth.ts` - Better Auth 配置（OAuth providers）
+- `/backend/src/middleware.ts` - Session 驗證 middleware
+- `/backend/tests/fixtures/prisma.ts` - 測試用 Prisma client
+- `/backend/tests/integration/better-auth.spec.ts` - 11 個整合測試
+- `/backend/tests/setup.ts` - 測試環境設定
+- `/backend/bunfig.toml` - Bun 測試配置
+
+**測試結果**:
+- 11 個測試全部通過 ✅
+- 測試覆蓋率：86.20% 函數 / 90.88% 行
+- 測試執行時間：~300ms
+
+**Commits**:
+- `b8a7eeb` - [refactor] improve Prisma initialization with factory pattern
+- `eb197e1` - [feat] integrate Better Auth with OAuth providers and add comprehensive tests
+
+**行動項目**:
+- [x] Backend Developer 完成 Better Auth 整合 ✅
+- [x] Backend Developer 通過所有測試 ✅
+- [x] Backend Developer 提交 commits ✅
+- [x] Architect Agent 審查 PR 並更新文件 ✅
+- [ ] Architect Agent 撰寫 GraphQL Yoga 測試規格
+- [ ] Architect Agent 撰寫 Socket.io 測試規格
+
+### 2026-01-05（上午）
+**參與者**: Architect Agent, Backend Developer
+**決議**:
+1. 完成 Backend 基礎建設（Linter/Formatter/CI/CD）
+2. 統一程式碼品質標準（Oxlint + Oxfmt）
+3. 建立完整的 CI/CD pipeline（GitHub Actions）
+
+**產出**:
+- `.github/workflows/backend-ci.yml` - CI/CD workflow（Lint + Format + Type Check）
+- `backend/.oxlintrc.json` - Linting 規則
+- `backend/.oxfmtrc.json` - 格式化規則
+- `backend/tsconfig.json` - TypeScript 完整配置
+- `backend/README.md` - CI/CD 完整文檔
+
+**行動項目**:
+- [x] Backend Developer 完成 Oxlint 配置 ✅
+- [x] Backend Developer 完成 Oxfmt 配置 ✅
+- [x] Backend Developer 完成 TypeScript 配置 ✅
+- [x] Backend Developer 完成 GitHub Actions workflow ✅
+- [x] Backend Developer 更新 Backend README ✅
+- [x] Backend Developer commit CI/CD 配置 ✅
+- [x] Backend Developer 完成 Better Auth 整合實作 ✅
+
 ### 2025-12-29
 **參與者**: 所有 Agent
 **決議**:
@@ -553,8 +692,9 @@ E2E Tests: 目標涵蓋主要流程
 **行動項目**:
 - [x] 所有 Agent 閱讀協作流程文件 ✅
 - [x] Architect Agent 完成 Feature 1.1.1 規格設計與測試規格 ✅
-- [ ] Backend Developer 開始 Feature 1.1.1 實作
-- [ ] Fullstack Frontend Developer 開始 Feature 1.1.1 實作
+- [x] Backend Developer 完成 Prisma Schema ✅
+- [x] Backend Developer 完成 Redis 配置 ✅
+- [x] Backend Developer 完成 Backend 基礎建設 ✅
 
 ---
 
@@ -572,4 +712,8 @@ E2E Tests: 目標涵蓋主要流程
 
 **更新頻率**: 每日更新
 **維護者**: All Agents
-**最後更新**: 2025-12-29
+**最後更新**: 2026-01-07 14:00
+**最新變更**: Feature 1.0.1 (Backend 基礎設施) 完成 ✅
+  - 27/27 測試全部通過（11 Better Auth + 8 GraphQL + 8 Socket.io）
+  - TypeScript 類型錯誤修復完成
+  - 階段 1 進度：87.5% (7/8 完成)

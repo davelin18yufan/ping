@@ -1,0 +1,9 @@
+# Bun configuration file
+# https://bun.sh/docs/runtime/bunfig
+
+[test]
+# Preload test setup file before running tests
+preload = ["./tests/setup.ts"]
+
+# Test timeout (in milliseconds)
+timeout = 10000

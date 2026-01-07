@@ -20,39 +20,39 @@ import Redis from "ioredis"
 const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379"
 
 export const redis = new Redis(REDIS_URL, {
-  retryStrategy(times) {
-    // exponential backoff
-    const delay = Math.min(times * 50, 2000)
-    console.log(`🔄 Redis reconnecting... attempt ${times}, delay ${delay}ms`)
-    return delay
-  },
-  maxRetriesPerRequest: 3,
-  // Enable offline queue (queue commands when disconnected)
-  enableOfflineQueue: true,
-  connectTimeout: 10000,
-  // Lazy connect (don't connect immediately, wait for first command)
-  lazyConnect: false,
+    retryStrategy(times) {
+        // exponential backoff
+        const delay = Math.min(times * 50, 2000)
+        console.log(`🔄 Redis reconnecting... attempt ${times}, delay ${delay}ms`)
+        return delay
+    },
+    maxRetriesPerRequest: 3,
+    // Enable offline queue (queue commands when disconnected)
+    enableOfflineQueue: true,
+    connectTimeout: 10000,
+    // Lazy connect (don't connect immediately, wait for first command)
+    lazyConnect: false,
 })
 
 // Event handlers
 redis.on("connect", () => {
-  console.log("✅ Redis connected successfully")
+    console.log("✅ Redis connected successfully")
 })
 
 redis.on("ready", () => {
-  console.log("🚀 Redis ready to accept commands")
+    console.log("🚀 Redis ready to accept commands")
 })
 
 redis.on("error", (error) => {
-  console.error("❌ Redis connection error:", error.message)
+    console.error("❌ Redis connection error:", error.message)
 })
 
 redis.on("close", () => {
-  console.log("⚠️  Redis connection closed")
+    console.log("⚠️  Redis connection closed")
 })
 
 redis.on("reconnecting", (timeUntilReconnect: number) => {
-  console.log(`🔄 Redis reconnecting in ${timeUntilReconnect}ms...`)
+    console.log(`🔄 Redis reconnecting in ${timeUntilReconnect}ms...`)
 })
 
 /**
@@ -65,7 +65,7 @@ redis.on("reconnecting", (timeUntilReconnect: number) => {
  * @param ttl - Time to live in seconds (default: 30 seconds)
  */
 export async function setUserOnline(userId: string, ttl: number = 30) {
-  await redis.setex(`online:${userId}`, ttl, "true")
+    await redis.setex(`online:${userId}`, ttl, "true")
 }
 
 /**
@@ -74,8 +74,8 @@ export async function setUserOnline(userId: string, ttl: number = 30) {
  * @returns true if online, false otherwise
  */
 export async function isUserOnline(userId: string): Promise<boolean> {
-  const status = await redis.get(`online:${userId}`)
-  return status === "true"
+    const status = await redis.get(`online:${userId}`)
+    return status === "true"
 }
 
 /**
@@ -83,7 +83,7 @@ export async function isUserOnline(userId: string): Promise<boolean> {
  * @param userId - User ID
  */
 export async function setUserOffline(userId: string) {
-  await redis.del(`online:${userId}`)
+    await redis.del(`online:${userId}`)
 }
 
 /**
@@ -92,7 +92,7 @@ export async function setUserOffline(userId: string) {
  * @param socketId - Socket.io connection ID
  */
 export async function addUserSocket(userId: string, socketId: string) {
-  await redis.sadd(`socket:${userId}`, socketId)
+    await redis.sadd(`socket:${userId}`, socketId)
 }
 
 /**
@@ -101,7 +101,7 @@ export async function addUserSocket(userId: string, socketId: string) {
  * @param socketId - Socket.io connection ID
  */
 export async function removeUserSocket(userId: string, socketId: string) {
-  await redis.srem(`socket:${userId}`, socketId)
+    await redis.srem(`socket:${userId}`, socketId)
 }
 
 /**
@@ -110,7 +110,7 @@ export async function removeUserSocket(userId: string, socketId: string) {
  * @returns Array of socket IDs
  */
 export async function getUserSockets(userId: string): Promise<string[]> {
-  return await redis.smembers(`socket:${userId}`)
+    return await redis.smembers(`socket:${userId}`)
 }
 
 /**
@@ -120,10 +120,10 @@ export async function getUserSockets(userId: string): Promise<string[]> {
  * @returns New unread count
  */
 export async function incrementUnreadCount(
-  userId: string,
-  conversationId: string
+    userId: string,
+    conversationId: string
 ): Promise<number> {
-  return await redis.incr(`unread:${userId}:${conversationId}`)
+    return await redis.incr(`unread:${userId}:${conversationId}`)
 }
 
 /**
@@ -132,12 +132,9 @@ export async function incrementUnreadCount(
  * @param conversationId - Conversation ID
  * @returns Unread count
  */
-export async function getUnreadCount(
-  userId: string,
-  conversationId: string
-): Promise<number> {
-  const count = await redis.get(`unread:${userId}:${conversationId}`)
-  return count ? parseInt(count, 10) : 0
+export async function getUnreadCount(userId: string, conversationId: string): Promise<number> {
+    const count = await redis.get(`unread:${userId}:${conversationId}`)
+    return count ? parseInt(count, 10) : 0
 }
 
 /**
@@ -146,7 +143,7 @@ export async function getUnreadCount(
  * @param conversationId - Conversation ID
  */
 export async function resetUnreadCount(userId: string, conversationId: string) {
-  await redis.del(`unread:${userId}:${conversationId}`)
+    await redis.del(`unread:${userId}:${conversationId}`)
 }
 
 /**
@@ -155,13 +152,9 @@ export async function resetUnreadCount(userId: string, conversationId: string) {
  * @param userId - User ID
  * @param ttl - Time to live in seconds (default: 5 seconds)
  */
-export async function addTypingUser(
-  conversationId: string,
-  userId: string,
-  ttl: number = 5
-) {
-  await redis.sadd(`typing:${conversationId}`, userId)
-  await redis.expire(`typing:${conversationId}`, ttl)
+export async function addTypingUser(conversationId: string, userId: string, ttl: number = 5) {
+    await redis.sadd(`typing:${conversationId}`, userId)
+    await redis.expire(`typing:${conversationId}`, ttl)
 }
 
 /**
@@ -170,7 +163,7 @@ export async function addTypingUser(
  * @param userId - User ID
  */
 export async function removeTypingUser(conversationId: string, userId: string) {
-  await redis.srem(`typing:${conversationId}`, userId)
+    await redis.srem(`typing:${conversationId}`, userId)
 }
 
 /**
@@ -178,16 +171,14 @@ export async function removeTypingUser(conversationId: string, userId: string) {
  * @param conversationId - Conversation ID
  * @returns Array of user IDs
  */
-export async function getTypingUsers(
-  conversationId: string
-): Promise<string[]> {
-  return await redis.smembers(`typing:${conversationId}`)
+export async function getTypingUsers(conversationId: string): Promise<string[]> {
+    return await redis.smembers(`typing:${conversationId}`)
 }
 
 /**
  * Gracefully disconnect from Redis
  */
 export async function disconnectRedis() {
-  await redis.quit()
-  console.log("👋 Redis disconnected")
+    await redis.quit()
+    console.log("👋 Redis disconnected")
 }

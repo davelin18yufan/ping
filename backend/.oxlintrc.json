@@ -1,0 +1,53 @@
+{
+    "$schema": "https://raw.githubusercontent.com/oxc-project/oxc/main/npm/oxlint/configuration_schema.json",
+    "categories": {
+        "correctness": "error",
+        "suspicious": "warn"
+    },
+    "rules": {
+        "eslint/no-unused-vars": "error",
+        "eslint/no-console": "off",
+        "eslint/no-debugger": "error",
+        "eslint/eqeqeq": "error",
+        "eslint/no-var": "error",
+        "eslint/prefer-const": "warn",
+        "eslint/func-style": "off",
+        "eslint/no-magic-numbers": "off",
+        "eslint/id-length": "off",
+        "eslint/no-ternary": "off",
+        "eslint/max-statements": "off",
+        "eslint/capitalized-comments": "off",
+        "eslint/arrow-body-style": "off",
+        "eslint/sort-keys": "off",
+        "eslint/sort-imports": "off",
+        "typescript/no-explicit-any": "warn",
+        "typescript/no-unused-vars": "error",
+        "typescript/no-non-null-assertion": "warn",
+        "typescript/no-inferrable-types": "off",
+        "unicorn/no-null": "off",
+        "unicorn/prefer-top-level-await": "off",
+        "unicorn/no-process-exit": "off",
+        "unicorn/numeric-separators-style": "off",
+        "import/no-duplicates": "error",
+        "import/no-cycle": "error"
+    },
+    "settings": {
+        "typescript": {
+            "project": "./tsconfig.json"
+        }
+    },
+    "ignorePatterns": [
+        "node_modules",
+        "dist",
+        "build",
+        "generated",
+        "prisma/migrations",
+        "coverage",
+        "*.config.js",
+        "*.config.ts"
+    ],
+    "env": {
+        "node": true,
+        "es2022": true
+    }
+}

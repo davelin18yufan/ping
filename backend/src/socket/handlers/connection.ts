@@ -6,15 +6,21 @@
  */
 
 import type { AuthenticatedSocket } from "../middleware"
-import { redis } from "../../lib/redis"
+import {
+    addUserSocket,
+    removeUserSocket,
+    getUserSockets,
+    setPersistentUserOnline,
+    setUserOffline,
+} from "@/lib/redis"
 
 /**
  * Handle Socket Connection
  *
  * Called when a user successfully connects via WebSocket.
  * Performs:
- * - Add socket to user's socket list in Redis
- * - Set user online status in Redis
+ * - Add socket to user's socket list in Redis (user:sockets:{userId})
+ * - Set user online status in Redis (user:online:{userId})
  * - Send authenticated event to client
  * - Register disconnect handler
  *
@@ -26,11 +32,11 @@ export async function handleConnection(socket: AuthenticatedSocket): Promise<voi
     try {
         // Add socket to user's socket list in Redis
         // Format: user:sockets:{userId} -> Set of socket IDs
-        await redis.sadd(`user:sockets:${userId}`, socket.id)
+        await addUserSocket(userId, socket.id)
 
-        // Set user online status in Redis
+        // Set user online status in Redis (persistent, no TTL)
         // Format: user:online:{userId} -> "true"
-        await redis.set(`user:online:${userId}`, "true")
+        await setPersistentUserOnline(userId)
 
         // Send authenticated event to client
         socket.emit("authenticated", {
@@ -66,14 +72,14 @@ export async function handleDisconnect(socket: AuthenticatedSocket, reason: stri
 
     try {
         // Remove socket from user's socket list
-        await redis.srem(`user:sockets:${userId}`, socket.id)
+        await removeUserSocket(userId, socket.id)
 
         // Check if user has other active sockets
-        const remainingSockets = await redis.smembers(`user:sockets:${userId}`)
+        const remainingSockets = await getUserSockets(userId)
 
         // If no other sockets, set user offline
         if (remainingSockets.length === 0) {
-            await redis.del(`user:online:${userId}`)
+            await setUserOffline(userId)
             console.log(`✓ User ${userId} went offline (reason: ${reason})`)
         } else {
             console.log(

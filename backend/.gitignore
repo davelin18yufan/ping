@@ -45,3 +45,11 @@ coverage/
 # temp files
 *.tmp
 .cache/
+
+
+# Test scripts (use tests/ directory instead)
+test-*.ts
+db.ts
+
+# Prisma generated files (generated locally by prisma generate)
+generated/

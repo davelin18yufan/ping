@@ -42,10 +42,10 @@ describe("GraphQL Integration", () => {
     test("should initialize GraphQL server successfully", async () => {
         // Act: Send a simple query to check server is running
         const response = await executeGraphQL(`
-      query {
-        __typename
-      }
-    `)
+          query {
+            __typename
+          }
+        `)
 
         // Assert: Server should respond with 200 OK
         expect(response.status).toBe(200)

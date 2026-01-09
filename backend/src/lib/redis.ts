@@ -10,11 +10,11 @@ import Redis from "ioredis"
  * 4. Rate Limiting - API rate limiting and throttling
  * 5. Session Cache - Temporary session data caching
  *
- * Key naming conventions:
- * - online:{userId} - User online status (SET with TTL)
- * - unread:{userId}:{conversationId} - Unread message count (STRING)
- * - socket:{userId} - Socket connection ID(s) (SET for multiple devices)
- * - typing:{conversationId} - Users currently typing (SET with TTL)
+ * Key naming conventions (following resource:entity:id pattern):
+ * - user:online:{userId} - User online status (STRING, persistent or with TTL)
+ * - user:sockets:{userId} - Socket connection ID(s) (SET for multiple devices)
+ * - user:unread:{userId}:{conversationId} - Unread message count (STRING)
+ * - conversation:typing:{conversationId} - Users currently typing (SET with TTL)
  */
 
 const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379"
@@ -60,12 +60,21 @@ redis.on("reconnecting", (timeUntilReconnect: number) => {
  */
 
 /**
- * Set user online status
+ * Set user online status with TTL (for heartbeat scenarios)
  * @param userId - User ID
  * @param ttl - Time to live in seconds (default: 30 seconds)
  */
 export async function setUserOnline(userId: string, ttl: number = 30) {
-    await redis.setex(`online:${userId}`, ttl, "true")
+    await redis.setex(`user:online:${userId}`, ttl, "true")
+}
+
+/**
+ * Set user online status without TTL (for socket connection scenarios)
+ * Use this when the online status should persist as long as socket is connected
+ * @param userId - User ID
+ */
+export async function setPersistentUserOnline(userId: string) {
+    await redis.set(`user:online:${userId}`, "true")
 }
 
 /**
@@ -74,7 +83,7 @@ export async function setUserOnline(userId: string, ttl: number = 30) {
  * @returns true if online, false otherwise
  */
 export async function isUserOnline(userId: string): Promise<boolean> {
-    const status = await redis.get(`online:${userId}`)
+    const status = await redis.get(`user:online:${userId}`)
     return status === "true"
 }
 
@@ -83,7 +92,7 @@ export async function isUserOnline(userId: string): Promise<boolean> {
  * @param userId - User ID
  */
 export async function setUserOffline(userId: string) {
-    await redis.del(`online:${userId}`)
+    await redis.del(`user:online:${userId}`)
 }
 
 /**
@@ -92,7 +101,7 @@ export async function setUserOffline(userId: string) {
  * @param socketId - Socket.io connection ID
  */
 export async function addUserSocket(userId: string, socketId: string) {
-    await redis.sadd(`socket:${userId}`, socketId)
+    await redis.sadd(`user:sockets:${userId}`, socketId)
 }
 
 /**
@@ -101,7 +110,7 @@ export async function addUserSocket(userId: string, socketId: string) {
  * @param socketId - Socket.io connection ID
  */
 export async function removeUserSocket(userId: string, socketId: string) {
-    await redis.srem(`socket:${userId}`, socketId)
+    await redis.srem(`user:sockets:${userId}`, socketId)
 }
 
 /**
@@ -110,7 +119,7 @@ export async function removeUserSocket(userId: string, socketId: string) {
  * @returns Array of socket IDs
  */
 export async function getUserSockets(userId: string): Promise<string[]> {
-    return await redis.smembers(`socket:${userId}`)
+    return await redis.smembers(`user:sockets:${userId}`)
 }
 
 /**
@@ -123,7 +132,7 @@ export async function incrementUnreadCount(
     userId: string,
     conversationId: string
 ): Promise<number> {
-    return await redis.incr(`unread:${userId}:${conversationId}`)
+    return await redis.incr(`user:unread:${userId}:${conversationId}`)
 }
 
 /**
@@ -133,7 +142,7 @@ export async function incrementUnreadCount(
  * @returns Unread count
  */
 export async function getUnreadCount(userId: string, conversationId: string): Promise<number> {
-    const count = await redis.get(`unread:${userId}:${conversationId}`)
+    const count = await redis.get(`user:unread:${userId}:${conversationId}`)
     return count ? parseInt(count, 10) : 0
 }
 
@@ -143,7 +152,7 @@ export async function getUnreadCount(userId: string, conversationId: string): Pr
  * @param conversationId - Conversation ID
  */
 export async function resetUnreadCount(userId: string, conversationId: string) {
-    await redis.del(`unread:${userId}:${conversationId}`)
+    await redis.del(`user:unread:${userId}:${conversationId}`)
 }
 
 /**
@@ -153,8 +162,8 @@ export async function resetUnreadCount(userId: string, conversationId: string) {
  * @param ttl - Time to live in seconds (default: 5 seconds)
  */
 export async function addTypingUser(conversationId: string, userId: string, ttl: number = 5) {
-    await redis.sadd(`typing:${conversationId}`, userId)
-    await redis.expire(`typing:${conversationId}`, ttl)
+    await redis.sadd(`conversation:typing:${conversationId}`, userId)
+    await redis.expire(`conversation:typing:${conversationId}`, ttl)
 }
 
 /**
@@ -163,7 +172,7 @@ export async function addTypingUser(conversationId: string, userId: string, ttl:
  * @param userId - User ID
  */
 export async function removeTypingUser(conversationId: string, userId: string) {
-    await redis.srem(`typing:${conversationId}`, userId)
+    await redis.srem(`conversation:typing:${conversationId}`, userId)
 }
 
 /**
@@ -172,7 +181,7 @@ export async function removeTypingUser(conversationId: string, userId: string) {
  * @returns Array of user IDs
  */
 export async function getTypingUsers(conversationId: string): Promise<string[]> {
-    return await redis.smembers(`typing:${conversationId}`)
+    return await redis.smembers(`conversation:typing:${conversationId}`)
 }
 
 /**

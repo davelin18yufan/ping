@@ -5,13 +5,12 @@
  * for Socket.io integration tests.
  */
 
-import type { Server } from "bun"
+import { type Server } from "bun"
 import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { createYoga } from "graphql-yoga"
 import type { PrismaClient } from "@generated/prisma/client"
-import { withPrisma } from "@/lib/prisma"
-import { sessionMiddleware, getAuthUserId } from "@/middleware"
+import { sessionMiddleware, getAuthUserId, withPrisma } from "@/middleware"
 import { schema } from "@/graphql/schema"
 import { buildGraphQLContext } from "@/graphql/context"
 import { initializeSocketIO } from "@/socket"

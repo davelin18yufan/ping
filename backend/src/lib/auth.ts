@@ -62,14 +62,14 @@ export const auth = betterAuth({
     socialProviders: {
         google: hasGoogleOAuth
             ? {
-                  clientId: process.env.GOOGLE_CLIENT_ID ?? "",
-                  clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+                  clientId: process.env.GOOGLE_CLIENT_ID as string,
+                  clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
               }
             : undefined,
         github: hasGitHubOAuth
             ? {
-                  clientId: process.env.GITHUB_CLIENT_ID ?? "",
-                  clientSecret: process.env.GITHUB_CLIENT_SECRET ?? "",
+                  clientId: process.env.GITHUB_CLIENT_ID as string,
+                  clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
               }
             : undefined,
     },
@@ -109,6 +109,8 @@ export const auth = betterAuth({
  * Type-safe auth client with all methods
  */
 export type Auth = typeof auth
+export type AuthUser = typeof auth.$Infer.Session.user | null
+export type AuthSession = typeof auth.$Infer.Session.session | null
 
 /**
  * Export auth handler for Hono integration
@@ -178,7 +180,7 @@ export async function verifySession(request: Request): Promise<string | null> {
  * @param name - Cookie name to extract
  * @returns Cookie value or null if not found
  */
-function parseCookie(cookieHeader: string, name: string): string | null {
+export function parseCookie(cookieHeader: string, name: string): string | null {
     const cookies = cookieHeader.split(";")
     for (const cookie of cookies) {
         const [cookieName, cookieValue] = cookie.trim().split("=")
@@ -187,4 +189,61 @@ function parseCookie(cookieHeader: string, name: string): string | null {
         }
     }
     return null
+}
+
+/**
+ * Verify session from cookie string (for Socket.io middleware)
+ *
+ * This function verifies Better Auth session directly from cookie header
+ * without requiring a Request object, suitable for WebSocket authentication.
+ *
+ * @param cookieHeader - Cookie header string from WebSocket handshake
+ * @returns User ID if session is valid, null otherwise
+ */
+export async function verifySessionFromCookie(cookieHeader: string): Promise<string | null> {
+    try {
+        // Parse session token from cookie
+        const sessionToken = parseCookie(cookieHeader, "better-auth.session_token")
+        if (!sessionToken) {
+            return null
+        }
+
+        // In test environment, verify session directly via Prisma
+        // This allows tests to create sessions without Better Auth OAuth flow
+        if (process.env.NODE_ENV === "test") {
+            const session = await prisma.session.findUnique({
+                where: {
+                    sessionToken: sessionToken,
+                },
+                include: {
+                    user: true,
+                },
+            })
+
+            // Check if session exists and is not expired
+            if (!session || session.expires < new Date()) {
+                return null
+            }
+
+            return session.userId
+        }
+
+        // In production/development, verify session with Better Auth
+        // Create minimal Headers object for Better Auth API
+        const headers = new Headers()
+        headers.set("cookie", cookieHeader)
+
+        const session = await auth.api.getSession({
+            headers: headers,
+        })
+
+        if (!session?.user?.id) {
+            return null
+        }
+
+        return session.user.id
+    } catch (error) {
+        console.error("Session verification from cookie failed:", error)
+        return null
+    }
 }

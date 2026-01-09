@@ -9,14 +9,7 @@
 
 import type { Context, Next } from "hono"
 import { verifySession } from "./lib/auth"
-
-/**
- * Extended Hono context with user authentication
- */
-export interface AuthContext {
-    userId: string | null
-    isAuthenticated: boolean
-}
+import { prisma } from "./lib/prisma"
 
 /**
  * Session verification middleware
@@ -114,12 +107,42 @@ export function getAuthUserId(c: Context): string | null {
  * // userId is guaranteed to be string here
  * ```
  */
-export function requireAuthUserId(c: Context): string {
+export async function requireAuthUserId(c: Context, next: Next) {
     const userId = c.get("userId")
 
     if (!userId) {
         throw new Error("User not authenticated")
     }
 
-    return userId
+    await next()
+}
+
+/**
+ * Prisma middleware for Hono
+ *
+ * Injects Prisma client into Hono context, making it available in all route handlers.
+ *
+ * @param c - Hono context
+ * @param next - Next middleware function
+ *
+ * @example
+ * ```typescript
+ * import { withPrisma } from '@/lib/prisma';
+ *
+ * // Apply globally to all routes
+ * app.use('*', withPrisma);
+ *
+ * // Or apply to specific routes
+ * app.get('/users', withPrisma, async (c) => {
+ *   const prisma = c.get('prisma');
+ *   const users = await prisma.user.findMany();
+ *   return c.json({ users });
+ * });
+ * ```
+ */
+export function withPrisma(c: Context, next: Next) {
+    if (!c.get("prisma")) {
+        c.set("prisma", prisma)
+    }
+    return next()
 }

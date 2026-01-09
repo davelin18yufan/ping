@@ -6,7 +6,7 @@
  */
 
 import type { Socket } from "socket.io"
-import { verifySession } from "../lib/auth"
+import { verifySessionFromCookie } from "../lib/auth"
 
 /**
  * Authenticated Socket Interface
@@ -38,15 +38,8 @@ export async function socketAuthMiddleware(
             return next(new Error("Unauthorized: No session cookie"))
         }
 
-        // Create a mock Request object for verifySession
-        const mockRequest = new Request("http://localhost", {
-            headers: {
-                cookie: cookieHeader,
-            },
-        })
-
         // Verify session using Better Auth
-        const userId = await verifySession(mockRequest)
+        const userId = await verifySessionFromCookie(cookieHeader)
 
         if (!userId) {
             return next(new Error("Unauthorized: Invalid session"))

@@ -13,8 +13,7 @@ import { logger } from "hono/logger"
 import { createYoga } from "graphql-yoga"
 import type { PrismaClient } from "@generated/prisma/client"
 import { authHandler } from "./lib/auth"
-import { withPrisma } from "./lib/prisma"
-import { sessionMiddleware, getAuthUserId } from "./middleware"
+import { sessionMiddleware, getAuthUserId, withPrisma } from "./middleware"
 import { schema } from "./graphql/schema"
 import { buildGraphQLContext } from "./graphql/context"
 import { initializeSocketIO } from "./socket"
@@ -76,6 +75,10 @@ app.use(
     "*",
     cors({
         origin: allowedOrigins,
+        allowHeaders: ["Content-Type", "Authorization"],
+        allowMethods: ["POST", "GET", "OPTIONS"],
+        exposeHeaders: ["Content-Length"],
+        maxAge: 600,
         credentials: true,
     })
 )
@@ -225,9 +228,8 @@ app.onError((err, c) => {
  * Initialize Socket.io with Bun Engine
  *
  * Must be called before starting the server to enable WebSocket support.
- * Only initialize if not in test environment.
+ * Only initialize if not in test environment which has its own mock initiation.
  */
-// Only start server if not in test environment
 if (process.env.NODE_ENV !== "test") {
     const { engine } = initializeSocketIO()
 

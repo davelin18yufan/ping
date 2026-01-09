@@ -18,75 +18,75 @@ import { userResolvers } from "./resolvers"
  */
 export const schema = createSchema({
     typeDefs: /* GraphQL */ `
-    """
-    User represents an authenticated user in the Ping application.
-    Matches the Prisma User model from Better Auth integration.
-    """
-    type User {
       """
-      Unique user ID (UUID)
+      User represents an authenticated user in the Ping application.
+      Matches the Prisma User model from Better Auth integration.
       """
-      id: ID!
+      type User {
+        """
+        Unique user ID (UUID)
+        """
+        id: ID!
+
+        """
+        User's email address (unique)
+        """
+        email: String!
+
+        """
+        Timestamp when email was verified (null if not verified)
+        """
+        emailVerified: String
+
+        """
+        User's display name (optional)
+        """
+        name: String
+
+        """
+        User's profile image URL (optional)
+        """
+        image: String
+
+        """
+        Timestamp when user account was created
+        """
+        createdAt: String!
+
+        """
+        Timestamp when user account was last updated
+        """
+        updatedAt: String!
+      }
 
       """
-      User's email address (unique)
+      Root Query type - all read operations
       """
-      email: String!
+      type Query {
+        """
+        Get the currently authenticated user.
+        Requires valid session cookie.
+        Returns null if not authenticated.
+        """
+        me: User
+      }
 
       """
-      Timestamp when email was verified (null if not verified)
+      Root Mutation type - all write operations
+      (To be implemented in future features)
       """
-      emailVerified: String
+      type Mutation {
+        _empty: String
+      }
 
       """
-      User's display name (optional)
+      Root Subscription type - all real-time subscriptions
+      (To be implemented in future features)
       """
-      name: String
-
-      """
-      User's profile image URL (optional)
-      """
-      image: String
-
-      """
-      Timestamp when user account was created
-      """
-      createdAt: String!
-
-      """
-      Timestamp when user account was last updated
-      """
-      updatedAt: String!
-    }
-
-    """
-    Root Query type - all read operations
-    """
-    type Query {
-      """
-      Get the currently authenticated user.
-      Requires valid session cookie.
-      Returns null if not authenticated.
-      """
-      me: User
-    }
-
-    """
-    Root Mutation type - all write operations
-    (To be implemented in future features)
-    """
-    type Mutation {
-      _empty: String
-    }
-
-    """
-    Root Subscription type - all real-time subscriptions
-    (To be implemented in future features)
-    """
-    type Subscription {
-      _empty: String
-    }
-  `,
+      type Subscription {
+        _empty: String
+      }
+    `,
     resolvers: {
         Query: {
             ...userResolvers.Query,

@@ -19,7 +19,7 @@
 ## 二、高階系統架構（文字描述）
 
 ```
-[Web Client (Next.js)]     \
+[Web Client (TanStack Start)]     \
                             >-- HTTPS / WSS --> [Load Balancer (optional)]
 [Mobile Client (React Native)] /
 
@@ -63,11 +63,11 @@
 
 ## 三、各層邊界與職責劃分
 
-### 3.1 Web Frontend (Next.js App Router)
+### 3.1 Web Frontend (TanStack Start)
 - 職責：UI 渲染、路由、狀態管理、GraphQL 查詢、Socket.io 即時更新
 - 邊界：所有請求帶 Better Auth session cookie，無直接操作 DB
 - 共享：GraphQL types、Zustand stores、Custom hooks 與 Mobile 共享
-- 特殊：Server Components 可直接呼叫 Backend API（內部）
+- 特殊：Server Functions 可直接呼叫 Backend API（內部）
 
 ### 3.2 Mobile Frontend (React Native + Expo)
 - 職責：原生體驗、推送通知、圖片選擇/壓縮、深層連結 OAuth callback

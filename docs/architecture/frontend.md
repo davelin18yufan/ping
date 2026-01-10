@@ -3,11 +3,12 @@
 ## 一、技術棧總覽（前端部分）
 
 **Web**
-- Next.js 16+ (App Router)
+- TanStack Start (with TanStack Router + TanStack Query)
 - 狀態管理: Zustand
 - GraphQL 客戶端: Apollo Client
 - WebSocket: Socket.io-client
 - 認證: Better Auth Client
+- 測試框架: Vitest
 - UI 框架: Tailwind CSS + shadcn/ui
 
 **Mobile**
@@ -18,10 +19,10 @@
 - UI 組件與邏輯盡量與 Web 共享
 - 認證: Better Auth Client（React Native 相容）
 
-## 二、Web 端規格 (Next.js + PWA)
+## 二、Web 端規格 (TanStack Start + PWA)
 
 ### 專案結構
-- app/ 下分 auth 與 main 群組路由
+- routes/ 下分 auth 與 main 路由（TanStack Router 檔案路由）
 - components/ 分類 ui、chat、friends、layout
 - lib/ 包含 apollo、socket、utils
 - graphql/ 包含 queries、mutations、subscriptions、fragments

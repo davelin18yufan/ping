@@ -7,7 +7,7 @@
 ## 一、Feature 概述
 
 **需求**：用戶可透過 Google OAuth 登入應用
-- 支援平台：Web (Next.js)、Mobile (React Native)
+- 支援平台：Web (TanStack Start)、Mobile (React Native)
 - 後端處理：驗證 Google code、建立 session、回傳用戶資訊
 - 期望流程：
   1. 用戶點擊「Google 登入」按鈕
@@ -283,7 +283,7 @@ describe('Google OAuth Authentication', () => {
 ```typescript
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
-import { LoginPage } from '../../src/app/auth/page';
+import { LoginPage } from '../../src/routes/auth/index';
 import { useAuthClient } from '@better-auth/react'; // Mock
 
 // Mock Better Auth
@@ -331,8 +331,8 @@ describe('Frontend - Google OAuth Login Flow', () => {
 
     // Test 2: 登入成功後應導航到聊天頁面
     it('[RED] should navigate to /chat after successful login', async () => {
-      const mockRouter = { push: vi.fn() };
-      vi.mock('next/router', () => ({ useRouter: () => mockRouter }));
+      const mockNavigate = vi.fn();
+      vi.mock('@tanstack/react-router', () => ({ useNavigate: () => mockNavigate }));
 
       render(<LoginPage />);
 
@@ -341,7 +341,7 @@ describe('Frontend - Google OAuth Login Flow', () => {
 
       // [RED] 期望導航到聊天頁面
       await waitFor(() => {
-        expect(mockRouter.push).toHaveBeenCalledWith('/chat');
+        expect(mockNavigate).toHaveBeenCalledWith({ to: '/chat' });
       });
     });
 

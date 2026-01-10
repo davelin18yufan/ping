@@ -15,7 +15,7 @@ A modern real-time messaging application inspired by Yahoo Messenger, built with
 ## Technology Stack
 
 ### Frontend (Web)
-- **Framework**: Next.js 16 (App Router)
+- **Framework**: Tanstack start
 - **UI Library**: React 19
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS 4
@@ -56,9 +56,9 @@ ping/
 │   │   └── lib/           # Shared utilities
 │   ├── prisma/            # Database schema and migrations
 │   └── tests/             # Backend tests
-├── frontend/              # Next.js web application
+├── frontend/              # Tanstack web application
 │   ├── src/
-│   │   ├── app/          # Next.js App Router pages
+│   │   ├── routes/       # Routers
 │   │   ├── components/   # React components
 │   │   ├── hooks/        # Custom hooks
 │   │   ├── stores/       # Zustand stores
@@ -248,7 +248,7 @@ Examples:
 ⚠️ **Currently in Initial Setup Phase**
 
 - ✅ Backend: Basic Hono server configured (Hello World endpoint)
-- ✅ Frontend: Next.js 16 project created with base configuration
+- ✅ Frontend: Tanstack Start project created with base configuration
 - ✅ Mobile: Expo 54 project created with base configuration
 - ❌ Database: Prisma schema not yet defined
 - ❌ GraphQL: Schema and resolvers not yet implemented

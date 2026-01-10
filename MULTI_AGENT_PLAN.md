@@ -112,7 +112,7 @@
    - 設定 HTTP link + WebSocket link（for subscriptions）
    - 配置 InMemoryCache
    - 整合 Better Auth session（credentials: 'include'）
-   - 建立 Apollo Provider 在 root layout
+   - 建立 Apollo Provider 在 root route (`__root.tsx`)
 
 2. **Socket.io Client 設定**（1 小時）
    - 建立 `/frontend/src/lib/socket.ts`
@@ -235,7 +235,7 @@
 3. **Full-Stack Frontend Agent：實作前端 (GREEN)** - 預計 7 小時
    - **Web 實作**（3 小時）：
      - Component：`/frontend/src/components/auth/LoginForm.tsx`
-     - Page：`/frontend/src/app/auth/page.tsx`
+     - Route：`/frontend/src/routes/auth/index.tsx`
      - Better Auth client 整合
      - 執行 Web 測試直到綠燈
    - **Mobile 實作**（3 小時）：

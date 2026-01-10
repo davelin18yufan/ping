@@ -1,6 +1,6 @@
 ---
 name: backend-developer
-description: Backend developer specialist for Bun + Hono + GraphQL + Socket.io real-time messaging backend. Use PROACTIVELY for GraphQL resolvers, REST endpoints, WebSocket handlers, database operations with Prisma, Redis caching, Better Auth integration, and backend testing (TDD Green phase).
+description: 後端開發專家 | Backend developer specialist for Bun + Hono + GraphQL + Socket.io real-time messaging backend. 負責 GraphQL resolvers、REST endpoints、WebSocket handlers、Prisma 資料庫操作、Redis 快取、Better Auth 整合與後端測試 (TDD Green phase)。主動用於 Use PROACTIVELY for GraphQL resolvers, REST endpoints, WebSocket handlers, database operations with Prisma, Redis caching, Better Auth integration, and backend testing.
 tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, Skill
 model: sonnet
 color: yellow

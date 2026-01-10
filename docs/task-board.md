@@ -24,11 +24,12 @@
 - **Auth**: Better Auth (OAuth: Google, GitHub, Apple)
 
 ### Frontend (Web)
-- **Framework**: Next.js 16 App Router
+- **Framework**: TanStack Start (with TanStack Router + TanStack Query)
 - **UI**: React 19
 - **Styling**: Tailwind CSS 4
 - **State**: Zustand
 - **GraphQL**: Apollo Client
+- **Test**: Vitest
 
 ### Frontend (Mobile)
 - **Framework**: React Native 0.81 + Expo 54
@@ -360,10 +361,10 @@
 ### 階段 6: 前端開發 (與後端並行，Week 2-8)
 **重要**: 前端開發與後端並行，不是等後端完成才開始
 
-#### 6.1 Next.js Web 端
-- [x] **專案架構設定** ✅
+#### 6.1 TanStack Start Web 端
+- [] **專案架構設定**
   - Agent: All
-  - 任務: Next.js 16、Tailwind CSS 4、Apollo Client、Socket.io client
+  - 任務: TanStack Start、Tailwind CSS 4、Apollo Client、Socket.io client
   - 狀態: 已完成
   - 優先度: P0
   - 產出: `/frontend/` 基礎結構
@@ -373,8 +374,8 @@
   - 任務: OAuth 按鈕、Better Auth client 整合、錯誤處理
   - 狀態: RED 測試（測試規格已完成，待實作）
   - 優先度: P0
-  - 依賴: 專案架構設定 ✅
-  - 檔案: `/frontend/src/app/auth/page.tsx`, `/frontend/src/components/auth/LoginForm.tsx`
+  - 依賴: 專案架構設定
+  - 檔案: `/frontend/src/routes/auth/index.tsx`, `/frontend/src/components/auth/LoginForm.tsx`
   - 測試: `/frontend/tests/integration/oauth-flow.spec.tsx`
 
 - [ ] **對話列表頁面**

@@ -10,7 +10,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **專案名稱**：Ping（Yahoo 即時通訊應用復刻）
 - **目標**：現代技術棧、Web + Mobile 雙平台、強調即時性與安全性
 - **技術選型**：
-  - **Frontend (Web)**：Next.js 16 App Router + React 19 + TypeScript + Tailwind CSS 4
+  - **Frontend (Web)**：TanStack Start + React 19 + TypeScript + Tailwind CSS 4
   - **Frontend (Mobile)**：React Native 0.81 (Expo 54) + Expo Router + TypeScript + **NativeWind**
   - **Backend**：Bun 1.3.5+ + Hono + GraphQL Yoga + Socket.io + Better Auth
   - **Database**：PostgreSQL + Prisma ORM
@@ -148,9 +148,9 @@ ping/
 │
 ├── frontend/                     # Fullstack Frontend Agent 專區（Web）
 │   ├── src/
-│   │   ├── app/                  # Next.js App Router
-│   │   │   ├── layout.tsx
-│   │   │   ├── page.tsx
+│   │   ├── routes/               # TanStack Start Routes
+│   │   │   ├── __root.tsx
+│   │   │   ├── index.tsx
 │   │   │   ├── auth/
 │   │   │   ├── chat/
 │   │   │   ├── friends/
@@ -248,14 +248,14 @@ ping/
   - Better Auth 配置
 
 ### Fullstack Frontend Developer
-- **目標**：**Web（Next.js）+ Mobile（React Native/Expo）雙平台前端**、共享程式碼抽取（**TDD Green Phase 實作**）
+- **目標**：**Web（TanStack Start）+ Mobile（React Native/Expo）雙平台前端**、共享程式碼抽取（**TDD Green Phase 實作**）
 - **操作範圍**：
   - `/frontend/**`（Web 前端，包括 src、tests）
   - `/mobile/**`（Mobile 前端，包括 src、tests）
   - `/shared/**`（Web + Mobile 共享程式碼：types、graphql、stores、hooks、utils）
 - **禁止修改**：`/backend/**`、`/docs/**`（需與其他 agent 協調）
 - **輸出物**：
-  - **Web**：Next.js 頁面、元件、Apollo Client、Socket.io 整合
+  - **Web**：TanStack Start 路由、元件、Apollo Client、Socket.io 整合
   - **Mobile**：React Native 畫面、Expo Router、NativeWind 樣式、深度連結
   - **共享**：TypeScript 類型、GraphQL 操作、Zustand stores、自訂 hooks
   - 單元 / 整合 / E2E 測試實作（讓測試從紅燈變綠燈）
@@ -322,7 +322,7 @@ ping/
    - 實作自訂 hooks：`/shared/hooks/useOAuth.ts`
 3. **實作 Web 前端**（TDD 驅動）：
    - 先執行測試 → 確認 FAIL ❌（紅燈）
-   - 實作頁面：`/frontend/src/app/auth/page.tsx`
+   - 實作路由：`/frontend/src/routes/auth/index.tsx`
    - 實作元件：`/frontend/src/components/auth/LoginForm.tsx`
    - 實作 Apollo Client：`/frontend/src/lib/apollo.ts`
    - 實作 Better Auth 整合：`/frontend/src/lib/auth.ts`
@@ -588,18 +588,20 @@ try {
 - Better Auth：https://better-auth.com
 - Socket.io：https://socket.io/docs
 - Prisma：https://www.prisma.io/docs
-- Next.js：https://nextjs.org/docs
+- TanStack Start：https://tanstack.com/start/latest
+- TanStack Router: https://tanstack.com/router/latest
+- Tanstack Query: https://tanstack.com/query/latest
 - Expo：https://docs.expo.dev
 - React Native：https://reactnative.dev/docs
 - Nativewind: https://www.nativewind.dev/docs
-- Tailwind: https://tailwindcss.com/docs/installation/framework-guides/nextjs
+- Tailwind: https://tailwindcss.com/docs/installation
 - Oxlint: https://oxc.rs/docs/guide/usage/linter.html
 - Oxfmt: https://oxc.rs/docs/guide/usage/formatter.html
 
 ### 專案當前狀態
 ⚠️ **專案處於初始化階段**：
 - ✅ Backend：基礎 Hono server 已設定，僅有 Hello World 端點
-- ✅ Frontend：Next.js 16 專案已建立，基礎配置完成
+- ✅ Frontend：TanStack Start 專案已建立，基礎配置完成
 - ✅ Mobile：Expo 54 專案已建立，基礎配置完成
 - ❌ 資料庫：Prisma schema 尚未建立
 - ❌ GraphQL：Schema 與 resolvers 尚未實作

@@ -3,7 +3,7 @@
 ## 一、技術棧總覽（Mobile App）
 
 - Framework: React Native 0.8+（建議使用 Expo managed workflow，便於快速開發與部署）
-- 狀態管理: Zustand（全局狀態，如聊天未讀、輸入狀態）
+- 狀態管理: TanStack Store（全局狀態，如聊天未讀、輸入狀態）
 - GraphQL 客戶端: Apollo Client
 - WebSocket: Socket.io-client
 - 認證: Better Auth Client（使用 @better-auth/react + @better-auth/expo 插件）
@@ -45,7 +45,7 @@ src/
 │   ├── auth/             # Better Auth client 初始化
 │   └── utils/            # 時間格式化、圖片壓縮等
 ├── graphql/              # GraphQL queries/mutations/subscriptions（與 Web 共享）
-├── stores/               # Zustand stores（auth 可簡化為 Better Auth hooks）
+├── stores/               # TanStack Store stores（auth 可簡化為 Better Auth hooks）
 ├── hooks/                # Custom hooks（與 Web 共享，如 useMessages、useFriends）
 └── types/                # TypeScript 類型（與 Web 共享）
 ```

@@ -27,7 +27,7 @@
 - **Framework**: TanStack Start (with TanStack Router + TanStack Query)
 - **UI**: React 19
 - **Styling**: Tailwind CSS 4
-- **State**: Zustand
+- **State**: TanStack Store
 - **GraphQL**: Apollo Client
 - **Test**: Vitest
 
@@ -35,11 +35,11 @@
 - **Framework**: React Native 0.81 + Expo 54
 - **Navigation**: Expo Router
 - **Styling**: NativeWind (Tailwind for RN) - **必須使用**
-- **State**: Zustand (共享)
+- **State**: TanStack Store (共享)
 - **GraphQL**: Apollo Client (共享)
 
 ### Shared Code (`/shared/`)
-- Types, GraphQL operations, Zustand stores, Hooks, Utils
+- Types, GraphQL operations, TanStack Store stores, Hooks, Utils
 - **策略**: 優先建立共享程式碼，Web 和 Mobile 共用邏輯
 
 ---

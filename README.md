@@ -19,7 +19,7 @@ A modern real-time messaging application inspired by Yahoo Messenger, built with
 - **UI Library**: React 19
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS 4
-- **State Management**: Zustand
+- **State Management**: TanStack Store
 - **GraphQL Client**: Apollo Client
 - **Real-time**: Socket.io Client
 
@@ -28,7 +28,7 @@ A modern real-time messaging application inspired by Yahoo Messenger, built with
 - **Router**: Expo Router
 - **Language**: TypeScript
 - **Styling**: NativeWind (Tailwind CSS for React Native)
-- **State Management**: Zustand
+- **State Management**: TanStack Store
 - **GraphQL Client**: Apollo Client
 - **Real-time**: Socket.io Client
 
@@ -61,7 +61,7 @@ ping/
 │   │   ├── routes/       # Routers
 │   │   ├── components/   # React components
 │   │   ├── hooks/        # Custom hooks
-│   │   ├── stores/       # Zustand stores
+│   │   ├── stores/       # TanStack Store stores
 │   │   └── graphql/      # GraphQL queries/mutations
 │   └── tests/            # Frontend tests
 ├── mobile/               # React Native mobile application
@@ -206,7 +206,7 @@ For detailed development guidelines, see [CLAUDE.md](./CLAUDE.md).
 - Best of both worlds for a messaging application
 
 ### Code Sharing Strategy
-- **Shared**: Types, GraphQL queries, Zustand stores, custom hooks
+- **Shared**: Types, GraphQL queries, TanStack Store stores, custom hooks
 - **Platform-specific**: UI components (React DOM vs React Native)
 - **Styling**: Same Tailwind class names via NativeWind for consistency
 

@@ -107,24 +107,31 @@
 | **預期完成日期** | 2025-01-02 |
 
 **子任務分解**：
-1. **Apollo Client 設定**（2 小時）
+1. **TanStack Store 設定**（1.5 小時）
+   - 安裝 `@tanstack/react-store`
+   - 建立 `/frontend/src/stores/authStore.ts`（認證狀態）
+   - 建立 `/frontend/src/stores/chatStore.ts`（聊天狀態）
+   - 建立 shared stores 在 `/shared/stores/`（Web + Mobile 共享）
+   - 設定 TypeScript 類型定義
+
+2. **Apollo Client 設定**（2 小時）
    - 建立 `/frontend/src/lib/apollo.ts`
    - 設定 HTTP link + WebSocket link（for subscriptions）
    - 配置 InMemoryCache
    - 整合 Better Auth session（credentials: 'include'）
    - 建立 Apollo Provider 在 root route (`__root.tsx`)
 
-2. **Socket.io Client 設定**（1 小時）
+3. **Socket.io Client 設定**（1 小時）
    - 建立 `/frontend/src/lib/socket.ts`
    - 設定 Socket.io client with auth
    - 建立 useSocket hook
 
-3. **Better Auth Client 設定**（1 小時）
+4. **Better Auth Client 設定**（1 小時）
    - 安裝 `@better-auth/react`
    - 建立 Better Auth provider
    - 測試 OAuth 流程（僅前端部分）
 
-**產出**：Web 前端可連接 Backend API
+**產出**：Web 前端可連接 Backend API + TanStack Store 狀態管理就緒
 
 ---
 
@@ -419,7 +426,7 @@
 - `/shared/hooks/` - useMessages、useFriends 等
 - `/shared/types/` - TypeScript 類型
 - `/shared/utils/` - 日期、格式化工具
-- **不共享**：UI 元件（Web 用 Next.js，Mobile 用 React Native）
+- **不共享**：UI 元件（Web 用 TanStack Start / React，Mobile 用 React Native）
 
 ---
 

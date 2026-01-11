@@ -66,7 +66,7 @@
 ### 3.1 Web Frontend (TanStack Start)
 - 職責：UI 渲染、路由、狀態管理、GraphQL 查詢、Socket.io 即時更新
 - 邊界：所有請求帶 Better Auth session cookie，無直接操作 DB
-- 共享：GraphQL types、Zustand stores、Custom hooks 與 Mobile 共享
+- 共享：GraphQL types、TanStack Store stores、Custom hooks 與 Mobile 共享
 - 特殊：Server Functions 可直接呼叫 Backend API（內部）
 
 ### 3.2 Mobile Frontend (React Native + Expo)

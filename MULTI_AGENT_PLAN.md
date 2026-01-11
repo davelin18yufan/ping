@@ -108,11 +108,12 @@
 
 **子任務分解**：
 1. **TanStack Store 設定**（1.5 小時）
-   - 安裝 `@tanstack/react-store`
-   - 建立 `/frontend/src/stores/authStore.ts`（認證狀態）
-   - 建立 `/frontend/src/stores/chatStore.ts`（聊天狀態）
-   - 建立 shared stores 在 `/shared/stores/`（Web + Mobile 共享）
+   - 驗證 `@tanstack/react-store` 和 `@tanstack/store` 已安裝 ✅
+   - 建立 `/frontend/src/stores/chatStore.ts`（聊天狀態：當前對話、草稿訊息）
+   - 建立 `/frontend/src/stores/socketStore.ts`（Socket 連線狀態）
+   - **不需要** authStore（Better Auth 提供 useSession/useUser）
    - 設定 TypeScript 類型定義
+   - 測試 Store 基本功能（建立、讀取、訂閱）
 
 2. **Apollo Client 設定**（2 小時）
    - 建立 `/frontend/src/lib/apollo.ts`
@@ -147,25 +148,39 @@
 | **預期完成日期** | 2025-01-03 |
 
 **子任務分解**：
-1. **NativeWind 設定**（1 小時）
-   - 安裝 `nativewind` 和相關依賴
+1. **依賴安裝與 NativeWind 設定**（1.5 小時）
+   - 安裝核心依賴：
+     ```bash
+     cd mobile
+     pnpm add nativewind tailwindcss
+     pnpm add @tanstack/react-store @tanstack/store
+     pnpm add @apollo/client graphql
+     pnpm add socket.io-client
+     pnpm add @better-auth/expo expo-secure-store
+     ```
    - 配置 `tailwind.config.js`
-   - 設定 `babel.config.js`
-   - 測試 Tailwind classes 運作正常
+   - 設定 `babel.config.js`（加入 nativewind/babel）
+   - 測試 Tailwind classes 運作正常（建立測試元件）
 
-2. **Apollo Client 設定（Expo 適配）**（1.5 小時）
+2. **TanStack Store 設定（與 Web 共享邏輯）**（1 小時）
+   - 建立 `/mobile/src/stores/chatStore.ts`（與 Web 邏輯相同）
+   - 建立 `/mobile/src/stores/socketStore.ts`（與 Web 邏輯相同）
+   - 驗證 Store 在 React Native 環境下運作正常
+   - **考慮未來抽取到 `/shared/stores/`**
+
+3. **Apollo Client 設定（Expo 適配）**（1.5 小時）
    - 建立 `/mobile/src/lib/apollo.ts`
    - 設定 HTTP link（Expo 環境）
    - 配置 InMemoryCache
    - 整合 Better Auth session
 
-3. **Socket.io Client 設定**（1 小時）
+4. **Socket.io Client 設定**（1 小時）
    - 建立 `/mobile/src/lib/socket.ts`
    - 設定 Socket.io client（Expo 環境）
    - 建立 useSocket hook
 
-4. **Better Auth Expo 設定**（1.5 小時）
-   - 安裝 `@better-auth/expo`
+5. **Better Auth Expo 設定**（1.5 小時）
+   - 安裝已在步驟 1 完成 ✅
    - 配置 Deep Linking (`app.config.ts`)
    - 設定 OAuth redirect URIs
    - 建立 Better Auth provider
@@ -174,7 +189,66 @@
 
 ---
 
-#### 🔲 Feature 1.0.4 - 測試框架設定
+#### 🔲 Feature 1.0.4 - Design System 設定（Web + Mobile）
+
+| 欄位 | 內容 |
+|------|------|
+| **狀態** | 🔲 待開始 |
+| **優先級** | P0 |
+| **負責** | Full-Stack Frontend |
+| **SDD 參考** | frontend.md、mobile.md |
+| **依賴** | Feature 1.0.2, 1.0.3（需要 Tailwind 和 NativeWind 配置完成） |
+| **預期完成日期** | 2025-01-04 |
+
+**子任務分解**：
+1. **設計 Token 定義**（2 小時）
+   - 建立 `/shared/design-tokens/`
+   - 定義顏色系統（colors.ts）：
+     - Primary colors（品牌色）
+     - Neutral colors（灰階）
+     - Semantic colors（success, error, warning, info）
+     - Chat bubble colors（sent, received）
+   - 定義間距系統（spacing.ts）
+   - 定義字型系統（typography.ts）
+   - 定義陰影與圓角（shadows.ts, radius.ts）
+
+2. **Tailwind 配置整合**（1.5 小時）
+   - 更新 `/frontend/tailwind.config.ts`（Web）
+   - 更新 `/mobile/tailwind.config.js`（Mobile）
+   - 匯入 design tokens 到 Tailwind theme
+   - 建立自訂 Tailwind utilities（如有需要）
+   - 確保 Web 和 Mobile 使用相同的 design tokens
+
+3. **共享元件基礎**（2 小時）
+   - 建立 `/shared/components/primitives/`（邏輯層，無 UI）
+     - Button logic（狀態、事件處理）
+     - Input logic（驗證、格式化）
+     - Modal logic（開關、動畫狀態）
+   - 建立 `/frontend/src/components/ui/`（Web UI 實作）
+     - Button.tsx（使用 Tailwind classes）
+     - Input.tsx
+     - Card.tsx
+     - Avatar.tsx
+   - 建立 `/mobile/src/components/ui/`（Mobile UI 實作）
+     - Button.tsx（使用 NativeWind classes）
+     - Input.tsx
+     - Card.tsx
+     - Avatar.tsx
+
+4. **Storybook 或文件設定**（1.5 小時，可選）
+   - 設定 Storybook for React（Web）
+   - 建立元件展示頁面
+   - 撰寫 Design System 使用文檔（`/docs/design-system.md`）
+
+**產出**：
+- 統一的 Design Tokens（顏色、間距、字型）
+- Web 和 Mobile 共享設計規範
+- 基礎 UI 元件庫（Button, Input, Card, Avatar）
+- 設計文檔（可選）
+
+---
+
+#### 🔲 Feature 1.0.5 - 測試框架設定
 
 | 欄位 | 內容 |
 |------|------|
@@ -214,7 +288,7 @@
 | **優先級** | P0（阻止其他功能） |
 | **負責** | Architect + Backend + Full-Stack Frontend |
 | **SDD 參考** | backend.md §III、frontend.md §II、mobile.md §III |
-| **依賴** | Feature 1.0.1, 1.0.2, 1.0.3, 1.0.4 |
+| **依賴** | Feature 1.0.1, 1.0.2, 1.0.3, 1.0.5 |
 | **預期完成日期** | 2025-01-06 |
 
 **子任務分解（3 Agents 配置）：**
@@ -372,19 +446,22 @@
 | Agent | 分配任務 | 預計時間 | 狀態 |
 |-------|---------|---------|------|
 | **Architect** | 1. ✅ 檢視並完善 Prisma schema 設計<br>2. ✅ 審查 Better Auth 整合方案<br>3. ⏳ 準備 GraphQL Yoga 測試規格 | 2 小時 | ⏳ 70% 完成 |
-| **Backend** | **Feature 1.0.1**: <br>1. ✅ Prisma schema + migrations<br>2. ✅ Redis 設定<br>3. ✅ Better Auth 整合（11 測試通過）<br>4. ⏳ GraphQL Yoga 設定（下一步）<br>5. ⏳ Socket.io 設定（下一步）<br>**Feature 1.0.4 (Backend)**: ✅ 測試框架已設定 | 9.5 小時 | ⏳ 70% 完成 |
-| **Full-Stack Frontend** | **Feature 1.0.2**: Web 基礎設施（Apollo + Socket.io + Better Auth）<br>**Feature 1.0.3**: Mobile 基礎設施（NativeWind + Apollo + Socket.io + Better Auth）<br>**Feature 1.0.4 (Frontend)**: 測試框架 | 11 小時 | 🔴 待開始 |
+| **Backend** | **Feature 1.0.1**: <br>1. ✅ Prisma schema + migrations<br>2. ✅ Redis 設定<br>3. ✅ Better Auth 整合（11 測試通過）<br>4. ✅ GraphQL Yoga 設定（完成）<br>5. ✅ Socket.io 設定（完成）<br>**Feature 1.0.5 (Backend)**: ✅ 測試框架已設定 | 9.5 小時 | ✅ 100% 完成 |
+| **Full-Stack Frontend** | **Feature 1.0.2**: Web 基礎設施（TanStack Store + Apollo + Socket.io + Better Auth）<br>**Feature 1.0.3**: Mobile 基礎設施（NativeWind + TanStack Store + Apollo + Socket.io + Better Auth）<br>**Feature 1.0.4**: Design System 設定<br>**Feature 1.0.5 (Frontend)**: 測試框架 | 18 小時 | 🔴 待開始 |
 
-**總計**：約 22.5 小時（約 3 個工作日）
+**總計**：約 29.5 小時（約 4 個工作日）
 
 **完成標準**：
 - ✅ Backend 可啟動並連接 PostgreSQL + Redis
 - ✅ GraphQL endpoint 可訪問（`http://localhost:3000/graphql`）
 - ✅ Socket.io 可連接（`ws://localhost:3000`）
-- ✅ Web 可連接 GraphQL 並執行簡單 query
-- ✅ Mobile 可連接 GraphQL 並執行簡單 query
-- ✅ NativeWind 在 Mobile 正常運作
-- ✅ 測試框架在三個平台都可運行
+- 🔲 Web 可連接 GraphQL 並執行簡單 query
+- 🔲 Mobile 可連接 GraphQL 並執行簡單 query
+- 🔲 NativeWind 在 Mobile 正常運作
+- 🔲 TanStack Store 在 Web 和 Mobile 正常運作
+- 🔲 Design Tokens 定義完成（顏色、間距、字型）
+- 🔲 基礎 UI 元件（Button, Input, Card, Avatar）在 Web 和 Mobile 都可用
+- 🔲 測試框架在三個平台都可運行
 
 ---
 

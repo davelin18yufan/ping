@@ -166,7 +166,7 @@ ping/
 │   │   │   ├── socket.ts         # Socket.io 設定
 │   │   │   └── utils.ts
 │   │   ├── graphql/              # GraphQL 查詢/變更/訂閱（與 Mobile 共享）
-│   │   ├── stores/               # Zustand stores（與 Mobile 共享）
+│   │   ├── stores/               # TanStack Store stores（與 Mobile 共享）
 │   │   ├── types/                # TypeScript 類型（與 Mobile 共享）
 │   │   └── styles/
 │   ├── tests/
@@ -190,7 +190,7 @@ ping/
 │   │   │   └── utils.ts
 │   │   ├── navigation/           # Expo Router / React Navigation
 │   │   ├── graphql/              # GraphQL（與 frontend 共享）
-│   │   ├── stores/               # Zustand（與 frontend 共享）
+│   │   ├── stores/               # TanStack Store（與 frontend 共享）
 │   │   ├── types/                # TypeScript（與 frontend 共享）
 │   │   └── App.tsx
 │   ├── tests/
@@ -257,7 +257,7 @@ ping/
 - **輸出物**：
   - **Web**：TanStack Start 路由、元件、Apollo Client、Socket.io 整合
   - **Mobile**：React Native 畫面、Expo Router、NativeWind 樣式、深度連結
-  - **共享**：TypeScript 類型、GraphQL 操作、Zustand stores、自訂 hooks
+  - **共享**：TypeScript 類型、GraphQL 操作、TanStack Store stores、自訂 hooks
   - 單元 / 整合 / E2E 測試實作（讓測試從紅燈變綠燈）
   - Better Auth 整合（Web 與 Mobile）
 
@@ -318,7 +318,7 @@ ping/
 2. **優先抽取共享程式碼**（Shared-First 策略）：
    - 定義 TypeScript 類型：`/shared/types/`
    - 撰寫 GraphQL 操作：`/shared/graphql/`
-   - 建立 Zustand stores：`/shared/stores/authStore.ts`
+   - 建立 TanStack Store stores：`/shared/stores/authStore.ts`
    - 實作自訂 hooks：`/shared/hooks/useOAuth.ts`
 3. **實作 Web 前端**（TDD 驅動）：
    - 先執行測試 → 確認 FAIL ❌（紅燈）

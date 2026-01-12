@@ -27,7 +27,7 @@
 - **Framework**: TanStack Start (with TanStack Router + TanStack Query)
 - **UI**: React 19
 - **Styling**: Tailwind CSS 4
-- **State**: Zustand
+- **State**: TanStack Store
 - **GraphQL**: Apollo Client
 - **Test**: Vitest
 
@@ -35,11 +35,11 @@
 - **Framework**: React Native 0.81 + Expo 54
 - **Navigation**: Expo Router
 - **Styling**: NativeWind (Tailwind for RN) - **必須使用**
-- **State**: Zustand (共享)
+- **State**: TanStack Store (共享)
 - **GraphQL**: Apollo Client (共享)
 
 ### Shared Code (`/shared/`)
-- Types, GraphQL operations, Zustand stores, Hooks, Utils
+- Types, GraphQL operations, TanStack Store stores, Hooks, Utils
 - **策略**: 優先建立共享程式碼，Web 和 Mobile 共用邏輯
 
 ---
@@ -587,6 +587,53 @@ E2E Tests: 目標涵蓋主要流程
 
 ## 📝 每日站會記錄
 
+### 2026-01-11
+**參與者**: Architect Agent, Fullstack Frontend Developer
+**決議**:
+1. ✅ 完成技術棧遷移：Next.js → TanStack Start
+2. ✅ 完成狀態管理更新：Zustand → TanStack Store
+3. ✅ 建立 Feature 1.0.2 測試規格（Frontend Web 基礎設施）
+4. ✅ 建立 Feature 1.0.3 測試規格（Mobile 基礎設施）
+5. ✅ 更新所有 agent descriptions 為中英雙語
+6. 🔄 Frontend 框架遷移進行中（從 Next.js 遷移至 TanStack Start）
+
+**產出**:
+- `Feature-1.0.2-TDD-Tests.md` - Frontend Web 基礎設施測試規格（8 個測試案例）
+- `Feature-1.0.3-TDD-Tests.md` - Mobile 基礎設施測試規格（8 個測試案例）
+- 文檔同步更新（10+ 個檔案）：
+  - `CLAUDE.md` - 技術棧更新（TanStack Start + TanStack Store）
+  - `MULTI_AGENT_PLAN.md` - Agent descriptions 中英雙語化
+  - `docs/architecture/overview.md` - 系統架構更新
+  - `docs/architecture/frontend.md` - Frontend 規格更新
+  - `docs/architecture/mobile.md` - Mobile 規格更新
+  - `README.md` - 專案總覽更新
+- Frontend 框架遷移產出：
+  - TanStack Start 專案配置（`vite.config.ts`, `src/routes/**`）
+  - Tailwind CSS 4 設定
+  - Apollo Client 配置
+  - Socket.io Client 配置
+
+**測試規格重點**:
+- **Feature 1.0.2 (Web)**:
+  - TanStack Store setup 測試（3 個）
+  - Apollo Client 測試（2 個）
+  - Socket.io Client 測試（2 個）
+  - Better Auth Client 測試（1 個）
+- **Feature 1.0.3 (Mobile)**:
+  - NativeWind setup 測試（2 個）
+  - TanStack Store 測試（2 個）
+  - Apollo Client (Expo) 測試（2 個）
+  - Socket.io Client 測試（1 個）
+  - Better Auth Expo 測試（1 個）
+
+**行動項目**:
+- [x] Architect Agent 完成文檔同步檢查 ✅
+- [x] Architect Agent 建立測試規格文件 ✅
+- [x] Fullstack Frontend Developer 開始 Frontend 框架遷移 🔄
+- [ ] Fullstack Frontend Developer 完成 Frontend 框架遷移
+- [ ] 執行 lint/format 檢查
+- [ ] 提交變更並準備 merge
+
 ### 2026-01-07
 **參與者**: Architect Agent, Backend Developer
 **決議**:
@@ -713,8 +760,10 @@ E2E Tests: 目標涵蓋主要流程
 
 **更新頻率**: 每日更新
 **維護者**: All Agents
-**最後更新**: 2026-01-07 14:00
-**最新變更**: Feature 1.0.1 (Backend 基礎設施) 完成 ✅
-  - 27/27 測試全部通過（11 Better Auth + 8 GraphQL + 8 Socket.io）
-  - TypeScript 類型錯誤修復完成
-  - 階段 1 進度：87.5% (7/8 完成)
+**最後更新**: 2026-01-11 09:00
+**最新變更**: Frontend 技術棧遷移與測試規格建立
+  - 完成 Next.js → TanStack Start 遷移
+  - 完成 Zustand → TanStack Store 遷移
+  - 建立 Feature 1.0.2 & 1.0.3 測試規格（16 個測試案例）
+  - 所有文檔同步更新（10+ 個檔案）
+  - 階段 6 (前端開發) 進度更新中

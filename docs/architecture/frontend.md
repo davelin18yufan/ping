@@ -4,7 +4,7 @@
 
 **Web**
 - TanStack Start (with TanStack Router + TanStack Query)
-- 狀態管理: Zustand
+- 狀態管理: TanStack Store
 - GraphQL 客戶端: Apollo Client
 - WebSocket: Socket.io-client
 - 認證: Better Auth Client
@@ -13,7 +13,7 @@
 
 **Mobile**
 - React Native 0.8+
-- 狀態管理: Zustand（與 Web 共享）
+- 狀態管理: TanStack Store（與 Web 共享）
 - GraphQL 客戶端: Apollo Client
 - WebSocket: Socket.io-client
 - UI 組件與邏輯盡量與 Web 共享
@@ -56,7 +56,7 @@
 - ProfileSettings：更新 displayName、avatar
 - 各組件功能、資料來源、即時更新機制詳細要求
 
-### 狀態管理 (Zustand)
+### 狀態管理 (TanStack Store)
 - Auth Store(使用 Better Auth 的 useSession / useUser)
 - Chat Store、Socket Store 狀態與動作定義
 

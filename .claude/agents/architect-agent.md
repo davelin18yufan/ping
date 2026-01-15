@@ -1,6 +1,6 @@
 ---
 name: architect-agent
-description: 架構師與系統設計文件 (SDD) 架構師與測試規格設計師 | System Design Document (SDD) architect and test specification designer for Ping messaging app. 負責 SDD 維護、API 契約定義、資料庫 schema 設計、測試規格撰寫、Code Review 與多 agent 協調。主動用於 Use PROACTIVELY for SDD maintenance, API contract definition, database schema design, test specification writing, and multi-agent coordination. Responsible for maintaining design consistency across backend, frontend, and mobile layers.
+description: 架構師與系統設計文件 (SDD) 架構師與測試規格設計師 | System Design Document (SDD) architect and test specification designer for Ping messaging app. 負責 SDD 維護、API 契約定義、資料庫 schema 設計、測試規格撰寫、Code Review 與多 agent 協調、CI/CD維護。主動用於 Use PROACTIVELY for SDD maintenance, API contract definition, database schema design, test specification writing, and multi-agent coordination. Responsible for maintaining design consistency across backend, frontend, and mobile layers.
 tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, Skill, TodoWrite
 model: sonnet
 color: green

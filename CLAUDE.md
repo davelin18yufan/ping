@@ -476,26 +476,29 @@ bun format
 ```
 
 ### Frontend
+
+> **因 `pnpm` 暫時無法在現今monorepo架構整合 `vite` ，先轉回 `npm` 之後再轉回
+
 ```bash
 cd frontend
 
 # 開發模式
-pnpm dev
+npm dev
 
 # 建置
-pnpm build
+npm build
 
 # 啟動生產版本
-pnpm start
+npm start
 
 # Lint 檢查
-pnpm lint
+npm lint
 
 # formatter 檢查
-pnpm format
+npm format
 
 # 執行測試（尚未配置）
-pnpm test
+npm test
 ```
 
 ### Mobile

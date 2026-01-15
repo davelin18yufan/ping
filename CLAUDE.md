@@ -570,7 +570,8 @@ try {
 - ❌ 在業務邏輯層面做 UI 邏輯
 
 ### Linter & Formatter
-- 前後端都使用 `Oxc` ，並且統一風格
+- 前後端都使用 `Oxclint`, `Oxfmt` ，並且統一風格,可以細微個別設定
+- 全部區塊分開設定以利將來拆分
 
 ---
 
@@ -602,14 +603,12 @@ try {
 ⚠️ **專案處於初始化階段**：
 - ✅ Backend：基礎 Hono server 已設定，僅有 Hello World 端點
 - ✅ Frontend：TanStack Start 專案已建立，基礎配置完成
-- ✅ Mobile：Expo 54 專案已建立，基礎配置完成
-- ❌ 資料庫：Prisma schema 尚未建立
-- ❌ GraphQL：Schema 與 resolvers 尚未實作
-- ❌ Socket.io：即時通訊功能尚未實作
+- ❌ Mobile：Expo 54 專案已建立，基礎配置尚未完成
+- ✅ 資料庫：Prisma schema 建立完成
+- ✅ GraphQL：Schema 與 resolvers 尚未實作
+- ✅ Socket.io：即時通訊功能尚未實作
 - ❌ Better Auth：認證系統尚未配置
 - ❌ 測試：測試框架與測試檔案尚未建立
-
-下一步應根據 `/docs/architecture/Feature-1.1.1-TDD-Tests.md` 開始實作第一個功能。
 
 ---
 

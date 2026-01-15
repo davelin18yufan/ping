@@ -1,12 +1,12 @@
-Welcome to your new TanStack app! 
+Welcome to your new TanStack app!
 
 # Getting Started
 
 To run this application:
 
 ```bash
-pnpm install
-pnpm dev
+npm install
+npm dev
 ```
 
 # Building For Production
@@ -14,7 +14,7 @@ pnpm dev
 To build this application for production:
 
 ```bash
-pnpm build
+npm build
 ```
 
 ## Testing
@@ -22,23 +22,20 @@ pnpm build
 This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
 
 ```bash
-pnpm test
+npm test
 ```
 
 ## Styling
 
 This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
 
-
-
 ## Shadcn
 
 Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
 
 ```bash
-pnpm dlx shadcn@latest add button
+npm dlx shadcn@latest add button
 ```
-
 
 # Apollo Client Integration
 
@@ -63,9 +60,9 @@ Configure your GraphQL API endpoint in `src/router.tsx`:
 const apolloClient = new ApolloClient({
   cache: new InMemoryCache(),
   link: new HttpLink({
-    uri: 'https://your-graphql-api.example.com/graphql', // Update this!
+    uri: "https://your-graphql-api.example.com/graphql", // Update this!
   }),
-})
+});
 ```
 
 You can use environment variables by creating a `.env.local` file:
@@ -77,8 +74,7 @@ VITE_GRAPHQL_ENDPOINT=https://your-api.com/graphql
 The default configuration already uses this pattern:
 
 ```tsx
-uri: import.meta.env.VITE_GRAPHQL_ENDPOINT ||
-  'https://your-graphql-api.example.com/graphql'
+uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || "https://your-graphql-api.example.com/graphql";
 ```
 
 ## Usage Patterns
@@ -88,12 +84,12 @@ uri: import.meta.env.VITE_GRAPHQL_ENDPOINT ||
 Use `preloadQuery` in route loaders for optimal streaming SSR performance:
 
 ```tsx
-import { gql, TypedDocumentNode } from '@apollo/client'
-import { useReadQuery } from '@apollo/client/react'
-import { createFileRoute } from '@tanstack/react-router'
+import { gql, TypedDocumentNode } from "@apollo/client";
+import { useReadQuery } from "@apollo/client/react";
+import { createFileRoute } from "@tanstack/react-router";
 
 const MY_QUERY: TypedDocumentNode<{
-  posts: { id: string; title: string; content: string }[]
+  posts: { id: string; title: string; content: string }[];
 }> = gql`
   query GetData {
     posts {
@@ -102,23 +98,23 @@ const MY_QUERY: TypedDocumentNode<{
       content
     }
   }
-`
+`;
 
-export const Route = createFileRoute('/my-route')({
+export const Route = createFileRoute("/my-route")({
   component: RouteComponent,
   loader: ({ context: { preloadQuery } }) => {
     const queryRef = preloadQuery(MY_QUERY, {
       variables: {},
-    })
-    return { queryRef }
+    });
+    return { queryRef };
   },
-})
+});
 
 function RouteComponent() {
-  const { queryRef } = Route.useLoaderData()
-  const { data } = useReadQuery(queryRef)
+  const { queryRef } = Route.useLoaderData();
+  const { data } = useReadQuery(queryRef);
 
-  return <div>{/* render your data */}</div>
+  return <div>{/* render your data */}</div>;
 }
 ```
 
@@ -127,12 +123,12 @@ function RouteComponent() {
 Use `useSuspenseQuery` directly in components with automatic suspense support:
 
 ```tsx
-import { gql, TypedDocumentNode } from '@apollo/client'
-import { useSuspenseQuery } from '@apollo/client/react'
-import { createFileRoute } from '@tanstack/react-router'
+import { gql, TypedDocumentNode } from "@apollo/client";
+import { useSuspenseQuery } from "@apollo/client/react";
+import { createFileRoute } from "@tanstack/react-router";
 
 const MY_QUERY: TypedDocumentNode<{
-  posts: { id: string; title: string }[]
+  posts: { id: string; title: string }[];
 }> = gql`
   query GetData {
     posts {
@@ -140,35 +136,35 @@ const MY_QUERY: TypedDocumentNode<{
       title
     }
   }
-`
+`;
 
-export const Route = createFileRoute('/my-route')({
+export const Route = createFileRoute("/my-route")({
   component: RouteComponent,
-})
+});
 
 function RouteComponent() {
-  const { data } = useSuspenseQuery(MY_QUERY)
+  const { data } = useSuspenseQuery(MY_QUERY);
 
-  return <div>{/* render your data */}</div>
+  return <div>{/* render your data */}</div>;
 }
 ```
 
 ### Pattern 3: Manual Refetching
 
 ```tsx
-import { useQueryRefHandlers, useReadQuery } from '@apollo/client/react'
+import { useQueryRefHandlers, useReadQuery } from "@apollo/client/react";
 
 function MyComponent() {
-  const { queryRef } = Route.useLoaderData()
-  const { refetch } = useQueryRefHandlers(queryRef)
-  const { data } = useReadQuery(queryRef)
+  const { queryRef } = Route.useLoaderData();
+  const { refetch } = useQueryRefHandlers(queryRef);
+  const { data } = useReadQuery(queryRef);
 
   return (
     <div>
       <button onClick={() => refetch()}>Refresh</button>
       {/* render data */}
     </div>
-  )
+  );
 }
 ```
 
@@ -191,9 +187,8 @@ The integration automatically handles:
 
 Visit `/demo/apollo-client` in your application to see a working example of Apollo Client integration.
 
-
-
 ## Routing
+
 This project uses [TanStack Router](https://tanstack.com/router). The initial setup is a file based router. Which means that the routes are managed as files in `src/routes`.
 
 ### Adding A Route
@@ -229,8 +224,8 @@ In the File Based Routing setup the layout is located in `src/routes/__root.tsx`
 Here is an example layout that includes a header:
 
 ```tsx
-import { Outlet, createRootRoute } from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+import { Outlet, createRootRoute } from "@tanstack/react-router";
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import { Link } from "@tanstack/react-router";
 
@@ -247,13 +242,12 @@ export const Route = createRootRoute({
       <TanStackRouterDevtools />
     </>
   ),
-})
+});
 ```
 
 The `<TanStackRouterDevtools />` component is not required so you can remove it if you don't want it in your layout.
 
 More information on layouts can be found in the [Layouts documentation](https://tanstack.com/router/latest/docs/framework/react/guide/routing-concepts#layouts).
-
 
 ## Data Fetching
 
@@ -295,7 +289,7 @@ React-Query is an excellent addition or alternative to route loading and integra
 First add your dependencies:
 
 ```bash
-pnpm add @tanstack/react-query @tanstack/react-query-devtools
+npm add @tanstack/react-query @tanstack/react-query-devtools
 ```
 
 Next we'll need to create a query client and provider. We recommend putting those in `main.tsx`.
@@ -376,7 +370,7 @@ Another common requirement for React applications is state management. There are
 First you need to add TanStack Store as a dependency:
 
 ```bash
-pnpm add @tanstack/store
+npm add @tanstack/store
 ```
 
 Now let's create a simple counter in the `src/App.tsx` file as a demonstration.
@@ -392,9 +386,7 @@ function App() {
   const count = useStore(countStore);
   return (
     <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
+      <button onClick={() => countStore.setState((n) => n + 1)}>Increment - {count}</button>
     </div>
   );
 }
@@ -425,9 +417,7 @@ function App() {
 
   return (
     <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>
-        Increment - {count}
-      </button>
+      <button onClick={() => countStore.setState((n) => n + 1)}>Increment - {count}</button>
       <div>Doubled - {doubledCount}</div>
     </div>
   );

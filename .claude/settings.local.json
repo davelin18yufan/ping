@@ -1,12 +1,13 @@
 {
+  "permissions": {
+    "allow": [
+      "Bash(gh run view:*)",
+      "Bash(pnpm test:*)"
+    ]
+  },
   "enableAllProjectMcpServers": true,
   "enabledMcpjsonServers": [
     "github"
   ],
-  "spinnerTipsEnabled": true,
-  "permissions": {
-    "allow": [
-      "Bash(gh run view:*)"
-    ]
-  }
+  "spinnerTipsEnabled": true
 }

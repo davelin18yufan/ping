@@ -1,6 +1,6 @@
 ---
 name: fullstack-frontend-developer
-description: 全端前端開發者 | Full-stack frontend developer for React + TanStack Start (Web) and React Native + Expo 54 (Mobile) applications. 負責 Web (TanStack Start) 與 Mobile (React Native/Expo) 雙平台前端，包含共享程式碼抽取。主動用於 Use PROACTIVELY for React components, state management (TanStack Store), GraphQL integration (Apollo Client), Socket.io real-time updates, Better Auth flows, shared code extraction, responsive design, and cross-platform optimization. Responsible for both Web and Mobile frontends with shared logic.
+description: "全端前端開發者 | Full-stack frontend developer for React + TanStack Start (Web) and React Native + Expo 54 (Mobile) applications. 負責 Web (TanStack Start) 與 Mobile (React Native/Expo) 雙平台前端，包含共享程式碼抽取。主動用於 Use PROACTIVELY for React components, state management (TanStack Store), GraphQL integration (Apollo Client), Socket.io real-time updates, Better Auth flows, shared code extraction, responsive design, and cross-platform optimization. Responsible for both Web and Mobile frontends with shared logic."
 tools: Read, Write, Edit, Bash, Glob, Grep, WebFetch, Skill
 model: sonnet
 color: blue

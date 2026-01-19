@@ -1,17 +1,14 @@
+import type { AddressInfo } from "node:net"
+
 /**
  * @vitest-environment node
  */
 import { createServer } from "node:http"
-import type { AddressInfo } from "node:net"
-
-import { describe, it, expect, beforeAll, afterAll } from "vitest"
-import { io as ioc, type Socket as ClientSocket } from "socket.io-client"
 import { Server, type Socket as ServerSocket } from "socket.io"
+import { io as ioc, type Socket as ClientSocket } from "socket.io-client"
+import { describe, it, expect, beforeAll, afterAll } from "vitest"
 
-function waitFor(
-    socket: ServerSocket | ClientSocket,
-    event: string
-): Promise<unknown> {
+function waitFor(socket: ServerSocket | ClientSocket, event: string): Promise<unknown> {
     return new Promise((resolve) => {
         socket.once(event, resolve)
     })
@@ -64,9 +61,7 @@ describe("Socket.io Client", () => {
             })
 
             expect(testSocket.auth).toBeDefined()
-            expect((testSocket.auth as { token: string }).token).toBe(
-                "test-token-123"
-            )
+            expect((testSocket.auth as { token: string }).token).toBe("test-token-123")
 
             testSocket.close()
         })

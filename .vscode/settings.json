@@ -42,5 +42,6 @@
 		"**/bun.lock": true,
 		"**/pnpm-lock.yaml": true,
 		"**/package-lock.json": true
-	}
+	},
+	"oxc.enable": false
 }

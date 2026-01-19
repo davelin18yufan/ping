@@ -450,88 +450,6 @@ feature/[功能名稱]-[agent]
 
 ---
 
-## 六、開發與測試指令
-
-### Backend
-```bash
-cd backend
-
-# 開發模式（使用 Bun 的 hot reload）
-bun run dev
-
-# 執行測試（尚未配置，未來使用 Bun test）
-bun test
-
-# 單個檔案測試
-bun test auth.spec.ts
-
-# Watch mode
-bun test -- --watch
-
-# Lint 檢查
-bun lint
-
-# formatter 檢查
-bun format
-```
-
-### Frontend
-
-> **因 `pnpm` 暫時無法在現今monorepo架構整合 `vite` ，先轉回 `npm` 之後再轉回
-
-```bash
-cd frontend
-
-# 開發模式
-npm dev
-
-# 建置
-npm build
-
-# 啟動生產版本
-npm start
-
-# Lint 檢查
-npm lint
-
-# formatter 檢查
-npm format
-
-# 執行測試（尚未配置）
-npm test
-```
-
-### Mobile
-```bash
-cd mobile
-
-# 啟動 Expo 開發伺服器
-pnpm start
-
-# Android 模擬器
-pnpm android
-
-# iOS 模擬器
-pnpm ios
-
-# Web 版本
-pnpm web
-
-# Lint 檢查
-pnpm lint
-
-# formatter 檢查
-pnpm format
-
-# 執行測試（尚未配置）
-pnpm test
-
-# E2E 測試（未來使用 Detox）
-pnpm run test:e2e
-```
-
----
-
 ## 七、編碼規範與重要約定
 
 ### TypeScript + Naming
@@ -582,7 +500,7 @@ try {
 
 ### 立即查看
 1. `/docs/architecture/overview.md` - SDD 總覽
-2. `/docs/architecture/backend.md` - 後端設計
+2. `/docs/task-board` - 總計畫板
 3. `/MULTI_AGENT_PLAN.md` - 當前任務面板
 
 ### 技術文檔
@@ -601,17 +519,7 @@ try {
 - Tailwind: https://tailwindcss.com/docs/installation
 - Oxlint: https://oxc.rs/docs/guide/usage/linter.html
 - Oxfmt: https://oxc.rs/docs/guide/usage/formatter.html
-
-### 專案當前狀態
-⚠️ **專案處於初始化階段**：
-- ✅ Backend：基礎 Hono server 已設定，僅有 Hello World 端點
-- ✅ Frontend：TanStack Start 專案已建立，基礎配置完成
-- ❌ Mobile：Expo 54 專案已建立，基礎配置尚未完成
-- ✅ 資料庫：Prisma schema 建立完成
-- ✅ GraphQL：Schema 與 resolvers 尚未實作
-- ✅ Socket.io：即時通訊功能尚未實作
-- ❌ Better Auth：認證系統尚未配置
-- ❌ 測試：測試框架與測試檔案尚未建立
+- apollo: https://www.apollographql.com/docs/react/get-started
 
 ---
 
@@ -628,36 +536,6 @@ A：停止實作，立即通知 Architect Agent 更新測試規格與 SDD。TDD 
 
 **Q：怎麼知道目前的進度？**
 A：看 `MULTI_AGENT_PLAN.md` 的狀態欄，每天更新。
-
----
-
-## 十、快速開始指令
-
-```bash
-# 全部環境初始化
-pnpm install  # 在 backend、frontend、mobile 各執行一次
-
-# Backend 需要 Bun runtime
-# 安裝 Bun: https://bun.sh/docs/installation
-curl -fsSL https://bun.sh/install | bash
-
-# 啟動開發伺服器（建議三個 terminal 分開執行）
-cd backend && bun run dev       # 監聽 http://localhost:3000
-cd frontend && pnpm dev         # 監聽 http://localhost:3001 (需設定 PORT=3001)
-cd mobile && pnpm start         # Expo Go
-
-# Lint 檢查
-cd frontend && pnpm lint
-cd mobile && pnpm lint
-
-# 建置專案
-cd frontend && pnpm build
-
-# 執行測試（尚未完整配置）
-cd backend && bun test
-cd frontend && pnpm test
-cd mobile && pnpm test
-```
 
 ---
 
@@ -688,7 +566,6 @@ cd mobile && pnpm test
 ## 語言與溝通規範
 - 對話總是用繁體中文回覆、唯有專有技術名詞以英文呈現（例如 GraphQL、Socket.io）
 - 程式碼內容（包括 string）以及註解總是以英文撰寫
-- Commit message 以 `[flag] message` 格式撰寫，必須使用英文
 
 ---
 

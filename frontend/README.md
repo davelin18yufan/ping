@@ -58,11 +58,11 @@ Configure your GraphQL API endpoint in `src/router.tsx`:
 ```tsx
 // Configure Apollo Client
 const apolloClient = new ApolloClient({
-  cache: new InMemoryCache(),
-  link: new HttpLink({
-    uri: "https://your-graphql-api.example.com/graphql", // Update this!
-  }),
-});
+    cache: new InMemoryCache(),
+    link: new HttpLink({
+        uri: "https://your-graphql-api.example.com/graphql", // Update this!
+    }),
+})
 ```
 
 You can use environment variables by creating a `.env.local` file:
@@ -74,7 +74,7 @@ VITE_GRAPHQL_ENDPOINT=https://your-api.com/graphql
 The default configuration already uses this pattern:
 
 ```tsx
-uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || "https://your-graphql-api.example.com/graphql";
+uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || "https://your-graphql-api.example.com/graphql"
 ```
 
 ## Usage Patterns
@@ -84,37 +84,37 @@ uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || "https://your-graphql-api.example.
 Use `preloadQuery` in route loaders for optimal streaming SSR performance:
 
 ```tsx
-import { gql, TypedDocumentNode } from "@apollo/client";
-import { useReadQuery } from "@apollo/client/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { gql, TypedDocumentNode } from "@apollo/client"
+import { useReadQuery } from "@apollo/client/react"
+import { createFileRoute } from "@tanstack/react-router"
 
 const MY_QUERY: TypedDocumentNode<{
-  posts: { id: string; title: string; content: string }[];
+    posts: { id: string; title: string; content: string }[]
 }> = gql`
-  query GetData {
-    posts {
-      id
-      title
-      content
+    query GetData {
+        posts {
+            id
+            title
+            content
+        }
     }
-  }
-`;
+`
 
 export const Route = createFileRoute("/my-route")({
-  component: RouteComponent,
-  loader: ({ context: { preloadQuery } }) => {
-    const queryRef = preloadQuery(MY_QUERY, {
-      variables: {},
-    });
-    return { queryRef };
-  },
-});
+    component: RouteComponent,
+    loader: ({ context: { preloadQuery } }) => {
+        const queryRef = preloadQuery(MY_QUERY, {
+            variables: {},
+        })
+        return { queryRef }
+    },
+})
 
 function RouteComponent() {
-  const { queryRef } = Route.useLoaderData();
-  const { data } = useReadQuery(queryRef);
+    const { queryRef } = Route.useLoaderData()
+    const { data } = useReadQuery(queryRef)
 
-  return <div>{/* render your data */}</div>;
+    return <div>{/* render your data */}</div>
 }
 ```
 
@@ -123,48 +123,48 @@ function RouteComponent() {
 Use `useSuspenseQuery` directly in components with automatic suspense support:
 
 ```tsx
-import { gql, TypedDocumentNode } from "@apollo/client";
-import { useSuspenseQuery } from "@apollo/client/react";
-import { createFileRoute } from "@tanstack/react-router";
+import { gql, TypedDocumentNode } from "@apollo/client"
+import { useSuspenseQuery } from "@apollo/client/react"
+import { createFileRoute } from "@tanstack/react-router"
 
 const MY_QUERY: TypedDocumentNode<{
-  posts: { id: string; title: string }[];
+    posts: { id: string; title: string }[]
 }> = gql`
-  query GetData {
-    posts {
-      id
-      title
+    query GetData {
+        posts {
+            id
+            title
+        }
     }
-  }
-`;
+`
 
 export const Route = createFileRoute("/my-route")({
-  component: RouteComponent,
-});
+    component: RouteComponent,
+})
 
 function RouteComponent() {
-  const { data } = useSuspenseQuery(MY_QUERY);
+    const { data } = useSuspenseQuery(MY_QUERY)
 
-  return <div>{/* render your data */}</div>;
+    return <div>{/* render your data */}</div>
 }
 ```
 
 ### Pattern 3: Manual Refetching
 
 ```tsx
-import { useQueryRefHandlers, useReadQuery } from "@apollo/client/react";
+import { useQueryRefHandlers, useReadQuery } from "@apollo/client/react"
 
 function MyComponent() {
-  const { queryRef } = Route.useLoaderData();
-  const { refetch } = useQueryRefHandlers(queryRef);
-  const { data } = useReadQuery(queryRef);
+    const { queryRef } = Route.useLoaderData()
+    const { refetch } = useQueryRefHandlers(queryRef)
+    const { data } = useReadQuery(queryRef)
 
-  return (
-    <div>
-      <button onClick={() => refetch()}>Refresh</button>
-      {/* render data */}
-    </div>
-  );
+    return (
+        <div>
+            <button onClick={() => refetch()}>Refresh</button>
+            {/* render data */}
+        </div>
+    )
 }
 ```
 
@@ -204,7 +204,7 @@ Now that you have two routes you can use a `Link` component to navigate between 
 To use SPA (Single Page Application) navigation you will need to import the `Link` component from `@tanstack/react-router`.
 
 ```tsx
-import { Link } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router"
 ```
 
 Then anywhere in your JSX you can use it like so:
@@ -224,25 +224,25 @@ In the File Based Routing setup the layout is located in `src/routes/__root.tsx`
 Here is an example layout that includes a header:
 
 ```tsx
-import { Outlet, createRootRoute } from "@tanstack/react-router";
-import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { Outlet, createRootRoute } from "@tanstack/react-router"
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools"
 
-import { Link } from "@tanstack/react-router";
+import { Link } from "@tanstack/react-router"
 
 export const Route = createRootRoute({
-  component: () => (
-    <>
-      <header>
-        <nav>
-          <Link to="/">Home</Link>
-          <Link to="/about">About</Link>
-        </nav>
-      </header>
-      <Outlet />
-      <TanStackRouterDevtools />
-    </>
-  ),
-});
+    component: () => (
+        <>
+            <header>
+                <nav>
+                    <Link to="/">Home</Link>
+                    <Link to="/about">About</Link>
+                </nav>
+            </header>
+            <Outlet />
+            <TanStackRouterDevtools />
+        </>
+    ),
+})
 ```
 
 The `<TanStackRouterDevtools />` component is not required so you can remove it if you don't want it in your layout.
@@ -257,27 +257,27 @@ For example:
 
 ```tsx
 const peopleRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/people",
-  loader: async () => {
-    const response = await fetch("https://swapi.dev/api/people");
-    return response.json() as Promise<{
-      results: {
-        name: string;
-      }[];
-    }>;
-  },
-  component: () => {
-    const data = peopleRoute.useLoaderData();
-    return (
-      <ul>
-        {data.results.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    );
-  },
-});
+    getParentRoute: () => rootRoute,
+    path: "/people",
+    loader: async () => {
+        const response = await fetch("https://swapi.dev/api/people")
+        return response.json() as Promise<{
+            results: {
+                name: string
+            }[]
+        }>
+    },
+    component: () => {
+        const data = peopleRoute.useLoaderData()
+        return (
+            <ul>
+                {data.results.map((person) => (
+                    <li key={person.name}>{person.name}</li>
+                ))}
+            </ul>
+        )
+    },
+})
 ```
 
 Loaders simplify your data fetching logic dramatically. Check out more information in the [Loader documentation](https://tanstack.com/router/latest/docs/framework/react/guide/data-loading#loader-parameters).
@@ -295,70 +295,70 @@ npm add @tanstack/react-query @tanstack/react-query-devtools
 Next we'll need to create a query client and provider. We recommend putting those in `main.tsx`.
 
 ```tsx
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 
 // ...
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient()
 
 // ...
 
 if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement);
+    const root = ReactDOM.createRoot(rootElement)
 
-  root.render(
-    <QueryClientProvider client={queryClient}>
-      <RouterProvider router={router} />
-    </QueryClientProvider>
-  );
+    root.render(
+        <QueryClientProvider client={queryClient}>
+            <RouterProvider router={router} />
+        </QueryClientProvider>
+    )
 }
 ```
 
 You can also add TanStack Query Devtools to the root route (optional).
 
 ```tsx
-import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
+import { ReactQueryDevtools } from "@tanstack/react-query-devtools"
 
 const rootRoute = createRootRoute({
-  component: () => (
-    <>
-      <Outlet />
-      <ReactQueryDevtools buttonPosition="top-right" />
-      <TanStackRouterDevtools />
-    </>
-  ),
-});
+    component: () => (
+        <>
+            <Outlet />
+            <ReactQueryDevtools buttonPosition="top-right" />
+            <TanStackRouterDevtools />
+        </>
+    ),
+})
 ```
 
 Now you can use `useQuery` to fetch your data.
 
 ```tsx
-import { useQuery } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query"
 
-import "./App.css";
+import "./App.css"
 
 function App() {
-  const { data } = useQuery({
-    queryKey: ["people"],
-    queryFn: () =>
-      fetch("https://swapi.dev/api/people")
-        .then((res) => res.json())
-        .then((data) => data.results as { name: string }[]),
-    initialData: [],
-  });
+    const { data } = useQuery({
+        queryKey: ["people"],
+        queryFn: () =>
+            fetch("https://swapi.dev/api/people")
+                .then((res) => res.json())
+                .then((data) => data.results as { name: string }[]),
+        initialData: [],
+    })
 
-  return (
-    <div>
-      <ul>
-        {data.map((person) => (
-          <li key={person.name}>{person.name}</li>
-        ))}
-      </ul>
-    </div>
-  );
+    return (
+        <div>
+            <ul>
+                {data.map((person) => (
+                    <li key={person.name}>{person.name}</li>
+                ))}
+            </ul>
+        </div>
+    )
 }
 
-export default App;
+export default App
 ```
 
 You can find out everything you need to know on how to use React-Query in the [React-Query documentation](https://tanstack.com/query/latest/docs/framework/react/overview).
@@ -376,22 +376,22 @@ npm add @tanstack/store
 Now let's create a simple counter in the `src/App.tsx` file as a demonstration.
 
 ```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store } from "@tanstack/store";
-import "./App.css";
+import { useStore } from "@tanstack/react-store"
+import { Store } from "@tanstack/store"
+import "./App.css"
 
-const countStore = new Store(0);
+const countStore = new Store(0)
 
 function App() {
-  const count = useStore(countStore);
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>Increment - {count}</button>
-    </div>
-  );
+    const count = useStore(countStore)
+    return (
+        <div>
+            <button onClick={() => countStore.setState((n) => n + 1)}>Increment - {count}</button>
+        </div>
+    )
 }
 
-export default App;
+export default App
 ```
 
 One of the many nice features of TanStack Store is the ability to derive state from other state. That derived state will update when the base state updates.
@@ -399,31 +399,31 @@ One of the many nice features of TanStack Store is the ability to derive state f
 Let's check this out by doubling the count using derived state.
 
 ```tsx
-import { useStore } from "@tanstack/react-store";
-import { Store, Derived } from "@tanstack/store";
-import "./App.css";
+import { useStore } from "@tanstack/react-store"
+import { Store, Derived } from "@tanstack/store"
+import "./App.css"
 
-const countStore = new Store(0);
+const countStore = new Store(0)
 
 const doubledStore = new Derived({
-  fn: () => countStore.state * 2,
-  deps: [countStore],
-});
-doubledStore.mount();
+    fn: () => countStore.state * 2,
+    deps: [countStore],
+})
+doubledStore.mount()
 
 function App() {
-  const count = useStore(countStore);
-  const doubledCount = useStore(doubledStore);
+    const count = useStore(countStore)
+    const doubledCount = useStore(doubledStore)
 
-  return (
-    <div>
-      <button onClick={() => countStore.setState((n) => n + 1)}>Increment - {count}</button>
-      <div>Doubled - {doubledCount}</div>
-    </div>
-  );
+    return (
+        <div>
+            <button onClick={() => countStore.setState((n) => n + 1)}>Increment - {count}</button>
+            <div>Doubled - {doubledCount}</div>
+        </div>
+    )
 }
 
-export default App;
+export default App
 ```
 
 We use the `Derived` class to create a new store that is derived from another store. The `Derived` class has a `mount` method that will start the derived store updating.

@@ -1,15 +1,15 @@
-import { Store } from "@tanstack/store";
+import { Store } from "@tanstack/store"
 
 export interface ChatState {
-  currentConversationId: string | null;
-  draftMessages: Record<string, string>;
-  isTyping: Record<string, boolean>;
+    currentConversationId: string | null
+    draftMessages: Record<string, string>
+    isTyping: Record<string, boolean>
 }
 
 const initialState: ChatState = {
-  currentConversationId: null,
-  draftMessages: {},
-  isTyping: {},
-};
+    currentConversationId: null,
+    draftMessages: {},
+    isTyping: {},
+}
 
-export const chatStore = new Store<ChatState>(initialState);
+export const chatStore = new Store<ChatState>(initialState)

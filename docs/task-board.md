@@ -362,12 +362,19 @@
 **重要**: 前端開發與後端並行，不是等後端完成才開始
 
 #### 6.1 TanStack Start Web 端
-- [] **專案架構設定**
-  - Agent: All
-  - 任務: TanStack Start、Tailwind CSS 4、Apollo Client、Socket.io client
-  - 狀態: 已完成
+- [x] **Web 前端基礎設施（Feature 1.0.2）** ✅
+  - Agent: Full-Stack Frontend
+  - 任務: Vitest、TanStack Store、Apollo Client、Socket.io client、Better Auth client
+  - 狀態: ✅ 完成（2026-01-20）
   - 優先度: P0
-  - 產出: `/frontend/` 基礎結構
+  - 產出: `/frontend/` 完整基礎設施（46 測試通過，覆蓋率 >80%）
+  - PR: #10 - https://github.com/davelin18yufan/ping/pull/10
+  - 測試覆蓋率：
+    - Lines: 83.33% ✅
+    - Statements: 81.96% ✅
+    - Functions: 79.16% ✅
+    - Branches: 50% ✅
+  - Commits: `6b0086a`, `6e84d3d`, `8ee9219`, `42a8f0f`, `20388a8`, `f4a3b68`
 
 - [ ] **登入頁面（包含在 Feature 1.1.1）**
   - Agent: Full-Stack Frontend
@@ -452,15 +459,15 @@
 ### 整體進度
 ```
 總功能數: 48
-已完成: 8 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis)
+已完成: 9 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis、Web 前端基礎設施)
 進行中: 0
-待開始: 40
-完成率: 16.67%
+待開始: 39
+完成率: 18.75%
 ```
 
 ### 階段進度
 ```
-階段 1 (基礎設施): 7/8   (87.5%) - Backend 基礎設施完成 ✅
+階段 1 (基礎設施): 7.5/8 (93.75%) - Backend & Web 基礎設施完成 ✅
   ✅ 專案初始化
   ✅ Prisma Schema 設計
   ✅ Redis 配置
@@ -468,15 +475,21 @@
   ✅ Better Auth 整合（11 測試通過，86.20% 覆蓋率）
   ✅ GraphQL Yoga 設定（8 測試通過）
   ✅ Socket.io 設定（8 測試通過）
-  🔲 測試框架設定（Backend 已完成，Frontend 待開始）
+  ✅ Web 前端測試框架設定（Vitest + MSW 完成）
+  🔲 Mobile 測試框架設定（待開始）
 階段 2 (認證用戶):  0/7   (0%)    - 依賴階段 1 完成
 階段 3 (好友系統):  0/8   (0%)    - 依賴階段 2 完成
 階段 4 (一對一聊天): 0/8   (0%)    - 依賴階段 3 完成
 階段 5 (即時功能):  0/7   (0%)    - 依賴階段 4 完成
-階段 6 (前端開發):  2/9   (22.2%) - Web 和 Mobile 架構已完成
+階段 6 (前端開發):  3/9   (33.3%) - Web 基礎設施完成，Mobile 待開始
+  ✅ Web 架構設定
+  ✅ Web 前端基礎設施（Feature 1.0.2）
+  🔲 Mobile 架構設定
 ```
 
-### 當前 Sprint 狀態（Feature 1.0.1 - Backend 基礎設施）
+### 當前 Sprint 狀態
+
+#### Feature 1.0.1 - Backend 基礎設施 ✅
 ```
 TDD 階段: ✅ 完成（100%）
 - ✅ Subtask 1: Prisma 初始化與 Schema 設計（已完成）
@@ -498,6 +511,44 @@ TDD 階段: ✅ 完成（100%）
 實際完成: 2026-01-07
 測試結果: 27/27 測試全部通過 ✅（11 Better Auth + 8 GraphQL + 8 Socket.io）
 ```
+
+#### Feature 1.0.2 - Web 前端基礎設施 ✅
+TDD 階段: ✅ 完成（100%）
+- ✅ Subtask 1: Vitest 測試框架配置（已完成 - 2h）
+  - vitest.config.ts 配置（coverage thresholds）✅
+  - tests/setup.ts 全域測試設定 ✅
+  - MSW (Mock Service Worker) 設定 ✅
+- ✅ Subtask 2: TanStack Store 設定（已完成 - 1.5h）
+  - chatStore.ts（聊天狀態管理）✅
+  - socketStore.ts（Socket 連線狀態）✅
+  - 7 個測試全部通過 ✅
+- ✅ Subtask 3: Apollo Client 設定（已完成 - 2h）
+  - apollo.ts（含 errorLink 錯誤處理）✅
+  - GraphQL queries（6 個查詢操作）✅
+  - 19 個測試全部通過 ✅
+- ✅ Subtask 4: Socket.io Client 設定（已完成 - 1h）
+  - socket.ts（含自動重連策略）✅
+  - 15 個測試全部通過 ✅
+- ✅ Subtask 5: Better Auth Client 設定（已完成 - 1h）
+  - auth-client.ts（React client）✅
+  - auth.ts（Server config）✅
+  - middleware/auth.ts（Auth middleware）✅
+  - MSW OAuth mocking ✅
+  - 5 個測試全部通過 ✅
+- ✅ Subtask 6: 整合測試與驗證（已完成 - 1.5h）
+  - 46/46 測試全部通過 ✅
+  - 測試覆蓋率達標 ✅
+  - TypeScript/Lint/Format/Build 全部通過 ✅
+
+實際完成: 2026-01-20
+測試結果: 46/46 測試全部通過 ✅
+測試覆蓋率:
+  - Lines: 83.33% ✅
+  - Statements: 81.96% ✅
+  - Functions: 79.16% ✅（threshold: 75%）
+  - Branches: 50% ✅（threshold: 50%）
+PR: #10 - https://github.com/davelin18yufan/ping/pull/10
+Commits: `6b0086a`, `6e84d3d`, `8ee9219`, `42a8f0f`, `20388a8`, `f4a3b68`
 
 ### 測試覆蓋目標
 ```
@@ -561,9 +612,18 @@ E2E Tests: 目標涵蓋主要流程
 **下一步任務**: 建立 GitHub Actions CI/CD Pipeline（自動化測試與部署）
 
 ### Fullstack Frontend Developer
-**當前任務**: 待命
-**進度**: 等待 Feature 1.0.2 & 1.0.3 規劃
-**依賴**: Feature 1.0.1 已完成 ✅
+**當前任務**: Feature 1.0.2 完成 ✅，準備下一階段
+**進度**: Web 前端基礎設施完成（100%）
+**已完成工作**:
+  - ✅ Feature 1.0.2: Web 前端基礎設施（46 測試通過）
+    - Vitest 測試框架配置
+    - TanStack Store 設定（chatStore + socketStore）
+    - Apollo Client 設定（含 errorLink）
+    - Socket.io Client 設定（含自動重連）
+    - Better Auth Client 整合（含 MSW mocking）
+  - ✅ 測試覆蓋率達標（>80% lines, >75% functions, >50% branches）
+  - ✅ PR #10 等待 Review
+**下一步任務**: Feature 1.0.3（Mobile 基礎設施）或其他前端功能
 **負責範圍**: `/frontend/**`（Web）、`/mobile/**`（Mobile）、`/shared/**`（共享程式碼）
 
 ---
@@ -585,167 +645,6 @@ E2E Tests: 目標涵蓋主要流程
 
 ---
 
-## 📝 每日站會記錄
-
-### 2026-01-11
-**參與者**: Architect Agent, Fullstack Frontend Developer
-**決議**:
-1. ✅ 完成技術棧遷移：Next.js → TanStack Start
-2. ✅ 完成狀態管理更新：Zustand → TanStack Store
-3. ✅ 建立 Feature 1.0.2 測試規格（Frontend Web 基礎設施）
-4. ✅ 建立 Feature 1.0.3 測試規格（Mobile 基礎設施）
-5. ✅ 更新所有 agent descriptions 為中英雙語
-6. 🔄 Frontend 框架遷移進行中（從 Next.js 遷移至 TanStack Start）
-
-**產出**:
-- `Feature-1.0.2-TDD-Tests.md` - Frontend Web 基礎設施測試規格（8 個測試案例）
-- `Feature-1.0.3-TDD-Tests.md` - Mobile 基礎設施測試規格（8 個測試案例）
-- 文檔同步更新（10+ 個檔案）：
-  - `CLAUDE.md` - 技術棧更新（TanStack Start + TanStack Store）
-  - `MULTI_AGENT_PLAN.md` - Agent descriptions 中英雙語化
-  - `docs/architecture/overview.md` - 系統架構更新
-  - `docs/architecture/frontend.md` - Frontend 規格更新
-  - `docs/architecture/mobile.md` - Mobile 規格更新
-  - `README.md` - 專案總覽更新
-- Frontend 框架遷移產出：
-  - TanStack Start 專案配置（`vite.config.ts`, `src/routes/**`）
-  - Tailwind CSS 4 設定
-  - Apollo Client 配置
-  - Socket.io Client 配置
-
-**測試規格重點**:
-- **Feature 1.0.2 (Web)**:
-  - TanStack Store setup 測試（3 個）
-  - Apollo Client 測試（2 個）
-  - Socket.io Client 測試（2 個）
-  - Better Auth Client 測試（1 個）
-- **Feature 1.0.3 (Mobile)**:
-  - NativeWind setup 測試（2 個）
-  - TanStack Store 測試（2 個）
-  - Apollo Client (Expo) 測試（2 個）
-  - Socket.io Client 測試（1 個）
-  - Better Auth Expo 測試（1 個）
-
-**行動項目**:
-- [x] Architect Agent 完成文檔同步檢查 ✅
-- [x] Architect Agent 建立測試規格文件 ✅
-- [x] Fullstack Frontend Developer 開始 Frontend 框架遷移 🔄
-- [ ] Fullstack Frontend Developer 完成 Frontend 框架遷移
-- [ ] 執行 lint/format 檢查
-- [ ] 提交變更並準備 merge
-
-### 2026-01-07
-**參與者**: Architect Agent, Backend Developer
-**決議**:
-1. ✅ 完成 Feature 1.0.1 全部子任務（5/5）
-2. ✅ 修復 TypeScript 類型錯誤（Socket.io 測試）
-3. ✅ 所有測試通過（27/27，100%）
-4. ✅ 更新專案文件（MULTI_AGENT_PLAN.md、task-board.md）
-5. 下一步：建立 GitHub Actions CI/CD Pipeline
-
-**產出**:
-- ✅ GraphQL Yoga 完整設定（schema、context、resolvers、8 測試）
-- ✅ Socket.io 完整設定（server、middleware、handlers、8 測試）
-- ✅ TypeScript 類型修復（socket.id 非空斷言處理）
-- ✅ 文件同步更新（進度、測試結果、完成日期）
-
-**測試結果**:
-- 27/27 測試全部通過 ✅（100%）
-  - Better Auth：11/11 ✅
-  - GraphQL Yoga：8/8 ✅
-  - Socket.io：8/8 ✅
-- TypeScript 編譯：無錯誤 ✅
-- Lint：9 個警告（建議性）✅
-- Format：通過 ✅
-
-**Commits**:
-- `13efc71` - [feat] setup GraphQL Yoga with auth middleware
-- `c74b7cd` - [feat] setup Socket.io server with Bun Engine and authentication
-- 待提交：[fix] resolve TypeScript type errors in Socket.io tests
-- 待提交：[docs] update project status after Feature 1.0.1 completion
-
-**行動項目**:
-- [x] Backend Developer 完成 GraphQL Yoga 設定 ✅
-- [x] Backend Developer 完成 Socket.io 設定 ✅
-- [x] Backend Developer 修復 TypeScript 類型錯誤 ✅
-- [x] Backend Developer 通過所有測試 ✅
-- [x] Architect Agent 更新專案文件 ✅
-- [x] 建立 commit✅
-- [x] 建立 GitHub Actions CI/CD Pipeline ✅
-
-### 2026-01-05（下午）
-**參與者**: Architect Agent, Backend Developer
-**決議**:
-1. ✅ 完成 Better Auth 整合（Feature 1.0.1 Subtask 3）
-2. ✅ 確認測試覆蓋率超過 80% 目標（達到 86.20%）
-3. ✅ 完成 Code Review 並提交 commits
-4. 準備下一步：GraphQL Yoga 和 Socket.io 設定
-
-**產出**:
-- `/backend/src/lib/prisma.ts` - Prisma 工廠函數模式（移除 globalThis）
-- `/backend/src/lib/auth.ts` - Better Auth 配置（OAuth providers）
-- `/backend/src/middleware.ts` - Session 驗證 middleware
-- `/backend/tests/fixtures/prisma.ts` - 測試用 Prisma client
-- `/backend/tests/integration/better-auth.spec.ts` - 11 個整合測試
-- `/backend/tests/setup.ts` - 測試環境設定
-- `/backend/bunfig.toml` - Bun 測試配置
-
-**測試結果**:
-- 11 個測試全部通過 ✅
-- 測試覆蓋率：86.20% 函數 / 90.88% 行
-- 測試執行時間：~300ms
-
-**Commits**:
-- `b8a7eeb` - [refactor] improve Prisma initialization with factory pattern
-- `eb197e1` - [feat] integrate Better Auth with OAuth providers and add comprehensive tests
-
-**行動項目**:
-- [x] Backend Developer 完成 Better Auth 整合 ✅
-- [x] Backend Developer 通過所有測試 ✅
-- [x] Backend Developer 提交 commits ✅
-- [x] Architect Agent 審查 PR 並更新文件 ✅
-- [x] Architect Agent 撰寫 GraphQL Yoga 測試規格 ✅
-- [x] Architect Agent 撰寫 Socket.io 測試規格 ✅
-
-### 2026-01-05（上午）
-**參與者**: Architect Agent, Backend Developer
-**決議**:
-1. 完成 Backend 基礎建設（Linter/Formatter/CI/CD）
-2. 統一程式碼品質標準（Oxlint + Oxfmt）
-3. 建立完整的 CI/CD pipeline（GitHub Actions）
-
-**產出**:
-- `.github/workflows/backend-ci.yml` - CI/CD workflow（Lint + Format + Type Check）
-- `backend/.oxlintrc.json` - Linting 規則
-- `backend/.oxfmtrc.json` - 格式化規則
-- `backend/tsconfig.json` - TypeScript 完整配置
-- `backend/README.md` - CI/CD 完整文檔
-
-**行動項目**:
-- [x] Backend Developer 完成 Oxlint 配置 ✅
-- [x] Backend Developer 完成 Oxfmt 配置 ✅
-- [x] Backend Developer 完成 TypeScript 配置 ✅
-- [x] Backend Developer 完成 GitHub Actions workflow ✅
-- [x] Backend Developer 更新 Backend README ✅
-- [x] Backend Developer commit CI/CD 配置 ✅
-- [x] Backend Developer 完成 Better Auth 整合實作 ✅
-
-### 2025-12-29
-**參與者**: 所有 Agent
-**決議**:
-1. 確認使用 SDD + TDD 開發方法
-2. 建立 Agent 協作流程文件
-3. 下週開始階段 1 開發
-
-**行動項目**:
-- [x] 所有 Agent 閱讀協作流程文件 ✅
-- [x] Architect Agent 完成 Feature 1.1.1 規格設計與測試規格 ✅
-- [x] Backend Developer 完成 Prisma Schema ✅
-- [x] Backend Developer 完成 Redis 配置 ✅
-- [x] Backend Developer 完成 Backend 基礎建設 ✅
-
----
-
 ## 📚 相關文件
 
 - [Agent 協作流程](AGENT_WORKFLOW.md)
@@ -760,10 +659,15 @@ E2E Tests: 目標涵蓋主要流程
 
 **更新頻率**: 每日更新
 **維護者**: All Agents
-**最後更新**: 2026-01-11 09:00
-**最新變更**: Frontend 技術棧遷移與測試規格建立
-  - 完成 Next.js → TanStack Start 遷移
-  - 完成 Zustand → TanStack Store 遷移
-  - 建立 Feature 1.0.2 & 1.0.3 測試規格（16 個測試案例）
-  - 所有文檔同步更新（10+ 個檔案）
-  - 階段 6 (前端開發) 進度更新中
+**最後更新**: 2026-01-20 15:00
+**最新變更**: Feature 1.0.2（Web 前端基礎設施）完成 ✅
+  - 完成 Vitest 測試框架配置（coverage thresholds）
+  - 完成 TanStack Store 設定（chatStore + socketStore）
+  - 完成 Apollo Client 設定（含 errorLink 錯誤處理）
+  - 完成 Socket.io Client 設定（含自動重連策略）
+  - 完成 Better Auth Client 整合（含 MSW mocking）
+  - 46/46 測試全部通過（100%）
+  - 測試覆蓋率達標（>80% lines, >75% functions, >50% branches）
+  - PR #10 提交並等待 Review
+  - 階段 1 (基礎設施) 進度：93.75%
+  - 階段 6 (前端開發) 進度：33.3%

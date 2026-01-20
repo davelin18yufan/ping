@@ -18,7 +18,7 @@ const getGraphQLEndpoint = (): string => {
  * Error handling link for Apollo Client
  * Handles GraphQL errors and network errors
  */
-const errorLink = new ErrorLink(({ error }) => {
+export const errorLink = new ErrorLink(({ error }) => {
     if (CombinedGraphQLErrors.is(error)) {
         error.errors.forEach(({ message, locations, path, extensions }) => {
             console.error(

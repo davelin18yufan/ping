@@ -1,47 +1,112 @@
 {
-  "name": "mobile",
-  "main": "expo-router/entry",
-  "version": "1.0.0",
-  "scripts": {
-    "start": "expo start",
-    "reset-project": "node ./scripts/reset-project.js",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
-    "web": "expo start --web",
-    "lint": "expo lint"
-  },
-  "dependencies": {
-    "@expo/vector-icons": "^15.0.3",
-    "@react-navigation/bottom-tabs": "^7.4.0",
-    "@react-navigation/elements": "^2.6.3",
-    "@react-navigation/native": "^7.1.8",
-    "expo": "~54.0.30",
-    "expo-constants": "~18.0.12",
-    "expo-font": "~14.0.10",
-    "expo-haptics": "~15.0.8",
-    "expo-image": "~3.0.11",
-    "expo-linking": "~8.0.11",
-    "expo-router": "~6.0.21",
-    "expo-splash-screen": "~31.0.13",
-    "expo-status-bar": "~3.0.9",
-    "expo-symbols": "~1.0.8",
-    "expo-system-ui": "~6.0.9",
-    "expo-web-browser": "~15.0.10",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-native": "0.81.5",
-    "react-native-gesture-handler": "~2.28.0",
-    "react-native-worklets": "0.5.1",
-    "react-native-reanimated": "~4.1.1",
-    "react-native-safe-area-context": "~5.6.0",
-    "react-native-screens": "~4.16.0",
-    "react-native-web": "~0.21.0"
-  },
-  "devDependencies": {
-    "@types/react": "~19.1.0",
-    "typescript": "~5.9.2",
-    "eslint": "^9.25.0",
-    "eslint-config-expo": "~10.0.0"
-  },
-  "private": true
+    "name": "mobile",
+    "main": "expo-router/entry",
+    "version": "1.0.0",
+    "scripts": {
+        "start": "expo start",
+        "reset-project": "node ./scripts/reset-project.js",
+        "android": "expo start --android",
+        "ios": "expo start --ios",
+        "web": "expo start --web",
+        "lint": "expo lint",
+        "lint:fix": "expo lint --fix",
+        "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
+        "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+        "test": "jest",
+        "test:watch": "jest --watch --coverage=false --changedSince=origin/main",
+        "testDebug": "jest -o --watch --coverage=false",
+        "test:coverage": "jest --coverage"
+    },
+    "dependencies": {
+        "@apollo/client": "^4.1.1",
+        "@better-auth/expo": "^1.4.17",
+        "@expo/vector-icons": "^15.0.3",
+        "@react-navigation/bottom-tabs": "^7.4.0",
+        "@react-navigation/elements": "^2.6.3",
+        "@react-navigation/native": "^7.1.8",
+        "@tanstack/react-store": "^0.8.0",
+        "@tanstack/store": "^0.8.0",
+        "expo": "~54.0.30",
+        "expo-constants": "~18.0.12",
+        "expo-font": "~14.0.10",
+        "expo-haptics": "~15.0.8",
+        "expo-image": "~3.0.11",
+        "expo-linking": "~8.0.11",
+        "expo-router": "~6.0.21",
+        "expo-secure-store": "^15.0.8",
+        "expo-splash-screen": "~31.0.13",
+        "expo-status-bar": "~3.0.9",
+        "expo-symbols": "~1.0.8",
+        "expo-system-ui": "~6.0.9",
+        "expo-web-browser": "~15.0.10",
+        "graphql": "^16.12.0",
+        "nativewind": "^4.2.1",
+        "react": "19.1.0",
+        "react-dom": "19.1.0",
+        "react-native": "0.81.5",
+        "react-native-gesture-handler": "~2.28.0",
+        "react-native-reanimated": "~3.17.5",
+        "react-native-safe-area-context": "~5.4.0",
+        "react-native-screens": "~4.16.0",
+        "react-native-web": "~0.21.0",
+        "react-native-worklets": "0.5.1",
+        "socket.io-client": "^4.8.3"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.28.6",
+        "@babel/plugin-transform-react-jsx": "^7.28.6",
+        "@babel/preset-env": "^7.28.6",
+        "@babel/preset-react": "^7.28.5",
+        "@babel/preset-typescript": "^7.28.5",
+        "@babel/runtime": "^7.28.6",
+        "@testing-library/react-native": "^13.3.3",
+        "@types/jest": "^30.0.0",
+        "@types/react": "~19.1.0",
+        "babel-jest": "^30.2.0",
+        "babel-preset-expo": "^54.0.10",
+        "eslint": "^9.25.0",
+        "eslint-config-expo": "~10.0.0",
+        "eslint-config-prettier": "^10.1.8",
+        "eslint-plugin-prettier": "^5.5.5",
+        "eslint-plugin-testing-library": "^7.15.4",
+        "jest": "^30.2.0",
+        "jest-expo": "^54.0.16",
+        "prettier": "^3.8.1",
+        "prettier-plugin-tailwindcss": "^0.5.14",
+        "tailwindcss": "^3.4.19",
+        "typescript": "~5.9.2"
+    },
+    "private": true,
+    "packageManager": "pnpm@10.28.1",
+    "jest": {
+        "preset": "jest-expo",
+        "setupFilesAfterEnv": [
+            "<rootDir>/tests/setup.ts"
+        ],
+        "transformIgnorePatterns": [
+            "node_modules/(?!(?:.pnpm/)?((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg))"
+        ],
+        "moduleFileExtensions": [
+            "ts",
+            "tsx",
+            "js",
+            "jsx"
+        ],
+        "moduleNameMapper": {
+            "^react-native-css-interop/jsx-runtime$": "<rootDir>/tests/__mocks__/react-native-css-interop-jsx-runtime.js"
+        },
+        "testMatch": [
+            "**/tests/**/*.spec.{ts,tsx}",
+            "**/tests/**/*.test.{ts,tsx}"
+        ],
+        "collectCoverage": true,
+        "collectCoverageFrom": [
+            "**/*.{ts,tsx,js,jsx}",
+            "!**/coverage/**",
+            "!**/node_modules/**",
+            "!**/babel.config.js",
+            "!**/expo-env.d.ts",
+            "!**/.expo/**"
+        ]
+    }
 }

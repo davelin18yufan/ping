@@ -1,0 +1,28 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+.expo
+dist
+build
+coverage
+android
+ios
+
+# Environment files
+.env
+.env.*
+
+# Generated files
+*.gen.ts
+*.gen.tsx
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# OS files
+.DS_Store
+Thumbs.db

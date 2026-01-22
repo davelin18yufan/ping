@@ -1,15 +1,25 @@
 // @testing-library/react-native v12.4+ has built-in matchers
 // No need to import extend-expect
 
+// Extend global types for testing
+declare global {
+    var __ExpoImportMetaRegistry: {
+        register: jest.Mock
+        get: jest.Mock
+    }
+    var structuredClone: <T>(obj: T) => T
+}
+
 // Mock Expo winter runtime (Expo 54+)
-global.__ExpoImportMetaRegistry = {
+globalThis.__ExpoImportMetaRegistry = {
     register: jest.fn(),
     get: jest.fn(),
 }
 
 // Polyfill structuredClone if not available
-if (typeof global.structuredClone === "undefined") {
-    global.structuredClone = (obj) => JSON.parse(JSON.stringify(obj))
+if (typeof globalThis.structuredClone === "undefined") {
+    globalThis.structuredClone = <T>(obj: T): T =>
+        JSON.parse(JSON.stringify(obj))
 }
 
 // Mock expo modules

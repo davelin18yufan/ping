@@ -1,17 +1,16 @@
+import { render, screen } from "@testing-library/react-native"
 import React from "react"
-import { View, Text } from "react-native"
-import { render } from "@testing-library/react-native"
+import { Text, View } from "react-native"
 
 describe("NativeWind Configuration", () => {
     describe("Basic Tailwind Classes", () => {
         test("should apply Tailwind classes to View", () => {
-            const { getByTestId } = render(
+            render(
                 <View testID="test-view" className="bg-blue-500 p-4">
                     <Text>Test</Text>
                 </View>
             )
-
-            const view = getByTestId("test-view")
+            const view = screen.getByTestId("test-view")
 
             // In Jest test environment, NativeWind doesn't transform className
             // We verify that className prop is accepted
@@ -20,7 +19,7 @@ describe("NativeWind Configuration", () => {
         })
 
         test("should apply Tailwind classes to Text", () => {
-            const { getByTestId } = render(
+            render(
                 <Text
                     testID="test-text"
                     className="text-lg font-bold text-gray-800"
@@ -29,14 +28,14 @@ describe("NativeWind Configuration", () => {
                 </Text>
             )
 
-            const text = getByTestId("test-text")
+            const text = screen.getByTestId("test-text")
 
             expect(text).toBeDefined()
             expect(text.props.className).toBe("text-lg font-bold text-gray-800")
         })
 
         test("should apply complex Tailwind classes", () => {
-            const { getByTestId } = render(
+            render(
                 <View
                     testID="card"
                     className="flex flex-row items-center justify-between rounded-lg bg-white p-4 shadow-md"
@@ -45,7 +44,7 @@ describe("NativeWind Configuration", () => {
                 </View>
             )
 
-            const card = getByTestId("card")
+            const card = screen.getByTestId("card")
 
             expect(card).toBeDefined()
             expect(card.props.className).toContain("flex")

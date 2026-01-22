@@ -12,6 +12,8 @@
         "lint:fix": "expo lint --fix",
         "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
         "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
+        "typecheck": "tsc --noEmit",
+        "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
         "test": "jest",
         "test:watch": "jest --watch --coverage=false --changedSince=origin/main",
         "testDebug": "jest -o --watch --coverage=false",

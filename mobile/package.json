@@ -13,7 +13,7 @@
         "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,md}\"",
         "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,md}\"",
         "typecheck": "tsc --noEmit",
-        "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test",
+        "check": "pnpm typecheck && pnpm lint && pnpm format:check && pnpm test --clearCache && pnpm test",
         "test": "jest",
         "test:watch": "jest --watch --coverage=false --changedSince=origin/main",
         "testDebug": "jest -o --watch --coverage=false",
@@ -95,7 +95,13 @@
             "jsx"
         ],
         "moduleNameMapper": {
-            "^react-native-css-interop/jsx-runtime$": "<rootDir>/tests/__mocks__/react-native-css-interop-jsx-runtime.js"
+            "^react-native-css-interop/jsx-runtime$": "<rootDir>/tests/__mocks__/react-native-css-interop-jsx-runtime.js",
+            "^@/(.*)$": "<rootDir>/$1",
+            "^@components/(.*)$": "<rootDir>/components/$1",
+            "^@app/(.*)$": "<rootDir>/app/$1",
+            "^@hooks/(.*)$": "<rootDir>/hooks/$1",
+            "^@constants/(.*)$": "<rootDir>/constants/$1",
+            "^@assets/(.*)$": "<rootDir>/assets/$1"
         },
         "testMatch": [
             "**/tests/**/*.spec.{ts,tsx}",

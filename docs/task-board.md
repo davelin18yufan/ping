@@ -422,12 +422,31 @@
   - 產出: `/mobile/` 基礎結構
   - **注意**: 必須使用 NativeWind，不使用 StyleSheet.create
 
+- [~] **Mobile 基礎設施設定（Feature 1.0.3）** 🟡
+  - Agent: Full-Stack Frontend
+  - 任務: NativeWind、Jest、TanStack Store、Apollo、Socket.io、Better Auth
+  - 狀態: 開發中（3/7 子任務完成 - 42.86%）
+  - 優先度: P0
+  - 依賴: 專案架構設定 ✅
+  - PR: #14 - https://github.com/davelin18yufan/ping/pull/14
+  - 已完成子任務:
+    1. ✅ NativeWind 與測試環境設定（3 測試通過）
+    2. ✅ 程式碼品質工具設定（ESLint + Prettier + TypeScript strict）
+    3. ✅ TanStack Store 設定（21 測試通過，100% 覆蓋率）
+  - 待完成子任務:
+    4. ⏳ Apollo Client 設定（Expo 適配）- 5 tests
+    5. ⏳ Socket.io Client 設定 - 6 tests
+    6. ⏳ Better Auth Expo 設定（OAuth + Deep Linking）- 7 tests
+    7. ⏳ 整合測試與驗證 - >75% coverage target
+  - 測試結果: 24/24 測試全部通過（100%）
+  - Commits: `5f9ed5f`, `4310fd6`, `4206e48`, `42db2fb`
+
 - [ ] **登入畫面（包含在 Feature 1.1.1）**
   - Agent: Full-Stack Frontend
   - 任務: OAuth 按鈕、Deep linking、Better Auth Expo 整合
   - 狀態: RED 測試（測試規格已完成，待實作）
   - 優先度: P0
-  - 依賴: 專案架構設定 ✅
+  - 依賴: Mobile 基礎設施設定 🟡
   - 檔案: `/mobile/src/screens/auth/LoginScreen.tsx`, `/mobile/app.config.ts`
   - 測試: `/mobile/tests/e2e/oauth-flow.e2e.ts`
 
@@ -460,14 +479,14 @@
 ```
 總功能數: 48
 已完成: 9 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis、Web 前端基礎設施)
-進行中: 0
-待開始: 39
-完成率: 18.75%
+進行中: 1 (Mobile 基礎設施 - 42.86% 完成)
+待開始: 38
+完成率: 18.75% + 0.89% (進行中) = 19.64%
 ```
 
 ### 階段進度
 ```
-階段 1 (基礎設施): 7.5/8 (93.75%) - Backend & Web 基礎設施完成 ✅
+階段 1 (基礎設施): 7.93/8 (99.13%) - Backend & Web 基礎設施完成 ✅，Mobile 基礎設施進行中 🟡
   ✅ 專案初始化
   ✅ Prisma Schema 設計
   ✅ Redis 配置
@@ -476,15 +495,22 @@
   ✅ GraphQL Yoga 設定（8 測試通過）
   ✅ Socket.io 設定（8 測試通過）
   ✅ Web 前端測試框架設定（Vitest + MSW 完成）
-  🔲 Mobile 測試框架設定（待開始）
+  🟡 Mobile 基礎設施設定（Feature 1.0.3 - 42.86% 完成）
+    ✅ NativeWind 與測試環境（3 測試通過）
+    ✅ 程式碼品質工具（ESLint + Prettier + TypeScript strict）
+    ✅ TanStack Store（21 測試通過，100% 覆蓋率）
+    ⏳ Apollo Client 設定（待開始）
+    ⏳ Socket.io Client 設定（待開始）
+    ⏳ Better Auth Expo 設定（待開始）
+    ⏳ 整合測試與驗證（待開始）
 階段 2 (認證用戶):  0/7   (0%)    - 依賴階段 1 完成
 階段 3 (好友系統):  0/8   (0%)    - 依賴階段 2 完成
 階段 4 (一對一聊天): 0/8   (0%)    - 依賴階段 3 完成
 階段 5 (即時功能):  0/7   (0%)    - 依賴階段 4 完成
-階段 6 (前端開發):  3/9   (33.3%) - Web 基礎設施完成，Mobile 待開始
+階段 6 (前端開發):  3.43/9 (38.1%) - Web 基礎設施完成 ✅，Mobile 基礎設施進行中 🟡
   ✅ Web 架構設定
   ✅ Web 前端基礎設施（Feature 1.0.2）
-  🔲 Mobile 架構設定
+  🟡 Mobile 架構設定（Feature 1.0.3 - 42.86% 完成）
 ```
 
 ### 當前 Sprint 狀態
@@ -550,6 +576,41 @@ TDD 階段: ✅ 完成（100%）
 PR: #10 - https://github.com/davelin18yufan/ping/pull/10
 Commits: `6b0086a`, `6e84d3d`, `8ee9219`, `42a8f0f`, `20388a8`, `f4a3b68`
 
+#### Feature 1.0.3 - Mobile 基礎設施 🟡
+TDD 階段: 🟡 進行中（42.86% 完成 - 3/7 子任務）
+- ✅ Subtask 1: NativeWind 與測試環境設定（已完成 - 1.5h）
+  - NativeWind 4.2.1 + Tailwind CSS v3 ✅
+  - Jest 30.2.0 + jest-expo 54.0.16 ✅
+  - @testing-library/react-native 13.3.3 ✅
+  - 3 個 NativeWind 測試通過 ✅
+- ✅ Subtask 2: 程式碼品質工具設定（已完成 - 1h）
+  - ESLint 9 flat config with expo integration ✅
+  - Prettier 3.8.1 with Tailwind CSS plugin ✅
+  - TypeScript 5.9 strict mode ✅
+  - check script（typecheck + lint + format:check + test）✅
+  - Path Aliases 修復 ✅
+- ✅ Subtask 3: TanStack Store 設定（已完成 - 1h）
+  - chatStore.ts（對話與草稿訊息管理）✅
+  - socketStore.ts（Socket 連線狀態管理）✅
+  - 21 個測試全部通過（9 chatStore + 8 socketStore + 4 integration）✅
+  - 100% store 測試覆蓋率 ✅
+  - API 與 Web 前端一致 ✅
+- ⏳ Subtask 4: Apollo Client 設定（Expo 適配）- 5 tests
+- ⏳ Subtask 5: Socket.io Client 設定 - 6 tests
+- ⏳ Subtask 6: Better Auth Expo 設定（OAuth + Deep Linking）- 7 tests
+- ⏳ Subtask 7: 整合測試與驗證 - >75% coverage target
+
+進行中: 2026-01-23
+測試結果: 24/24 測試全部通過 ✅（3 NativeWind + 21 TanStack Store）
+程式碼品質:
+  - TypeScript strict mode: Pass ✅
+  - ESLint: Pass ✅
+  - Prettier format check: Pass ✅
+  - Store coverage: 100% ✅
+PR: #14 - https://github.com/davelin18yufan/ping/pull/14
+Branch: feature/1.0.3-mobile-infrastructure
+Commits: `5f9ed5f`, `4310fd6`, `4206e48`, `42db2fb`
+
 ### 測試覆蓋目標
 ```
 Backend Unit Tests: 目標 >80%
@@ -612,8 +673,10 @@ E2E Tests: 目標涵蓋主要流程
 **下一步任務**: 建立 GitHub Actions CI/CD Pipeline（自動化測試與部署）
 
 ### Fullstack Frontend Developer
-**當前任務**: Feature 1.0.2 完成 ✅，準備下一階段
-**進度**: Web 前端基礎設施完成（100%）
+**當前任務**: Feature 1.0.3 進行中 🟡
+**進度**:
+  - ✅ Feature 1.0.2: Web 前端基礎設施完成（100%）
+  - 🟡 Feature 1.0.3: Mobile 基礎設施（42.86% 完成 - 3/7 子任務）
 **已完成工作**:
   - ✅ Feature 1.0.2: Web 前端基礎設施（46 測試通過）
     - Vitest 測試框架配置
@@ -621,9 +684,19 @@ E2E Tests: 目標涵蓋主要流程
     - Apollo Client 設定（含 errorLink）
     - Socket.io Client 設定（含自動重連）
     - Better Auth Client 整合（含 MSW mocking）
-  - ✅ 測試覆蓋率達標（>80% lines, >75% functions, >50% branches）
-  - ✅ PR #10 等待 Review
-**下一步任務**: Feature 1.0.3（Mobile 基礎設施）或其他前端功能
+    - 測試覆蓋率達標（>80% lines, >75% functions, >50% branches）
+    - PR #10 已提交
+  - 🟡 Feature 1.0.3: Mobile 基礎設施（部分完成）
+    - ✅ NativeWind 與測試環境設定（3 測試通過）
+    - ✅ 程式碼品質工具設定（ESLint + Prettier + TypeScript strict）
+    - ✅ TanStack Store 設定（21 測試通過，100% 覆蓋率）
+    - ⏳ Apollo Client 設定（待開始）
+    - ⏳ Socket.io Client 設定（待開始）
+    - ⏳ Better Auth Expo 設定（待開始）
+    - ⏳ 整合測試與驗證（待開始）
+    - PR #14 已提交（部分完成）
+**下一步任務**:
+  - 繼續完成 Feature 1.0.3 剩餘子任務（Apollo Client、Socket.io、Better Auth Expo、整合測試）
 **負責範圍**: `/frontend/**`（Web）、`/mobile/**`（Mobile）、`/shared/**`（共享程式碼）
 
 ---
@@ -659,15 +732,15 @@ E2E Tests: 目標涵蓋主要流程
 
 **更新頻率**: 每日更新
 **維護者**: All Agents
-**最後更新**: 2026-01-20 15:00
-**最新變更**: Feature 1.0.2（Web 前端基礎設施）完成 ✅
-  - 完成 Vitest 測試框架配置（coverage thresholds）
-  - 完成 TanStack Store 設定（chatStore + socketStore）
-  - 完成 Apollo Client 設定（含 errorLink 錯誤處理）
-  - 完成 Socket.io Client 設定（含自動重連策略）
-  - 完成 Better Auth Client 整合（含 MSW mocking）
-  - 46/46 測試全部通過（100%）
-  - 測試覆蓋率達標（>80% lines, >75% functions, >50% branches）
-  - PR #10 提交並等待 Review
-  - 階段 1 (基礎設施) 進度：93.75%
-  - 階段 6 (前端開發) 進度：33.3%
+**最後更新**: 2026-01-23 12:00
+**最新變更**: Feature 1.0.3（Mobile 基礎設施）部分完成 🟡
+  - 完成 NativeWind 與測試環境設定（3 測試通過）
+  - 完成程式碼品質工具設定（ESLint + Prettier + TypeScript strict）
+  - 完成 TanStack Store 設定（21 測試通過，100% 覆蓋率）
+  - 完成 Path Aliases 修復與 TypeScript 錯誤修正
+  - 24/24 測試全部通過（100%）
+  - 程式碼品質檢查全部通過（TypeScript + ESLint + Prettier）
+  - PR #14 提交（部分完成，待繼續開發）
+  - 階段 1 (基礎設施) 進度：99.13%
+  - 階段 6 (前端開發) 進度：38.1%
+  - 整體完成率：19.64%

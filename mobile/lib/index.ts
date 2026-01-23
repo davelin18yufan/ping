@@ -13,3 +13,12 @@ export {
     resetApolloClient,
     setAuthToken,
 } from "./apollo"
+
+export {
+    createSocketClient,
+    disconnectSocket,
+    getSocketClient,
+    isSocketConnected,
+    reconnectSocket,
+    type TypedSocket,
+} from "./socket"

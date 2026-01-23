@@ -496,6 +496,41 @@ try {
 
 ---
 
+## 七-1、開發環境配置
+
+### Git Bash (MINGW64) 環境注意事項
+
+**問題**：在 Git Bash 中執行 `npm` 或 `pnpm` 命令時，可能會遇到無輸出問題。
+
+**原因**：在 Git Bash (MINGW64) 環境下，npm 和 pnpm 的 shell script 版本在非互動模式下不會輸出到 stdout。
+
+**解決方案**：使用 `cmd.exe //C` 執行命令以獲得正確輸出。
+
+**範例**：
+```bash
+# ❌ 在 Git Bash 可能無輸出
+pnpm install
+npm install
+
+# ✅ 正確做法（確保有輸出）
+cmd.exe //C "pnpm install"
+cmd.exe //C "npm install"
+cmd.exe //C "pnpm add package-name"
+cmd.exe //C "npm run build"
+```
+
+**適用範圍**：
+- 所有 `npm` 命令
+- 所有 `pnpm` 命令
+- 需要查看輸出的場景（安裝、建置、測試等）
+
+**注意**：
+- 此問題僅影響 Git Bash 環境
+- 在 Windows CMD、PowerShell 或 Linux/macOS 終端機中可直接使用 `npm`/`pnpm`
+- Claude Code 在 Git Bash 環境下執行 Bash 工具時應使用此方式
+
+---
+
 ## 八、重要檔案與起點
 
 ### 立即查看

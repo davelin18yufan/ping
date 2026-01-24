@@ -1,15 +1,17 @@
 {
     "expo": {
-        "name": "mobile",
-        "slug": "mobile",
+        "name": "ping",
+        "slug": "ping",
         "version": "1.0.0",
         "orientation": "portrait",
         "icon": "./assets/images/icon.png",
-        "scheme": "mobile",
+        "scheme": "ping",
         "userInterfaceStyle": "automatic",
         "newArchEnabled": true,
         "ios": {
-            "supportsTablet": true
+            "supportsTablet": true,
+            "bundleIdentifier": "com.ping.app",
+            "associatedDomains": ["applinks:ping.app", "applinks:*.ping.app"]
         },
         "android": {
             "adaptiveIcon": {
@@ -19,7 +21,27 @@
                 "monochromeImage": "./assets/images/android-icon-monochrome.png"
             },
             "edgeToEdgeEnabled": true,
-            "predictiveBackGestureEnabled": false
+            "predictiveBackGestureEnabled": false,
+            "package": "com.ping.app",
+            "intentFilters": [
+                {
+                    "action": "VIEW",
+                    "autoVerify": true,
+                    "data": [
+                        {
+                            "scheme": "https",
+                            "host": "*.ping.app",
+                            "pathPrefix": "/auth/callback"
+                        },
+                        {
+                            "scheme": "ping",
+                            "host": "auth",
+                            "pathPrefix": "/callback"
+                        }
+                    ],
+                    "category": ["BROWSABLE", "DEFAULT"]
+                }
+            ]
         },
         "web": {
             "output": "static",

@@ -201,23 +201,23 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
 
 ---
 
-#### 🟡 Feature 1.0.3 - Mobile 基礎設施設定
+#### ✅ Feature 1.0.3 - Mobile 基礎設施設定
 
 | 欄位 | 內容 |
 |------|------|
-| **狀態** | 🟡 開發中（3/7 子任務完成 - 42.86%） |
+| **狀態** | ✅ 完成（7/7 子任務完成 - 100%） |
 | **優先級** | P0 |
 | **負責** | Full-Stack Frontend |
 | **SDD 參考** | mobile.md |
 | **依賴** | Feature 1.0.1（需要 GraphQL endpoint） |
-| **預期完成日期** | 2026-01-24 |
+| **實際完成日期** | 2026-01-24 |
 
 **測試規格狀態**：
 - ✅ 測試規格文件已完成：`/docs/architecture/Feature-1.0.3-TDD-Tests.md`
-- ✅ 測試案例數量：29 個（NativeWind: 3, TanStack Store: 8, Apollo Client: 5, Socket.io: 6, Better Auth: 7）
+- ✅ 測試案例數量：97 個（NativeWind: 3, TanStack Store: 21, Apollo Client: 17, Socket.io: 43, Better Auth: 13）
 - ✅ TDD Red Phase 完成時間：2026-01-11
-- ✅ 負責人：Architect Agent
-- 🟡 實作階段（GREEN Phase）進行中
+- ✅ TDD Green Phase 完成時間：2026-01-24
+- ✅ 負責人：Full-Stack Frontend Agent
 
 **子任務分解**：
 1. **NativeWind 與測試環境設定**（1.5 小時）✅
@@ -244,70 +244,89 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
    - ✅ API 與 Web 前端一致，未來可抽取到 `/shared/stores/`
    - ✅ 驗證 Store 在 React Native 環境下運作正常
 
-4. **Apollo Client 設定（Expo 適配）**（1.5 小時）⏳
-   - 建立 `/mobile/src/lib/apollo.ts`
-   - 設定 HTTP link（Expo 環境）
-   - 配置 InMemoryCache
-   - 整合 Better Auth session
-   - 5 個測試案例
+4. **Apollo Client 設定（Expo 適配）**（1.5 小時）✅
+   - ✅ 建立 `/mobile/lib/apollo.ts`（Apollo Client with Expo adaptation）
+   - ✅ 設定 HTTP link（credentials: 'include'）
+   - ✅ 配置 InMemoryCache with better-auth session integration
+   - ✅ 整合 Better Auth session
+   - ✅ 建立 `/mobile/hooks/useApolloClient.ts`（React hook）
+   - ✅ 17 個測試全部通過（Apollo Client: 8, useApolloClient hook: 9）
 
-5. **Socket.io Client 設定**（1 小時）⏳
-   - 建立 `/mobile/src/lib/socket.ts`
-   - 設定 Socket.io client（Expo 環境）
-   - 建立 useSocket hook
-   - 6 個測試案例
+5. **Socket.io Client 設定**（1 小時）✅
+   - ✅ 建立 `/mobile/lib/socket.ts`（Socket.io Client with auto-reconnect）
+   - ✅ 設定 Socket.io client（Expo 環境，withCredentials: true）
+   - ✅ 建立 `/mobile/hooks/useSocket.ts`（useSocket, useSocketEvent, useSocketEmit hooks）
+   - ✅ 43 個測試全部通過（Socket.io Client: 33, useSocket hooks: 10）
+   - ✅ 自動重連策略（5 attempts, exponential backoff）
+   - ✅ 與 socketStore 整合（連線狀態同步）
 
-6. **Better Auth Expo 設定（OAuth + Deep Linking）**（1.5 小時）⏳
-   - 安裝 @better-auth/expo + expo-secure-store
-   - 配置 Deep Linking (`app.config.ts`)
-   - 設定 OAuth redirect URIs
-   - 建立 Better Auth provider
-   - 7 個測試案例
+6. **Better Auth Expo 設定（OAuth + Deep Linking）**（1.5 小時）✅
+   - ✅ 安裝 @better-auth/expo + expo-secure-store + expo-web-browser + expo-linking
+   - ✅ 建立 `/mobile/lib/auth.ts`（Better Auth Expo client）
+   - ✅ 建立 `/mobile/hooks/useAuth.ts`（React hook with session/user）
+   - ✅ 建立 `/mobile/app/auth/login.tsx`（Login screen with OAuth buttons）
+   - ✅ 建立 `/mobile/app/auth/callback.tsx`（OAuth callback handler）
+   - ✅ 配置 Deep Linking (`app.config.ts`)：`exp://ping-app/auth/callback`
+   - ✅ 設定 OAuth redirect URIs
+   - ✅ 13 個測試全部通過（Better Auth Client: 6, useAuth hook: 7）
 
-7. **整合測試與驗證**（1 小時）⏳
-   - 執行完整測試套件
-   - 測試覆蓋率達標（>75%）
-   - TypeScript 類型檢查通過
-   - Lint/Format 檢查通過
+7. **整合測試與驗證**（1 小時）✅
+   - ✅ 執行完整測試套件（97/97 測試通過）
+   - ✅ 測試覆蓋率達標（lib/ 核心模組：79.81%）
+   - ✅ TypeScript 類型檢查通過（0 errors）
+   - ✅ ESLint 檢查通過（0 warnings）
+   - ✅ Prettier format 檢查通過
 
 **當前狀況**：
 - ✅ NativeWind 4.2.1 + Tailwind CSS v3 設定完成（3 個測試通過）
 - ✅ Jest 測試框架完成（30.2.0 + jest-expo 54.0.16）
 - ✅ 程式碼品質工具設定完成（ESLint 9 + Prettier 3.8.1）
 - ✅ TanStack Store stores 建立完成（chatStore + socketStore）
-- ✅ 21 個 Store 測試全部通過（100% 覆蓋率）
+- ✅ Apollo Client 設定完成（17 個測試通過）
+- ✅ Socket.io Client 設定完成（43 個測試通過）
+- ✅ Better Auth Expo 設定完成（13 個測試通過）
+- ✅ 整合測試完成（97/97 測試通過）
 - ✅ TypeScript strict mode 完全通過
 - ✅ Path Aliases 修復完成
-- 🔲 Apollo Client 待設定
-- 🔲 Socket.io Client 待設定
-- 🔲 Better Auth Expo 待設定
-- 🔲 整合測試待執行
 
 **測試結果**：
 ```
-✅ 24/24 tests passing (3 NativeWind + 21 TanStack Store)
-✅ TypeScript check passing
-✅ ESLint check passing
-✅ Prettier format check passing
-✅ Store coverage: 100%
+✅ 97/97 tests passing (100%)
+  - NativeWind: 3/3
+  - TanStack Store: 21/21
+  - Apollo Client: 17/17
+  - Socket.io: 43/43
+  - Better Auth: 13/13
+✅ Test Coverage (lib/): 79.81%
+✅ TypeScript check: 0 errors
+✅ ESLint: 0 warnings
+✅ Prettier: All files formatted
 ```
 
 **Git 記錄**：
-- PR #14: https://github.com/davelin18yufan/ping/pull/14
+- PR #14: https://github.com/davelin18yufan/ping/pull/14 (MERGED)
 - Branch: feature/1.0.3-mobile-infrastructure
 - Commits:
   - `5f9ed5f` - [docs] add Git Bash npm/pnpm configuration guide to CLAUDE.md
   - `4310fd6` - [feat] setup Mobile infrastructure with NativeWind, Jest, and code quality tools
   - `4206e48` - [fix] resolve TypeScript errors and ESLint warnings in Mobile
   - `42db2fb` - [feat] setup TanStack Store with chatStore and socketStore for Mobile
+  - `5fc677c` - [feat] implement Apollo Client setup with Expo adaptation
+  - `4578191` - [docs] update Feature 1.0.3 progress after completing Subtask 4
+  - `ab189e8` - [feat] implement Socket.io Client for Mobile with React Hooks
+  - `99bcaf7` - [chore] add .env to .gitignore for Mobile
+  - `fcc8a16` - [feat] implement Better Auth Expo with OAuth and Deep Linking
 
 **產出**：
-- Mobile 測試基礎設施（NativeWind + Jest）
-- 程式碼品質工具（ESLint + Prettier + TypeScript strict）
+- Mobile 完整基礎設施（NativeWind + Jest + 程式碼品質工具）
 - TanStack Store 狀態管理（chatStore + socketStore）
-- 24 個測試確保系統穩定性
+- Apollo Client with Expo adaptation（含 errorLink）
+- Socket.io Client with auto-reconnect（含 React hooks）
+- Better Auth Expo integration（OAuth + Deep Linking + React hooks）
+- 97 個測試確保系統穩定性（100% 通過率）
 - 完整的 Path Aliases 配置
-- 100% Store 測試覆蓋率
+- 核心模組 (lib/) 測試覆蓋率：79.81%
+- 8 個新增模組與配置檔案
 
 ---
 
@@ -692,33 +711,33 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
 
 ---
 
-**最後更新**：2026-01-23 12:00
-**下次計畫更新**：2026-01-24 09:00
-**當前 Sprint**：Sprint 1 - Phase 1.0 基礎設施初始化（96.43% 完成）
-**最新進展**：Feature 1.0.3 (Mobile 基礎設施) 部分完成 🟡
-  - PR #14: https://github.com/davelin18yufan/ping/pull/14
+**最後更新**：2026-01-24 15:30
+**下次計畫更新**：2026-01-25 09:00
+**當前 Sprint**：Sprint 1 - Phase 1.0 基礎設施初始化（100% 完成 ✅）
+**最新進展**：Feature 1.0.3 (Mobile 基礎設施) 完成 ✅
+  - PR #14: https://github.com/davelin18yufan/ping/pull/14 (MERGED)
   - Branch: feature/1.0.3-mobile-infrastructure
-  - 完成進度：3/7 子任務（42.86%）
-  - Commits: `5f9ed5f` + `4310fd6` + `4206e48` + `42db2fb`
-  - 測試結果：24/24 測試全部通過（100%）
+  - 完成進度：7/7 子任務（100%）
+  - Commits: `5f9ed5f` + `4310fd6` + `4206e48` + `42db2fb` + `5fc677c` + `4578191` + `ab189e8` + `99bcaf7` + `fcc8a16`
+  - 測試結果：97/97 測試全部通過（100%）
     - NativeWind：3/3 ✅
-    - chatStore：9/9 ✅
-    - socketStore：8/8 ✅
-    - Store Integration：4/4 ✅
+    - TanStack Store：21/21 ✅
+    - Apollo Client：17/17 ✅
+    - Socket.io：43/43 ✅
+    - Better Auth：13/13 ✅
   - 程式碼品質：
-    - TypeScript strict mode：Pass ✅
-    - ESLint：Pass ✅
+    - TypeScript check：0 errors ✅
+    - ESLint：0 warnings ✅
     - Prettier format check：Pass ✅
-    - Store coverage：100% ✅
+    - 測試覆蓋率 (lib/)：79.81% ✅
   - 已完成子任務：
     1. ✅ NativeWind 與測試環境設定（3 測試通過）
     2. ✅ 程式碼品質工具設定（ESLint + Prettier + TypeScript）
     3. ✅ TanStack Store 設定（21 測試通過，100% 覆蓋率）
-  - 待完成子任務：
-    4. ⏳ Apollo Client 設定（Expo 適配）- 5 tests
-    5. ⏳ Socket.io Client 設定 - 6 tests
-    6. ⏳ Better Auth Expo 設定（OAuth + Deep Linking）- 7 tests
-    7. ⏳ 整合測試與驗證 - >75% coverage target
+    4. ✅ Apollo Client 設定（Expo 適配）（17 測試通過）
+    5. ✅ Socket.io Client 設定（43 測試通過）
+    6. ✅ Better Auth Expo 設定（OAuth + Deep Linking）（13 測試通過）
+    7. ✅ 整合測試與驗證（97/97 測試通過，79.81% 核心覆蓋率）
 
 ---
 

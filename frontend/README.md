@@ -5,8 +5,8 @@ Welcome to your new TanStack app!
 To run this application:
 
 ```bash
-npm install
-npm dev
+pnpm install
+pnpm dev
 ```
 
 # Building For Production
@@ -14,7 +14,7 @@ npm dev
 To build this application for production:
 
 ```bash
-npm build
+pnpm build
 ```
 
 ## Testing
@@ -22,7 +22,7 @@ npm build
 This project uses [Vitest](https://vitest.dev/) for testing. You can run the tests with:
 
 ```bash
-npm test
+pnpm test
 ```
 
 ## Styling
@@ -34,7 +34,7 @@ This project uses [Tailwind CSS](https://tailwindcss.com/) for styling.
 Add components using the latest version of [Shadcn](https://ui.shadcn.com/).
 
 ```bash
-npm dlx shadcn@latest add button
+pnpm dlx shadcn@latest add button
 ```
 
 # Apollo Client Integration
@@ -289,7 +289,7 @@ React-Query is an excellent addition or alternative to route loading and integra
 First add your dependencies:
 
 ```bash
-npm add @tanstack/react-query @tanstack/react-query-devtools
+pnpm add @tanstack/react-query @tanstack/react-query-devtools
 ```
 
 Next we'll need to create a query client and provider. We recommend putting those in `main.tsx`.
@@ -370,7 +370,7 @@ Another common requirement for React applications is state management. There are
 First you need to add TanStack Store as a dependency:
 
 ```bash
-npm add @tanstack/store
+pnpm add @tanstack/store
 ```
 
 Now let's create a simple counter in the `src/App.tsx` file as a demonstration.

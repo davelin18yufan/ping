@@ -28,7 +28,9 @@
         "@react-navigation/native": "^7.1.8",
         "@tanstack/react-store": "^0.8.0",
         "@tanstack/store": "^0.8.0",
+        "better-auth": "^1.4.17",
         "expo": "~54.0.30",
+        "expo-auth-session": "^7.0.10",
         "expo-constants": "~18.0.12",
         "expo-font": "~14.0.10",
         "expo-haptics": "~15.0.8",
@@ -86,7 +88,7 @@
             "<rootDir>/tests/setup.ts"
         ],
         "transformIgnorePatterns": [
-            "node_modules/(?!(?:.pnpm/)?((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg))"
+            "node_modules/(?!(?:.pnpm/)?(better-auth|@better-auth|@better-auth-expo|(jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@sentry/react-native|native-base|react-native-svg))"
         ],
         "moduleFileExtensions": [
             "ts",

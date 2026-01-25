@@ -25,7 +25,8 @@
             "@/*": ["./src/*"],
             "@components": ["./src/components/*"],
             "@stores": ["./src/stores/*"],
-            "@types": ["./src/types/*"]
+            "@types": ["./src/types/*"],
+            "@shared/*": ["../shared/*"]
         }
     }
 }

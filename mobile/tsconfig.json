@@ -34,7 +34,8 @@
             "@app/*": ["./app/*"],
             "@hooks/*": ["./hooks/*"],
             "@constants/*": ["./constants/*"],
-            "@assets/*": ["./assets/*"]
+            "@assets/*": ["./assets/*"],
+            "@shared/*": ["../shared/*"]
         }
     },
     "include": ["**/*.ts", "**/*.tsx", ".expo/types/**/*.ts", "expo-env.d.ts"],

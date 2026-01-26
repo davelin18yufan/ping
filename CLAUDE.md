@@ -106,116 +106,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ---
 
-## 三、專案結構與目錄邊界
-
-```
-ping/
-├── docs/
-│   ├── architecture/
-│   │   ├── overview.md           # SDD 系統設計總覽
-│   │   ├── backend.md            # 後端規格書
-│   │   ├── frontend.md           # Web 前端規格書
-│   │   ├── mobile.md             # Mobile 前端規格書
-│   │   └── database.md           # 資料庫與快取規格書
-│   └── task-board.md             # 總進度（每日更新）
-│
-├── backend/                      # Backend Agent 專區
-│   ├── src/
-│   │   ├── index.ts              # 應用入口、Hono server 設定
-│   │   ├── middleware.ts         # Better Auth middleware、認證、錯誤處理
-│   │   ├── graphql/
-│   │   │   ├── schema.ts         # GraphQL Schema 定義
-│   │   │   └── resolvers/        # Resolvers (users, friends, conversations, messages)
-│   │   ├── socket/
-│   │   │   ├── index.ts          # Socket.io 初始化
-│   │   │   └── handlers/         # 事件處理器
-│   │   ├── services/             # 業務邏輯（不含 GraphQL）
-│   │   ├── lib/
-│   │   │   ├── redis.ts          # Redis 連線與操作
-│   │   │   ├── prisma.ts         # Prisma Client 初始化
-│   │   │   ├── auth.ts           # Better Auth 設定
-│   │   │   └── upload.ts         # 檔案上傳處理
-│   │   └── types.ts              # TypeScript 類型定義
-│   ├── tests/
-│   │   ├── unit/                 # 單元測試
-│   │   ├── integration/          # 整合測試
-│   │   └── fixtures/             # 測試固件
-│   ├── prisma/
-│   │   ├── schema.prisma         # Prisma Schema
-│   │   └── migrations/           # 資料庫遷移
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── frontend/                     # Fullstack Frontend Agent 專區（Web）
-│   ├── src/
-│   │   ├── routes/               # TanStack Start Routes
-│   │   │   ├── __root.tsx
-│   │   │   ├── index.tsx
-│   │   │   ├── auth/
-│   │   │   ├── chat/
-│   │   │   ├── friends/
-│   │   │   └── profile/
-│   │   ├── components/           # React 元件（與 Mobile 共享）
-│   │   │   ├── chat/
-│   │   │   ├── friends/
-│   │   │   ├── common/
-│   │   │   └── layout/
-│   │   ├── hooks/                # Custom hooks（與 Mobile 共享）
-│   │   ├── lib/
-│   │   │   ├── apollo.ts         # Apollo Client 設定
-│   │   │   ├── socket.ts         # Socket.io 設定
-│   │   │   └── utils.ts
-│   │   ├── graphql/              # GraphQL 查詢/變更/訂閱（與 Mobile 共享）
-│   │   ├── stores/               # TanStack Store stores（與 Mobile 共享）
-│   │   ├── types/                # TypeScript 類型（與 Mobile 共享）
-│   │   └── styles/
-│   ├── tests/
-│   │   ├── unit/
-│   │   ├── integration/
-│   │   └── e2e/
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── mobile/                       # Fullstack Frontend Agent 專區（Mobile）
-│   ├── app.json
-│   ├── app.config.ts
-│   ├── src/
-│   │   ├── screens/              # 主要畫面（與 frontend 不共享）
-│   │   ├── components/           # React Native 元件（與 frontend 共享邏輯）
-│   │   ├── hooks/                # Custom hooks（與 frontend 共享）
-│   │   ├── lib/
-│   │   │   ├── apollo.ts         # Apollo Client（Expo 適配）
-│   │   │   ├── socket.ts         # Socket.io（Expo 適配）
-│   │   │   ├── auth.ts           # Better Auth Expo 初始化
-│   │   │   └── utils.ts
-│   │   ├── navigation/           # Expo Router / React Navigation
-│   │   ├── graphql/              # GraphQL（與 frontend 共享）
-│   │   ├── stores/               # TanStack Store（與 frontend 共享）
-│   │   ├── types/                # TypeScript（與 frontend 共享）
-│   │   └── App.tsx
-│   ├── tests/
-│   │   ├── unit/
-│   │   └── e2e/                  # Detox E2E
-│   ├── package.json
-│   └── tsconfig.json
-│
-├── shared/                       # 共享程式碼（可選，存放 Web + Mobile 共享部分）
-│   ├── types/
-│   ├── graphql/
-│   ├── hooks/
-│   ├── utils/
-│   └── package.json
-│
-├── infra/                        # 基礎設施相關（Docker、部署腳本）
-│   ├── Dockerfile.backend
-│   ├── docker-compose.yml
-│   └── k8s/                      # Kubernetes 配置（未來擴展）
-│
-└── MULTI_AGENT_PLAN.md           # 多 Agent 協作面板(每日更新)
-```
-
----
-
 ## 三、Agent 分工與職責
 
 ### Architect Agent
@@ -493,6 +383,75 @@ try {
 ### Linter & Formatter
 - 前後端都使用 `Oxclint`, `Oxfmt` ，並且統一風格,可以細微個別設定
 - 全部區塊分開設定以利將來拆分
+
+### 前端 UI/UX 設計規範
+
+**重要提醒**：所有前端 UI 設計與開發**必須遵循**以下文件與 Skills：
+
+#### 設計核心文件（必讀）
+1. **`/docs/design-philosophy.md`** - Ping 設計哲學與核心原則
+   - 三大核心原則：儀式優先、輕盈即時、關係空間
+   - 視覺設計語言（Modern Dark Elegance）
+   - 色彩系統（Dark Mode 為主、Light Mode 為輔）
+   - 字型系統、間距、陰影、動畫原則
+   - 元件設計優先級（Phase 1-3）
+   - 可訪問性原則（WCAG AAA）
+
+2. **`/docs/design-system.md`** - 統一 Design System 使用指南
+   - Design Tokens（顏色、間距、字型、陰影、圓角）
+   - Primitive Components（Headless 元件）
+   - UI Components（Web + Mobile）
+   - 使用指南與最佳實踐
+
+#### 必須使用的 Skills
+**所有前端畫面設計與實作必須先執行以下 Skills**：
+
+1. **`/frontend-design`** - 前端設計 Skill
+   - 用於：建立 Web 元件、頁面、UI 設計
+   - 目的：產生高設計品質、避免通用 AI 美學
+   - 何時使用：任何涉及畫面設計、元件開發、UI 調整的任務
+
+2. **`/ui-ux-pro-max`** - UI/UX 專業設計 Skill
+   - 包含：50 種風格、21 種調色盤、50 種字型配對、20 種圖表、8 種技術棧
+   - 涵蓋：React、Next.js、Vue、Svelte、SwiftUI、React Native、Flutter、Tailwind
+   - 適用：UI/UX 程式碼的規劃、建置、創建、設計、實作、審查、修復、改進、優化
+
+#### 設計流程規範
+**Fullstack Frontend Developer 在實作任何 UI 元件前必須**：
+
+1. **閱讀設計核心文件**：
+   - 確認 `/docs/design-philosophy.md` 的相關設計原則
+   - 檢查 `/docs/design-system.md` 的 Design Tokens 與元件規範
+
+2. **執行對應 Skill**：
+   - 涉及新元件設計：先執行 `/frontend-design`
+   - 涉及複雜 UI/UX：執行 `/ui-ux-pro-max` 確保專業品質
+
+3. **遵循設計原則**：
+   - ✅ Dark Mode 為主（Discord 風格：#1E1F22, #2B2D31, #383A40）
+   - ✅ Light Mode 為輔（溫暖象牙白：#FAF9F8）
+   - ✅ 使用 Design Tokens（`@shared/design-tokens`）
+   - ✅ 儀式感互動（進房特效、訊息送出動畫、情緒儀式）
+   - ✅ 流暢動畫（150-300ms，ease-out/ease-in）
+   - ✅ 可訪問性（WCAG AAA、鍵盤導航、螢幕閱讀器）
+   - ✅ 無障礙設計（Reduced Motion、色盲友善、觸控友善）
+
+4. **設計交付檢查**：
+   - [ ] 無 emoji 用作圖示（使用 Lucide React / Heroicons）
+   - [ ] 所有圖示來自一致的圖示集
+   - [ ] Hover 狀態不造成 layout shift
+   - [ ] Dark/Light 兩種模式都正確顯示
+   - [ ] 轉場動畫流暢（150-300ms）
+   - [ ] TypeScript 類型完整
+   - [ ] 通過 Linter/Formatter 檢查
+
+#### 禁止事項
+- ❌ 未參考設計核心文件就直接實作 UI
+- ❌ 使用硬編碼顏色（例如 `bg-blue-500`），必須使用 Design Tokens
+- ❌ 跳過 Skills 執行，自行判斷設計方向
+- ❌ 違反設計哲學的三大核心原則
+- ❌ 純白背景（Light Mode 必須使用柔和的 #FAF9F8）
+- ❌ 使用紫色作為主色（品牌色為藍色 #5865F2）
 
 ---
 

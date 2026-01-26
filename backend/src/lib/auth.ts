@@ -42,67 +42,88 @@ if (!hasGoogleOAuth && !hasGitHubOAuth) {
  * - 7-day session expiration
  */
 export const auth = betterAuth({
-    // Database adapter
-    database: prismaAdapter(prisma, {
-        provider: "postgresql",
-    }),
+  // Database adapter
+  database: prismaAdapter(prisma, {
+    provider: "postgresql",
+  }),
 
-    // Base URL for auth endpoints
-    baseURL: process.env.BETTER_AUTH_URL,
+  // Base URL for auth endpoints
+  baseURL: process.env.BETTER_AUTH_URL,
 
-    // Secret for signing tokens and cookies
-    secret: process.env.BETTER_AUTH_SECRET,
+  // Secret for signing tokens and cookies
+  secret: process.env.BETTER_AUTH_SECRET,
 
-    // Email and password authentication (disabled for MVP)
-    emailAndPassword: {
-        enabled: false,
+  // Email and password authentication (disabled for MVP)
+  emailAndPassword: {
+    enabled: false,
+  },
+
+  // OAuth social providers
+  socialProviders: {
+    google: hasGoogleOAuth
+      ? {
+          clientId: process.env.GOOGLE_CLIENT_ID as string,
+          clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
+        }
+      : undefined,
+    github: hasGitHubOAuth
+      ? {
+          clientId: process.env.GITHUB_CLIENT_ID as string,
+          clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
+        }
+      : undefined,
+  },
+
+  // Session configuration
+  session: {
+    // Session expiration: 7 days
+    expiresIn: 60 * 60 * 24 * 7, // 7 days in seconds
+
+    // Update session activity on every request
+    updateAge: 60 * 60 * 24, // 1 day in seconds
+
+    // Cookie configuration
+    cookieCache: {
+      enabled: true,
+      maxAge: 60 * 60 * 24 * 7, // 7 days in seconds
     },
+  },
 
-    // OAuth social providers
-    socialProviders: {
-        google: hasGoogleOAuth
-            ? {
-                  clientId: process.env.GOOGLE_CLIENT_ID as string,
-                  clientSecret: process.env.GOOGLE_CLIENT_SECRET as string,
-              }
-            : undefined,
-        github: hasGitHubOAuth
-            ? {
-                  clientId: process.env.GITHUB_CLIENT_ID as string,
-                  clientSecret: process.env.GITHUB_CLIENT_SECRET as string,
-              }
-            : undefined,
+  // Advanced options
+  advanced: {
+    // Use secure cookies in production
+    useSecureCookies: process.env.NODE_ENV === "production",
+
+    // Cross-site request settings
+    crossSubDomainCookies: {
+      enabled: false,
     },
+  },
 
-    // Session configuration
-    session: {
-        // Session expiration: 7 days
-        expiresIn: 60 * 60 * 24 * 7, // 7 days in seconds
+  // Trust proxy in production (for secure cookies behind reverse proxy)
+  trustedOrigins:
+    process.env.NODE_ENV === "production"
+      ? [
+        process.env.BETTER_AUTH_URL ?? "",
 
-        // Update session activity on every request
-        updateAge: 60 * 60 * 24, // 1 day in seconds
+        //* mobile
+        "ping://",
 
-        // Cookie configuration
-        cookieCache: {
-            enabled: true,
-            maxAge: 60 * 60 * 24 * 7, // 7 days in seconds
-        },
-    },
+        // Production & staging schemes
+        "ping-prod://",
+        "ping-staging://",
 
-    // Advanced options
-    advanced: {
-        // Use secure cookies in production
-        useSecureCookies: process.env.NODE_ENV === "production",
-
-        // Cross-site request settings
-        crossSubDomainCookies: {
-            enabled: false,
-        },
-    },
-
-    // Trust proxy in production (for secure cookies behind reverse proxy)
-    trustedOrigins:
-        process.env.NODE_ENV === "production" ? [process.env.BETTER_AUTH_URL ?? ""] : undefined,
+        // Wildcard support for all paths following the scheme
+        "ping://*",
+        ]
+    : // Development mode - Expo's exp:// scheme + ping:// scheme with local IP ranges
+        [
+            "ping://",                     // Trust ping:// scheme for OAuth callbacks
+            "ping://*",                    // Trust all ping:// URLs
+            "exp://",                      // Trust all Expo URLs (prefix matching)
+            "exp://**",                    // Trust all Expo URLs (wildcard matching)
+            "exp://192.168.*.*:*/**",      // Trust 192.168.x.x IP range with any port and path
+        ],
 })
 
 /**

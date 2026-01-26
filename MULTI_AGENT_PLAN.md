@@ -380,6 +380,7 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
    - 設定 Storybook for React（Web）
    - 建立元件展示頁面
    - 撰寫 Design System 使用文檔（`/docs/design-system.md`）
+   - 建立 disign-philosophy.md，並確保之後遵守此設計理念
 
 **產出**：
 - 統一的 Design Tokens（顏色、間距、字型）

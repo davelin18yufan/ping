@@ -17,7 +17,7 @@
         "lint:fix": "oxlint --fix",
         "fmt": "oxfmt",
         "fmt:check": "oxfmt --check",
-        "tsc": "tsc --noEmit 2>&1"
+        "typecheck": "tsc --noEmit 2>&1"
     },
     "dependencies": {
         "@apollo/client": "^4.1.2",

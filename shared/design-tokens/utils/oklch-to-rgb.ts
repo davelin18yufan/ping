@@ -1,4 +1,4 @@
-import { oklch, formatRgb } from 'culori';
+import { oklch, formatRgb } from "culori"
 
 /**
  * Converts OKLCH color string to RGB format for React Native compatibility
@@ -13,14 +13,14 @@ import { oklch, formatRgb } from 'culori';
  * ```
  */
 export function oklchToRgb(oklchString: string): string {
-  const color = oklch(oklchString);
+    const color = oklch(oklchString)
 
-  if (!color) {
-    console.warn(`Invalid OKLCH color: ${oklchString}`);
-    return 'rgba(0, 0, 0, 1)';
-  }
+    if (!color) {
+        console.warn(`Invalid OKLCH color: ${oklchString}`)
+        return "rgba(0, 0, 0, 1)"
+    }
 
-  return formatRgb(color);
+    return formatRgb(color)
 }
 
 /**
@@ -36,14 +36,14 @@ export function oklchToRgb(oklchString: string): string {
  * ```
  */
 export function oklchToRgba(oklchString: string, alpha: number): string {
-  const color = oklch(oklchString);
+    const color = oklch(oklchString)
 
-  if (!color) {
-    console.warn(`Invalid OKLCH color: ${oklchString}`);
-    return `rgba(0, 0, 0, ${alpha})`;
-  }
+    if (!color) {
+        console.warn(`Invalid OKLCH color: ${oklchString}`)
+        return `rgba(0, 0, 0, ${alpha})`
+    }
 
-  const rgb = formatRgb(color);
-  // Convert "rgb(r, g, b)" to "rgba(r, g, b, alpha)"
-  return rgb.replace('rgb(', 'rgba(').replace(')', `, ${alpha})`);
+    const rgb = formatRgb(color)
+    // Convert "rgb(r, g, b)" to "rgba(r, g, b, alpha)"
+    return rgb.replace("rgb(", "rgba(").replace(")", `, ${alpha})`)
 }

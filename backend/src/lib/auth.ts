@@ -102,7 +102,28 @@ export const auth = betterAuth({
 
     // Trust proxy in production (for secure cookies behind reverse proxy)
     trustedOrigins:
-        process.env.NODE_ENV === "production" ? [process.env.BETTER_AUTH_URL ?? ""] : undefined,
+        process.env.NODE_ENV === "production"
+            ? [
+                  process.env.BETTER_AUTH_URL ?? "",
+
+                  //* mobile
+                  "ping://",
+
+                  // Production & staging schemes
+                  "ping-prod://",
+                  "ping-staging://",
+
+                  // Wildcard support for all paths following the scheme
+                  "ping://*",
+              ]
+            : // Development mode - Expo's exp:// scheme + ping:// scheme with local IP ranges
+              [
+                  "ping://", // Trust ping:// scheme for OAuth callbacks
+                  "ping://*", // Trust all ping:// URLs
+                  "exp://", // Trust all Expo URLs (prefix matching)
+                  "exp://**", // Trust all Expo URLs (wildcard matching)
+                  "exp://192.168.*.*:*/**", // Trust 192.168.x.x IP range with any port and path
+              ],
 })
 
 /**

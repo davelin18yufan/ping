@@ -1,0 +1,15 @@
+{
+    "$schema": "./node_modules/oxfmt/configuration_schema.json",
+    "tabWidth": 4,
+    "lineWidth": 80,
+    "useTabs": false,
+    "semi": false,
+    "trailingComma": "es5",
+    "singleQuote": false,
+    "arrowParens": "always",
+    "ignorePatterns": ["node_modules", "dist", "build", "coverage", "*.gen.ts"],
+    "experimentalSortImports": {
+        "ignoreCase": true,
+        "partitionByComment": true
+    }
+}

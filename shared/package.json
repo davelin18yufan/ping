@@ -1,15 +1,22 @@
 {
-  "name": "@ping/shared",
-  "version": "0.0.1",
-  "private": true,
-  "type": "module",
-  "main": "./index.ts",
-  "types": "./index.ts",
-  "dependencies": {
-    "culori": "^4.0.1"
-  },
-  "devDependencies": {
-    "@types/react": "^19.0.0",
-    "typescript": "^5.9.2"
-  }
+    "name": "@ping/shared",
+    "version": "0.0.1",
+    "private": true,
+    "type": "module",
+    "main": "./index.ts",
+    "types": "./index.ts",
+    "scripts": {
+        "lint": "oxlint",
+        "fmt": "oxfmt",
+        "fmt:check": "oxfmt --check"
+    },
+    "dependencies": {
+        "culori": "^4.0.1"
+    },
+    "devDependencies": {
+        "@types/react": "^19.0.0",
+        "oxfmt": "^0.26.0",
+        "oxlint": "^1.41.0",
+        "typescript": "^5.9.2"
+    }
 }

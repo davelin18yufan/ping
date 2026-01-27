@@ -273,7 +273,7 @@ importers:
         version: 8.0.11(expo@54.0.32)(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.2.9)(react@19.2.4))(react@19.2.4)
       expo-router:
         specifier: ~6.0.21
-        version: 6.0.22(3caf942ffc8b67650d2728951d53bac2)
+        version: 6.0.22(00eb6be9e0a7bf92927aac6e2dc3f815)
       expo-secure-store:
         specifier: ^15.0.8
         version: 15.0.8(expo@54.0.32)
@@ -349,7 +349,7 @@ importers:
         version: 7.28.6
       '@testing-library/react-native':
         specifier: ^13.3.3
-        version: 13.3.3(jest@30.2.0(@types/node@25.0.10))(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.2.9)(react@19.2.4))(react-test-renderer@19.1.0(react@19.2.4))(react@19.2.4)
+        version: 13.3.3(jest@30.2.0(@types/node@25.0.10))(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.2.9)(react@19.2.4))(react-test-renderer@19.2.4(react@19.2.4))(react@19.2.4)
       '@types/jest':
         specifier: ^30.0.0
         version: 30.0.0
@@ -389,6 +389,9 @@ importers:
       prettier-plugin-tailwindcss:
         specifier: ^0.5.14
         version: 0.5.14(prettier@3.8.1)
+      react-test-renderer:
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
       tailwindcss:
         specifier: ^3.4.19
         version: 3.4.19(tsx@4.21.0)(yaml@2.8.2)
@@ -7661,6 +7664,11 @@ packages:
     peerDependencies:
       react: ^19.1.0
 
+  react-test-renderer@19.2.4:
+    resolution: {integrity: sha512-Ttl5D7Rnmi6JGMUpri4UjB4BAN0FPs4yRDnu2XSsigCWOLm11o8GwRlVsh27ER+4WFqsGtrBuuv5zumUaRCmKw==}
+    peerDependencies:
+      react: ^19.2.4
+
   react@19.2.4:
     resolution: {integrity: sha512-9nfp2hYpCwOjAN+8TZFGhtWEwgvWHXqESH8qT89AT/lWklpLON22Lc8pEtnpsZz7VmawabSU0gCjnj8aC0euHQ==}
     engines: {node: '>=0.10.0'}
@@ -10351,7 +10359,7 @@ snapshots:
       wrap-ansi: 7.0.0
       ws: 8.19.0
     optionalDependencies:
-      expo-router: 6.0.22(3caf942ffc8b67650d2728951d53bac2)
+      expo-router: 6.0.22(00eb6be9e0a7bf92927aac6e2dc3f815)
       react-native: 0.81.5(@babel/core@7.28.6)(@types/react@19.2.9)(react@19.2.4)
     transitivePeerDependencies:
       - bufferutil
@@ -12794,14 +12802,14 @@ snapshots:
       picocolors: 1.1.1
       redent: 3.0.0
 
-  '@testing-library/react-native@13.3.3(jest@30.2.0(@types/node@25.0.10))(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.2.9)(react@19.2.4))(react-test-renderer@19.1.0(react@19.2.4))(react@19.2.4)':
+  '@testing-library/react-native@13.3.3(jest@30.2.0(@types/node@25.0.10))(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.2.9)(react@19.2.4))(react-test-renderer@19.2.4(react@19.2.4))(react@19.2.4)':
     dependencies:
       jest-matcher-utils: 30.2.0
       picocolors: 1.1.1
       pretty-format: 30.2.0
       react: 19.2.4
       react-native: 0.81.5(@babel/core@7.28.6)(@types/react@19.2.9)(react@19.2.4)
-      react-test-renderer: 19.1.0(react@19.2.4)
+      react-test-renderer: 19.2.4(react@19.2.4)
       redent: 3.0.0
     optionalDependencies:
       jest: 30.2.0(@types/node@25.0.10)
@@ -14875,7 +14883,7 @@ snapshots:
       expo: 54.0.32(@babel/core@7.28.6)(@expo/metro-runtime@6.1.2)(expo-router@6.0.22)(graphql@16.12.0)(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.2.9)(react@19.2.4))(react@19.2.4)
       react: 19.2.4
 
-  expo-router@6.0.22(3caf942ffc8b67650d2728951d53bac2):
+  expo-router@6.0.22(00eb6be9e0a7bf92927aac6e2dc3f815):
     dependencies:
       '@expo/metro-runtime': 6.1.2(expo@54.0.32)(react-dom@19.2.4(react@19.2.4))(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.2.9)(react@19.2.4))(react@19.2.4)
       '@expo/schema-utils': 0.1.8
@@ -14908,7 +14916,7 @@ snapshots:
       use-latest-callback: 0.2.6(react@19.2.4)
       vaul: 1.1.2(@types/react-dom@19.2.3(@types/react@19.2.9))(@types/react@19.2.9)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
     optionalDependencies:
-      '@testing-library/react-native': 13.3.3(jest@30.2.0(@types/node@25.0.10))(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.2.9)(react@19.2.4))(react-test-renderer@19.1.0(react@19.2.4))(react@19.2.4)
+      '@testing-library/react-native': 13.3.3(jest@30.2.0(@types/node@25.0.10))(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.2.9)(react@19.2.4))(react-test-renderer@19.2.4(react@19.2.4))(react@19.2.4)
       react-dom: 19.2.4(react@19.2.4)
       react-native-gesture-handler: 2.28.0(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.2.9)(react@19.2.4))(react@19.2.4)
       react-native-reanimated: 3.17.5(@babel/core@7.28.6)(react-native@0.81.5(@babel/core@7.28.6)(@types/react@19.2.9)(react@19.2.4))(react@19.2.4)
@@ -17572,6 +17580,12 @@ snapshots:
       react: 19.2.4
       react-is: 19.2.4
       scheduler: 0.26.0
+
+  react-test-renderer@19.2.4(react@19.2.4):
+    dependencies:
+      react: 19.2.4
+      react-is: 19.2.4
+      scheduler: 0.27.0
 
   react@19.2.4: {}
 

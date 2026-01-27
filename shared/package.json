@@ -14,9 +14,13 @@
         "culori": "^4.0.1"
     },
     "devDependencies": {
-        "@types/react": "^19.0.0",
+        "@types/react": "^19.2.9",
         "oxfmt": "^0.26.0",
         "oxlint": "^1.41.0",
+        "react": "^19.2.4",
         "typescript": "^5.9.2"
+    },
+    "peerDependencies": {
+        "react": "^19.0.0"
     }
 }

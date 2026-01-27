@@ -54,8 +54,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Install dependencies
+      - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
+        working-directory: .
 
       - name: Run Oxlint
         run: pnpm run lint
@@ -97,8 +98,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Install dependencies
+      - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
+        working-directory: .
 
       - name: Run TypeScript compiler
         run: pnpm exec tsc --noEmit
@@ -142,8 +144,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Install dependencies
+      - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
+        working-directory: .
 
       - name: Run tests with coverage
         run: pnpm test -- --coverage
@@ -202,8 +205,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pnpm-store-
 
-      - name: Install dependencies
+      - name: Install workspace dependencies
         run: pnpm install --frozen-lockfile
+        working-directory: .
 
       - name: Build application
         run: pnpm run build

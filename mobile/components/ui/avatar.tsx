@@ -29,6 +29,8 @@ export function Avatar({
     showOnlineStatus,
     onlineStatus,
     loading,
+    onImageLoad,
+    onImageError,
     className = "",
     ...props
 }: AvatarProps) {
@@ -40,6 +42,8 @@ export function Avatar({
         showOnlineStatus,
         onlineStatus,
         loading,
+        onImageLoad,
+        onImageError,
     })
 
     const sizeClasses = {

@@ -63,7 +63,19 @@ export interface AvatarProps
  */
 const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
     (
-        { className, src, alt, fallback, size, showOnlineStatus, onlineStatus, loading, ...props },
+        {
+            className,
+            src,
+            alt,
+            fallback,
+            size,
+            showOnlineStatus,
+            onlineStatus,
+            loading,
+            onImageLoad,
+            onImageError,
+            ...props
+        },
         ref
     ) => {
         const { state, handlers, shouldShowImage, shouldShowFallback } = useAvatar({
@@ -74,6 +86,8 @@ const Avatar = forwardRef<HTMLDivElement, AvatarProps>(
             showOnlineStatus,
             onlineStatus,
             loading,
+            onImageLoad,
+            onImageError,
         })
 
         return (

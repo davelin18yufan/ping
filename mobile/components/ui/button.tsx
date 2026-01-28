@@ -29,6 +29,7 @@ export function Button({
         size,
         disabled,
         loading,
+        onPress,
     })
 
     const baseClasses =
@@ -72,7 +73,6 @@ export function Button({
         <Pressable
             className={`${baseClasses} ${variantClasses[variant]} ${sizeClasses[size]} ${disabledClasses} ${className}`}
             disabled={isDisabled}
-            onPress={onPress}
             {...handlers}
         >
             {loading && <ActivityIndicator className="mr-2" />}

@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react"
+import { useState, useEffect, useCallback, useRef } from "react"
 
 import type { AvatarProps, AvatarState } from "./types"
 
@@ -10,13 +10,45 @@ import type { AvatarProps, AvatarState } from "./types"
  * @returns Avatar state and handlers
  */
 export function useAvatar(props: AvatarProps) {
-    const [state, setState] = useState<AvatarState>({
+    // Lazy initialization: only compute initial state on first mount
+    const [state, setState] = useState<AvatarState>(() => ({
         imageLoaded: false,
         imageError: false,
         fallbackText: generateFallbackText(props.fallback || props.alt || ""),
-    })
+    }))
 
-    // Reset state when src changes
+    // Store callback refs to avoid recreating handlers on every render
+    const onImageLoadRef = useRef(props.onImageLoad)
+    const onImageErrorRef = useRef(props.onImageError)
+    const fallbackRef = useRef(props.fallback)
+    const altRef = useRef(props.alt)
+
+    // Update refs when props change (rerender-dependencies)
+    useEffect(() => {
+        onImageLoadRef.current = props.onImageLoad
+    }, [props.onImageLoad])
+
+    useEffect(() => {
+        onImageErrorRef.current = props.onImageError
+    }, [props.onImageError])
+
+    useEffect(() => {
+        fallbackRef.current = props.fallback
+    }, [props.fallback])
+
+    useEffect(() => {
+        altRef.current = props.alt
+    }, [props.alt])
+
+    // Sync fallbackText when fallback or alt changes (controlled component support)
+    useEffect(() => {
+        const newFallbackText = generateFallbackText(props.fallback || props.alt || "")
+        if (newFallbackText !== state.fallbackText) {
+            setState((s) => ({ ...s, fallbackText: newFallbackText }))
+        }
+    }, [props.fallback, props.alt, state.fallbackText])
+
+    // Reset state when src changes (controlled component support)
     useEffect(() => {
         if (props.src) {
             setState((s) => ({
@@ -27,12 +59,14 @@ export function useAvatar(props: AvatarProps) {
         }
     }, [props.src])
 
+    // Stable handlers with no props dependencies (advanced-event-handler-refs)
     const handleImageLoad = useCallback(() => {
         setState((s) => ({
             ...s,
             imageLoaded: true,
             imageError: false,
         }))
+        onImageLoadRef.current?.()
     }, [])
 
     const handleImageError = useCallback(() => {
@@ -41,6 +75,7 @@ export function useAvatar(props: AvatarProps) {
             imageLoaded: false,
             imageError: true,
         }))
+        onImageErrorRef.current?.()
     }, [])
 
     const shouldShowImage = props.src && state.imageLoaded && !state.imageError

@@ -10,6 +10,8 @@ export interface AvatarProps {
     showOnlineStatus?: boolean
     onlineStatus?: OnlineStatus
     loading?: boolean
+    onImageLoad?: () => void
+    onImageError?: () => void
 }
 
 export interface AvatarState {

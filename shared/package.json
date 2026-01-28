@@ -7,8 +7,9 @@
     "types": "./index.ts",
     "scripts": {
         "lint": "oxlint",
-        "fmt": "oxfmt",
-        "fmt:check": "oxfmt --check"
+        "format": "oxfmt",
+        "format:check": "oxfmt --check",
+        "typecheck": "tsc --noEmit"
     },
     "dependencies": {
         "culori": "^4.0.1"

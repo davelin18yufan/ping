@@ -62,7 +62,7 @@ jobs:
         run: pnpm run lint
 
       - name: Check formatting with Oxfmt
-        run: pnpm run fmt:check
+        run: pnpm run format:check
 
   type-check:
     name: TypeScript Type Check

@@ -15,8 +15,8 @@
         "start": "node --import ./.output/server/instrument.server.mjs .output/server/index.mjs",
         "lint": "oxlint",
         "lint:fix": "oxlint --fix",
-        "fmt": "oxfmt",
-        "fmt:check": "oxfmt --check",
+        "format": "oxfmt",
+        "format:check": "oxfmt --check",
         "typecheck": "tsc --noEmit 2>&1"
     },
     "dependencies": {

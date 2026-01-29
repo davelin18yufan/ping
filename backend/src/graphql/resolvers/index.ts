@@ -6,6 +6,7 @@
  */
 
 export { userResolvers } from "./user"
+export { authResolvers } from "./auth"
 
 /**
  * TODO:

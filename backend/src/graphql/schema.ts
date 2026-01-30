@@ -6,7 +6,7 @@
  */
 
 import { createSchema } from "graphql-yoga"
-import { userResolvers } from "./resolvers"
+import { userResolvers, authResolvers } from "./resolvers"
 
 /**
  * GraphQL Schema
@@ -72,11 +72,65 @@ export const schema = createSchema({
       }
 
       """
+      Authentication response containing user data and status
+      """
+      type AuthResponse {
+        """
+        Authenticated user data
+        """
+        user: UserInfo
+
+        """
+        Success status of authentication
+        """
+        success: Boolean!
+
+        """
+        Human-readable message about authentication result
+        """
+        message: String
+
+        """
+        Session token (for testing purposes only)
+        """
+        sessionToken: String
+      }
+
+      """
+      User information returned from authentication
+      """
+      type UserInfo {
+        """
+        User ID
+        """
+        id: ID!
+
+        """
+        User email address
+        """
+        email: String!
+
+        """
+        User display name
+        """
+        displayName: String
+
+        """
+        User avatar URL
+        """
+        avatarUrl: String
+      }
+
+      """
       Root Mutation type - all write operations
-      (To be implemented in future features)
       """
       type Mutation {
-        _empty: String
+        """
+        Authenticate with Google OAuth.
+        Verifies OAuth code and creates user session.
+        Returns authenticated user and session cookie.
+        """
+        authenticateWithGoogle(code: String!): AuthResponse!
       }
 
       """
@@ -90,6 +144,9 @@ export const schema = createSchema({
     resolvers: {
         Query: {
             ...userResolvers.Query,
+        },
+        Mutation: {
+            ...authResolvers.Mutation,
         },
     },
 })

@@ -20,25 +20,24 @@
         "prisma:migrate:deploy": "bunx --bun prisma migrate deploy"
     },
     "dependencies": {
-        "@prisma/adapter-pg": "^7.2.0",
-        "@prisma/client": "^7.2.0",
+        "@prisma/adapter-pg": "^7.3.0",
+        "@prisma/client": "^7.3.0",
         "@socket.io/bun-engine": "^0.1.0",
-        "better-auth": "^1.4.10",
+        "better-auth": "^1.4.18",
         "graphql": "^16.12.0",
         "graphql-yoga": "^5.18.0",
-        "hono": "^4.11.3",
-        "ioredis": "^5.8.2",
-        "pg": "^8.16.3",
-        "prisma": "^7.2.0",
+        "hono": "^4.11.7",
+        "ioredis": "^5.9.2",
+        "pg": "^8.17.2",
+        "prisma": "^7.3.0",
         "socket.io": "^4.8.3"
     },
     "devDependencies": {
         "@types/bun": "latest",
-        "@types/node": "^25.0.3",
+        "@types/node": "^25.1.0",
         "@types/pg": "^8.16.0",
-        "@types/socket.io": "^3.0.2",
-        "oxfmt": "^0.21.0",
-        "oxlint": "^1.36.0",
+        "oxfmt": "^0.27.0",
+        "oxlint": "^1.42.0",
         "socket.io-client": "^4.8.3"
     },
     "prisma": {

@@ -1,0 +1,190 @@
+/**
+ * LoginForm Styles
+ * Provider-specific OAuth buttons with kinetic hover states
+ */
+
+.login-form {
+    width: 100%;
+    animation: form-entrance 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) 0.3s backwards;
+}
+
+@keyframes form-entrance {
+    0% {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.error-message {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: rgba(242, 63, 67, 0.1);
+    border: 1px solid rgba(242, 63, 67, 0.3);
+    border-radius: 12px;
+    color: #f23f43;
+    font-size: 0.875rem;
+    margin-bottom: 1.5rem;
+    animation: error-shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97);
+}
+
+@keyframes error-shake {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(-8px);
+    }
+    75% {
+        transform: translateX(8px);
+    }
+}
+
+.error-icon {
+    font-size: 1.25rem;
+}
+
+.oauth-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+}
+
+.oauth-btn {
+    position: relative;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.875rem;
+    padding: 1rem 1.5rem;
+    background: rgba(56, 58, 64, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    color: #f2f3f5;
+    font-family:
+        "Inter",
+        -apple-system,
+        BlinkMacSystemFont,
+        sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.34, 1.56, 0.64, 1);
+    overflow: hidden;
+}
+
+.oauth-btn::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+        135deg,
+        rgba(255, 255, 255, 0.05),
+        transparent 50%,
+        rgba(255, 255, 255, 0.05)
+    );
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.oauth-btn:hover::before {
+    opacity: 1;
+}
+
+.oauth-btn:hover:not(:disabled) {
+    transform: translateY(-2px);
+    border-color: rgba(255, 255, 255, 0.15);
+    box-shadow:
+        0 8px 24px rgba(0, 0, 0, 0.3),
+        0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+.oauth-btn.google:hover:not(:disabled) {
+    box-shadow:
+        0 8px 24px rgba(66, 133, 244, 0.3),
+        0 0 40px rgba(66, 133, 244, 0.2),
+        0 0 0 1px rgba(66, 133, 244, 0.3);
+}
+
+.oauth-btn.github:hover:not(:disabled) {
+    box-shadow:
+        0 8px 24px rgba(255, 255, 255, 0.2),
+        0 0 40px rgba(255, 255, 255, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.oauth-btn.apple:hover:not(:disabled) {
+    box-shadow:
+        0 8px 24px rgba(255, 255, 255, 0.2),
+        0 0 40px rgba(255, 255, 255, 0.1),
+        0 0 0 1px rgba(255, 255, 255, 0.2);
+}
+
+.oauth-btn:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.oauth-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.oauth-btn span {
+    position: relative;
+    z-index: 1;
+}
+
+.spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Staggered entrance animation */
+.oauth-btn:nth-child(1) {
+    animation: button-entrance 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.4s backwards;
+}
+
+.oauth-btn:nth-child(2) {
+    animation: button-entrance 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.5s backwards;
+}
+
+.oauth-btn:nth-child(3) {
+    animation: button-entrance 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) 0.6s backwards;
+}
+
+@keyframes button-entrance {
+    0% {
+        opacity: 0;
+        transform: translateX(-20px);
+    }
+    100% {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .login-form,
+    .oauth-btn,
+    .error-message,
+    .spinner {
+        animation: none;
+    }
+
+    .oauth-btn:hover:not(:disabled) {
+        transform: none;
+    }
+}

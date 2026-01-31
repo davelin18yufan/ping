@@ -13,6 +13,7 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { LogIn } from "lucide-react"
 import { useEffect } from "react"
 
+import { SoundWaveLoader } from "@/components/ui/SoundWaveLoader"
 import { useSession } from "@/lib/auth-client"
 import "@/styles/auth-login.css"
 
@@ -31,15 +32,9 @@ function LoginPage() {
         }
     }, [session, isPending, navigate])
 
-    // Show nothing while checking session
-    if (isPending) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[#1E1F22]">
-                <div className="animate-spin">
-                    <LogIn size={48} className="text-[#5865F2]" />
-                </div>
-            </div>
-        )
+    // Show sound wave loading animation while checking session
+    if (!isPending) {
+        return <SoundWaveLoader size="lg" />
     }
 
     // Don't render login form if already logged in

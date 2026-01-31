@@ -150,6 +150,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - **共享**：TypeScript 類型、GraphQL 操作、TanStack Store stores、自訂 hooks
   - 單元 / 整合 / E2E 測試實作（讓測試從紅燈變綠燈）
   - Better Auth 整合（Web 與 Mobile）
+- **設計**
+   - UI設計請遵照 /fronend-design SKILL ，UI/UX請遵照 /ui-ux-pro-max SKILL
+   - 顏色以 oklch 為優先
+   - 樣式撰寫需要有架構性，簡單修改的以 tailwind utilities ，但是複雜的樣式以CSS 撰寫，並且要以變數使用為第一優先，並且永遠以復用原則為優先不要亂覆蓋舊樣式
 
 ---
 

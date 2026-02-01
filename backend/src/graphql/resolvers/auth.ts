@@ -59,7 +59,7 @@ const Mutation = {
                 },
                 success: true,
                 message: "Authentication successful",
-                sessionToken, // For testing purposes
+                sessionToken, //! For testing purposes
             }
         } catch (error) {
             // Handle specific errors

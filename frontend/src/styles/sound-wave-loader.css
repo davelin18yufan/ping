@@ -1,0 +1,230 @@
+/**
+ * SoundWaveLoader Styles
+ * Y2K retro-futurism with soft nostalgia
+ * Pulsing glow orb + concentric sound wave ripples
+ */
+
+/* ============================================
+   Base Container
+   ============================================ */
+.sound-wave-loader {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    isolation: isolate; /* Create stacking context */
+}
+
+/* Size variants */
+.sound-wave-loader--sm {
+    width: 48px;
+    height: 48px;
+}
+
+.sound-wave-loader--md {
+    width: 90px;
+    height: 90px;
+}
+
+.sound-wave-loader--lg {
+    width: 100%;
+    height: 100vh;
+    min-height: 100vh;
+    background: linear-gradient(135deg, #1a1528 0%, #2d1b3d 50%, #1a1528 100%);
+}
+
+/* ============================================
+   Glow Effects (Primary + Secondary)
+   ============================================ */
+.sound-wave-loader__glow-container {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sound-wave-loader__glow {
+    position: absolute;
+    border-radius: 50%;
+    will-change: transform, opacity;
+}
+
+/* Primary glow - intense core */
+.sound-wave-loader__glow--primary {
+    background: radial-gradient(
+        circle,
+        oklch(from var(--glow-purple) l c h / 0.6) 0%,
+        oklch(from var(--glow-blue) l c h / 0.4) 35%,
+        oklch(from var(--glow-cyan) l c h / 0.2) 60%,
+        transparent 75%
+    );
+    animation: glow-pulse 2.5s ease-in-out infinite;
+    z-index: 2;
+}
+
+/* Secondary glow - soft halo */
+.sound-wave-loader__glow--secondary {
+    background: radial-gradient(
+        circle,
+        oklch(from var(--glow-purple) l c h / 0.4) 0%,
+        oklch(from var(--glow-blue) l c h / 0.25) 40%,
+        oklch(from var(--glow-cyan) l c h / 0.15) 65%,
+        transparent 80%
+    );
+    animation: glow-pulse 2.5s ease-in-out infinite;
+    z-index: 1;
+}
+
+/* Size-specific glow dimensions */
+.sound-wave-loader--sm .sound-wave-loader__glow--primary {
+    width: 32px;
+    height: 32px;
+    filter: blur(20px);
+}
+
+.sound-wave-loader--sm .sound-wave-loader__glow--secondary {
+    width: 40px;
+    height: 40px;
+    filter: blur(25px);
+}
+
+.sound-wave-loader--md .sound-wave-loader__glow--primary {
+    width: 60px;
+    height: 60px;
+    filter: blur(40px);
+}
+
+.sound-wave-loader--md .sound-wave-loader__glow--secondary {
+    width: 75px;
+    height: 75px;
+    filter: blur(50px);
+}
+
+.sound-wave-loader--lg .sound-wave-loader__glow--primary {
+    width: 160px;
+    height: 160px;
+    filter: blur(55px);
+}
+
+.sound-wave-loader--lg .sound-wave-loader__glow--secondary {
+    width: 200px;
+    height: 200px;
+    filter: blur(70px);
+}
+
+/* ============================================
+   Ripple Waves
+   ============================================ */
+.sound-wave-loader__ripples {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.sound-wave-loader__ripple {
+    position: absolute;
+    border-radius: 50%;
+    border: 2px solid oklch(from var(--glow-purple) l c h / 0.01);
+    animation: ripple-expand 4s ease-in-out infinite;
+    will-change: transform, opacity;
+}
+
+/* Size-specific ripple dimensions */
+.sound-wave-loader--sm .sound-wave-loader__ripple {
+    width: 48px;
+    height: 48px;
+    border-width: 1.5px;
+}
+
+.sound-wave-loader--md .sound-wave-loader__ripple {
+    width: 90px;
+    height: 90px;
+    border-width: 2px;
+}
+
+.sound-wave-loader--lg .sound-wave-loader__ripple {
+    width: 240px;
+    height: 240px;
+    border-width: 2.5px;
+}
+
+/* ============================================
+   Animations
+   ============================================ */
+
+/* Glow pulse - scale + opacity */
+@keyframes glow-pulse {
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.5;
+    }
+    50% {
+        transform: scale(1.3);
+        opacity: 0.8;
+    }
+}
+
+/* Ripple expansion - smooth continuous pulse */
+@keyframes ripple-expand {
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.06;
+    }
+    50% {
+        transform: scale(1.3);
+        opacity: 0.1;
+    }
+}
+
+/* ============================================
+   Accessibility
+   ============================================ */
+
+/* Screen reader only text */
+.sound-wave-loader__sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border-width: 0;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+    .sound-wave-loader__glow,
+    .sound-wave-loader__ripple {
+        animation: none;
+    }
+
+    .sound-wave-loader__glow--primary {
+        opacity: 0.6;
+        transform: scale(1);
+    }
+
+    .sound-wave-loader__glow--secondary {
+        opacity: 0.4;
+        transform: scale(1.1);
+    }
+
+    .sound-wave-loader__ripple {
+        opacity: 0.2;
+        transform: scale(1);
+    }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+    .sound-wave-loader__ripple {
+        border-color: currentColor;
+        opacity: 0.4;
+    }
+}

@@ -30,4 +30,4 @@ export const authClient = createAuthClient()
 /**
  * Export Better Auth hooks and methods for use in components
  */
-export const { signIn, signOut, useSession } = authClient
+export const { signIn, signOut, useSession, getSession } = authClient

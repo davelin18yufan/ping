@@ -150,6 +150,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - **共享**：TypeScript 類型、GraphQL 操作、TanStack Store stores、自訂 hooks
   - 單元 / 整合 / E2E 測試實作（讓測試從紅燈變綠燈）
   - Better Auth 整合（Web 與 Mobile）
+- **設計**
+   - UI設計請遵照 /fronend-design SKILL ，UI/UX請遵照 /ui-ux-pro-max SKILL
+   - 顏色以 oklch 為優先
+   - 樣式撰寫需要有架構性，簡單修改的以 tailwind utilities ，但是複雜的樣式以CSS 撰寫，並且要以變數使用為第一優先，並且永遠以復用原則為優先不要亂覆蓋舊樣式
 
 ---
 
@@ -407,7 +411,7 @@ try {
 **所有前端畫面設計與實作必須先執行以下 Skills**：
 
 1. **`/frontend-design`** - 前端設計 Skill
-   - 用於：建立 Web 元件、頁面、UI 設計
+   - 用於：建立元件、頁面、UI 設計
    - 目的：產生高設計品質、避免通用 AI 美學
    - 何時使用：任何涉及畫面設計、元件開發、UI 調整的任務
 
@@ -560,6 +564,7 @@ A：看 `MULTI_AGENT_PLAN.md` 的狀態欄，每天更新。
 ## 語言與溝通規範
 - 對話總是用繁體中文回覆、唯有專有技術名詞以英文呈現（例如 GraphQL、Socket.io）
 - 程式碼內容（包括 string）以及註解總是以英文撰寫(包括PR跟commit)
+- 程式碼中不准出現表情符號
 
 ---
 

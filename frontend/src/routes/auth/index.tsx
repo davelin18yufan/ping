@@ -4,48 +4,27 @@
  * Features:
  * - Google/GitHub/Apple OAuth buttons
  * - Dark Mode glassmorphic design
- * - Loading states and error handling
- * - Auto-redirect for logged-in users
+ * - Route-level auth protection with beforeLoad
+ * - Auto-redirect for logged-in users (no loading flicker)
  */
 
 import { LoginForm } from "@components/auth/LoginForm"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { LogIn } from "lucide-react"
-import { useEffect } from "react"
 
-import { useSession } from "@/lib/auth-client"
+import { requireGuest } from "@/middleware/auth.middleware"
 import "@/styles/auth-login.css"
 
 export const Route = createFileRoute("/auth/")({
+    // Redirect logged-in users to home (route-level protection)
+    beforeLoad: requireGuest,
     component: LoginPage,
 })
 
 function LoginPage() {
     const navigate = useNavigate()
-    const { data: session, isPending } = useSession()
 
-    // Auto-redirect if already logged in
-    useEffect(() => {
-        if (session && !isPending) {
-            navigate({ to: "/" })
-        }
-    }, [session, isPending, navigate])
-
-    // Show nothing while checking session
-    if (isPending) {
-        return (
-            <div className="min-h-screen flex items-center justify-center bg-[#1E1F22]">
-                <div className="animate-spin">
-                    <LogIn size={48} className="text-[#5865F2]" />
-                </div>
-            </div>
-        )
-    }
-
-    // Don't render login form if already logged in
-    if (session) {
-        return null
-    }
+    // No need for useSession() check - requireGuest middleware ensures user is not logged in
 
     return (
         <div className="login-container">

@@ -19,42 +19,10 @@
  */
 
 import { redirect } from "@tanstack/react-router"
+import { createMiddleware } from "@tanstack/react-start"
+import { getRequestHeaders } from "@tanstack/react-start/server"
 
-import { auth, type AuthSession } from "@/lib/auth"
-
-/**
- * Get request headers in a universal way
- * Works in both server and client contexts
- */
-function getWebHeaders(): HeadersInit {
-    if (typeof window === "undefined") {
-        // Server-side: import dynamically to avoid bundling in client
-        try {
-            // eslint-disable-next-line @typescript-eslint/no-require-imports
-            const { getRequestHeaders } = require("@tanstack/react-start/server")
-            return getRequestHeaders()
-        } catch {
-            return new Headers()
-        }
-    }
-
-    // Client-side: use empty headers (Better Auth client will use cookies)
-    return new Headers()
-}
-
-/**
- * Session data type for authenticated routes
- */
-interface RequireAuthContext {
-    session: NonNullable<AuthSession>
-}
-
-/**
- * Optional session context for public routes
- */
-interface OptionalAuthContext {
-    session: AuthSession | null
-}
+import { auth } from "@/lib/auth"
 
 /**
  * Server-side guard: Require authentication
@@ -77,20 +45,17 @@ interface OptionalAuthContext {
  * }
  * ```
  *
- * @returns Session data if authenticated
  * @throws Redirect to /auth if not authenticated
  */
-export async function requireAuthServer(): Promise<RequireAuthContext> {
-    // Get request headers (contains cookies)
-    const headers = getWebHeaders()
-
-    // Validate session server-side using Better Auth API
+export const requireAuthServer = createMiddleware().server(async ({ next, request }) => {
+    const headers = getRequestHeaders()
     const session = await auth.api.getSession({ headers })
 
     // Redirect to login if no valid session
     if (!session?.user) {
-        // Get current pathname for post-login redirect
-        const currentPath = globalThis.location?.pathname || "/"
+        // Get current pathname for post-login redirect from request URL
+        const url = new URL(request.url)
+        const currentPath = url.pathname
 
         throw redirect({
             to: "/auth",
@@ -100,9 +65,12 @@ export async function requireAuthServer(): Promise<RequireAuthContext> {
         })
     }
 
-    // Return session data
-    return { session }
-}
+    return next({
+        context: {
+            session,
+        },
+    })
+})
 
 /**
  * Server-side guard: Require guest (not authenticated)
@@ -121,9 +89,9 @@ export async function requireAuthServer(): Promise<RequireAuthContext> {
  *
  * @throws Redirect to / if already authenticated
  */
-export async function requireGuestServer(): Promise<void> {
+export const requireGuestServer = createMiddleware().server(async ({ next }) => {
     // Get request headers (contains cookies)
-    const headers = getWebHeaders()
+    const headers = getRequestHeaders()
 
     // Check if user is already logged in
     const session = await auth.api.getSession({ headers })
@@ -134,7 +102,13 @@ export async function requireGuestServer(): Promise<void> {
             to: "/",
         })
     }
-}
+
+    return next({
+        context: {
+            session: null,
+        },
+    })
+})
 
 /**
  * Server-side guard: Optional authentication
@@ -164,13 +138,16 @@ export async function requireGuestServer(): Promise<void> {
  *
  * @returns Session data (or null)
  */
-export async function optionalAuthServer(): Promise<OptionalAuthContext> {
+export const optionalAuthServer = createMiddleware().server(async ({ next }) => {
     // Get request headers (contains cookies)
-    const headers = getWebHeaders()
+    const headers = getRequestHeaders()
 
     // Fetch session (may be null)
     const session = await auth.api.getSession({ headers })
 
-    // Return session (or null)
-    return { session: session || null }
-}
+    return next({
+        context: {
+            session,
+        },
+    })
+})

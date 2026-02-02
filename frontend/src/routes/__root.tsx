@@ -5,15 +5,18 @@ import { TanStackDevtools } from "@tanstack/react-devtools"
 import { HeadContent, Scripts, createRootRouteWithContext } from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 
+import type { AuthSession } from "@/lib/auth"
+
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools"
 import StoreDevtools from "../lib/demo-store-devtools"
 import appCss from "../styles.css?url"
 
-interface MyRouterContext extends ApolloClientIntegration.RouterContext {
+interface PingContext extends ApolloClientIntegration.RouterContext {
     queryClient: QueryClient
+    session?: AuthSession | null
 }
 
-export const Route = createRootRouteWithContext<MyRouterContext>()({
+export const Route = createRootRouteWithContext<PingContext>()({
     head: () => ({
         meta: [
             {

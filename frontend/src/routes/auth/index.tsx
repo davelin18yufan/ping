@@ -17,7 +17,7 @@ import "@/styles/auth-login.css"
 
 export const Route = createFileRoute("/auth/")({
     // Redirect logged-in users to home (server-side protection)
-    beforeLoad: requireGuestServer,
+    server: { middleware: [requireGuestServer] },
     // Validate search params for redirect URL
     validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
         return {

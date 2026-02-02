@@ -5,7 +5,7 @@ import { optionalAuthServer } from "@/middleware/auth.middleware.server"
 
 export const Route = createFileRoute("/")({
     // Optional auth - server-side session check (no hydration issues)
-    beforeLoad: optionalAuthServer,
+    server: { middleware: [optionalAuthServer] },
     component: App,
 })
 

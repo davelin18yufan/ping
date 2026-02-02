@@ -14,7 +14,7 @@ import * as TanstackQuery from "./integrations/tanstack-query/root-provider"
 import { routeTree } from "./routeTree.gen"
 
 // Import reusable loading component
-import { SoundWaveLoader } from "./components/ui/SoundWaveLoader"
+import { SoundWaveLoader } from "./components/shared/SoundWaveLoader"
 
 // Create a new router instance
 export const getRouter = () => {

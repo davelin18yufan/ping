@@ -1,5 +1,8 @@
 packages:
-  - 'backend'
-  - 'frontend'
-  - 'mobile'
-  - 'shared'
+  - backend
+  - frontend
+  - mobile
+  - shared
+
+ignoredBuiltDependencies:
+  - msw

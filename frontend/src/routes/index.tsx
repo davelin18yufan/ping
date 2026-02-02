@@ -1,18 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { MessageCircle, Zap, Users, Shield, Sparkles, ArrowRight } from "lucide-react"
 
-import { optionalAuth } from "@/middleware/auth.middleware"
+import { optionalAuthServer } from "@/middleware/auth.middleware.server"
 
 export const Route = createFileRoute("/")({
-    // Optional auth - works for both logged-in and guest users
-    beforeLoad: optionalAuth,
+    // Optional auth - server-side session check (no hydration issues)
+    beforeLoad: optionalAuthServer,
     component: App,
 })
 
 function App() {
-    // Get session from route context (set by beforeLoad)
-    const context = Route.useRouteContext()
-    const session = context.session
+    // Get session from route context (set by optionalAuth beforeLoad)
+    const { session } = Route.useRouteContext()
 
     // If user is logged in, show app entry point
     if (session?.user) {
@@ -61,15 +60,15 @@ function LandingPage() {
     ]
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
+        <div className="min-h-screen bg-linear-to-b from-slate-900 via-slate-800 to-slate-900">
             {/* Hero Section */}
             <section className="relative py-20 px-6 text-center overflow-hidden">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10"></div>
+                <div className="absolute inset-0 bg-linear-to-r from-blue-500/10 via-purple-500/10 to-pink-500/10"></div>
                 <div className="relative max-w-5xl mx-auto">
                     <div className="flex items-center justify-center gap-4 mb-6">
                         <MessageCircle className="w-16 h-16 md:w-20 md:h-20 text-blue-400" />
                         <h1 className="text-6xl md:text-7xl font-black text-white">
-                            <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                            <span className="bg-linear-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
                                 Ping
                             </span>
                         </h1>

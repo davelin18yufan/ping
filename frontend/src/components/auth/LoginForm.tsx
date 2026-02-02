@@ -9,10 +9,12 @@
  * - WCAG AAA accessibility
  */
 
-import { useState } from "react"
+import {} from "lucide-react"
+import { ReactNode, useState } from "react"
 
-import { signIn } from "@/lib/auth-client"
 import "@/styles/login-form.css"
+import { signIn } from "@/lib/auth-client"
+import { cn } from "@/lib/utils"
 
 // OAuth provider icons (using simple SVG paths for precision)
 const GoogleIcon = () => (
@@ -56,12 +58,19 @@ const AppleIcon = () => (
  *
  * @param provider - OAuth provider for color matching (google/github/apple)
  */
-const SoundWaveLoader = ({ provider }: { provider: "google" | "github" | "apple" }) => (
+const SoundWaveLoader = ({
+    provider,
+    children,
+}: {
+    provider: "google" | "github" | "apple"
+    children: ReactNode
+}) => (
     <div className="sound-wave-container" aria-label="Loading authentication">
         <div className={`sound-wave sound-wave-${provider}`} />
         <div className={`sound-wave sound-wave-${provider}`} />
         <div className={`sound-wave sound-wave-${provider}`} />
         <div className={`sound-wave sound-wave-${provider}`} />
+        {children}
     </div>
 )
 
@@ -82,7 +91,6 @@ export function LoginForm({ onSuccess, onError }: LoginFormProps) {
             // Call Better Auth signIn.social
             await signIn.social({ provider })
 
-            // Success callback
             onSuccess?.()
         } catch (err) {
             const errorMsg = "登入失敗，請重試"
@@ -108,34 +116,52 @@ export function LoginForm({ onSuccess, onError }: LoginFormProps) {
                 <button
                     onClick={() => handleOAuthLogin("google")}
                     disabled={loading !== null}
-                    className="oauth-btn google"
+                    className={cn("oauth-btn google", loading === null && "gap-4")}
                     aria-label="使用 Google 登入"
                     type="button"
                 >
-                    {loading === "google" ? <SoundWaveLoader provider="google" /> : <GoogleIcon />}
-                    <span>{loading === "google" ? "登入中..." : "Continue with Google"}</span>
+                    {loading === "google" ? (
+                        <SoundWaveLoader provider="google">
+                            <span className="text-center text-nowrap ">Connecting...</span>
+                        </SoundWaveLoader>
+                    ) : (
+                        <GoogleIcon />
+                    )}
+                    <span>{loading !== "google" && "Continue with Google"}</span>
                 </button>
 
                 <button
                     onClick={() => handleOAuthLogin("github")}
                     disabled={loading !== null}
-                    className="oauth-btn github"
+                    className={cn("oauth-btn github", loading === null && "gap-4")}
                     aria-label="使用 GitHub 登入"
                     type="button"
                 >
-                    {loading === "github" ? <SoundWaveLoader provider="github" /> : <GithubIcon />}
-                    <span>{loading === "github" ? "登入中..." : "Continue with GitHub"}</span>
+                    {loading === "github" ? (
+                        <SoundWaveLoader provider="google">
+                            <span className="text-center text-nowrap ">Connecting...</span>
+                        </SoundWaveLoader>
+                    ) : (
+                        <GithubIcon />
+                    )}
+                    <span>{loading !== "github" && "Continue with GitHub"}</span>
                 </button>
 
                 <button
                     onClick={() => handleOAuthLogin("apple")}
                     disabled={loading !== null}
-                    className="oauth-btn apple"
+                    className={cn("oauth-btn apple", loading === null && "gap-4")}
                     aria-label="使用 Apple 登入"
                     type="button"
                 >
-                    {loading === "apple" ? <SoundWaveLoader provider="apple" /> : <AppleIcon />}
-                    <span>{loading === "apple" ? "登入中..." : "Continue with Apple"}</span>
+                    {loading === "apple" ? (
+                        <SoundWaveLoader provider="google">
+                            <span className="text-center text-nowrap ">Connecting...</span>
+                        </SoundWaveLoader>
+                    ) : (
+                        <AppleIcon />
+                    )}
+                    <span>{loading !== "apple" && "Continue with Apple"}</span>
                 </button>
             </div>
         </div>

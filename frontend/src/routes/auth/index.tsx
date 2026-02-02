@@ -12,19 +12,27 @@ import { LoginForm } from "@components/auth/LoginForm"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { LogIn } from "lucide-react"
 
-import { requireGuest } from "@/middleware/auth.middleware"
+import { requireGuestServer } from "@/middleware/auth.middleware.server"
 import "@/styles/auth-login.css"
 
 export const Route = createFileRoute("/auth/")({
-    // Redirect logged-in users to home (route-level protection)
-    beforeLoad: requireGuest,
+    // Redirect logged-in users to home (server-side protection)
+    beforeLoad: requireGuestServer,
+    // Validate search params for redirect URL
+    validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
+        return {
+            redirect: typeof search.redirect === "string" ? search.redirect : undefined,
+        }
+    },
     component: LoginPage,
 })
 
 function LoginPage() {
     const navigate = useNavigate()
+    const search = Route.useSearch()
 
-    // No need for useSession() check - requireGuest middleware ensures user is not logged in
+    // Get redirect URL from search params (set by requireAuth)
+    const redirectTo = search.redirect || "/"
 
     return (
         <div className="login-container">
@@ -40,7 +48,13 @@ function LoginPage() {
                     <p className="tagline">Instant connection, lasting moments</p>
                 </div>
 
-                <LoginForm onSuccess={() => navigate({ to: "/" })} />
+                <LoginForm
+                    onSuccess={() =>
+                        navigate({
+                            to: redirectTo,
+                        })
+                    }
+                />
             </div>
         </div>
     )

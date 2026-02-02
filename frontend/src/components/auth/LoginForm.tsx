@@ -10,12 +10,13 @@
  */
 
 import {} from "lucide-react"
-import { ReactNode, useState } from "react"
+import { TriangleAlert } from "lucide-react"
 
 import "@/styles/login-form.css"
+import { ReactNode, useState } from "react"
+
 import { signIn } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
-import { TriangleAlert } from 'lucide-react';
 
 // OAuth provider icons (using simple SVG paths for precision)
 const GoogleIcon = () => (

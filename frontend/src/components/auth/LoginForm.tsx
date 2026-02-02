@@ -15,6 +15,7 @@ import { ReactNode, useState } from "react"
 import "@/styles/login-form.css"
 import { signIn } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
+import { TriangleAlert } from 'lucide-react';
 
 // OAuth provider icons (using simple SVG paths for precision)
 const GoogleIcon = () => (
@@ -105,9 +106,7 @@ export function LoginForm({ onSuccess, onError }: LoginFormProps) {
         <div className="login-form">
             {error && (
                 <div className="error-message" role="alert">
-                    <span className="error-icon" aria-hidden="true">
-                        ⚠
-                    </span>
+                    <TriangleAlert className="error-icon" aria-hidden="true" />
                     {error}
                 </div>
             )}

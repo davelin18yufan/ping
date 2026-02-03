@@ -111,14 +111,23 @@
 **注意**: 前端（Web + Mobile）與後端並行開發
 
 #### 2.1 認證流程（已包含在 Feature 1.1.1）
-- [ ] **OAuth 登入流程（Feature 1.1.1）**
+- [x] **OAuth 登入流程（Feature 1.1.1）** ✅
   - Agent: Architect → Backend → Full-Stack Frontend
   - 任務: Google/GitHub/Apple OAuth callback、錯誤處理
-  - 狀態: RED 測試（測試規格已完成，待實作）
+  - 狀態: ✅ 完成（2026-02-03）
   - 優先度: P0
-  - 依賴: Better Auth 整合
-  - 測試案例: Backend 7+, Frontend 6+, Mobile 6+
-  - **包含**: Backend GraphQL mutation + Web 登入頁面 + Mobile 登入畫面
+  - 依賴: Better Auth 整合 ✅
+  - 測試案例: 79/79 測試通過（OAuth Login: 13, Auth Middleware: 16, Better Auth: 5, Web Infrastructure: 46）
+  - **包含**: Server-Side Auth Middleware + Web 登入頁面 + 路由保護
+  - **PR**: #23 - https://github.com/davelin18yufan/ping/pull/23
+  - **Commits**: 8 個（+1728/-619 行）
+  - **關鍵實作**:
+    - `frontend/src/middleware/auth.middleware.server.ts` - SSR middleware
+    - `frontend/src/routes/__root.tsx` - SoundWaveLoader 路由切換動畫
+    - `frontend/src/routes/auth/index.tsx` - OAuth 登入頁面
+    - `frontend/src/routes/index.tsx` - 首頁（需登入）
+    - `frontend/tests/integration/oauth-login.spec.tsx` - OAuth 測試
+    - `frontend/tests/integration/auth-middleware-server.spec.ts` - Middleware 測試
 
 - [ ] **Session 管理**
   - Agent: Architect → Backend Developer → Architect (Review)
@@ -360,14 +369,16 @@
   - 狀態: ✅ 完成（2026-01-20）
   - 優先度: P0
 
-- [ ] **登入頁面（包含在 Feature 1.1.1）**
+- [x] **登入頁面（包含在 Feature 1.1.1）** ✅
   - Agent: Full-Stack Frontend
   - 任務: OAuth 按鈕、Better Auth client 整合、錯誤處理
-  - 狀態: RED 測試（測試規格已完成，待實作）
+  - 狀態: ✅ 完成（2026-02-03）
   - 優先度: P0
-  - 依賴: 專案架構設定
-  - 檔案: `/frontend/src/routes/auth/index.tsx`, `/frontend/src/components/auth/LoginForm.tsx`
-  - 測試: `/frontend/tests/integration/oauth-flow.spec.tsx`
+  - 依賴: 專案架構設定 ✅
+  - 檔案: `/frontend/src/routes/auth/index.tsx`（OAuth 登入頁面）
+  - 測試: `/frontend/tests/integration/oauth-login.spec.tsx`（13 測試通過）
+  - 額外實作: Server-Side Auth Middleware（requireAuthServer, requireGuestServer, optionalAuthServer）
+  - PR: #23 - https://github.com/davelin18yufan/ping/pull/23
 
 - [ ] **對話列表頁面**
   - Agent: Architect → Fullstack Frontend Developer → Architect (Review)
@@ -466,11 +477,12 @@
 - [ ] **登入畫面（包含在 Feature 1.1.1）**
   - Agent: Full-Stack Frontend
   - 任務: OAuth 按鈕、Deep linking、Better Auth Expo 整合
-  - 狀態: RED 測試（測試規格已完成，待實作）
-  - 優先度: P0
-  - 依賴: Mobile 基礎設施設定 🟡
+  - 狀態: 待規格化（後續階段）
+  - 優先度: P1
+  - 依賴: Mobile 基礎設施設定 ✅、Web 登入頁面 ✅
   - 檔案: `/mobile/src/screens/auth/LoginScreen.tsx`, `/mobile/app.config.ts`
   - 測試: `/mobile/tests/e2e/oauth-flow.e2e.ts`
+  - 備註: Feature 1.1.1 專注於 Web 端實作，Mobile 端將在後續階段開發
 
 - [ ] **對話列表畫面**
   - Agent: Architect → Fullstack Frontend Developer → Architect (Review)
@@ -500,12 +512,13 @@
 ### 整體進度
 ```
 總功能數: 49
-已完成: 11 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis、Web 前端基礎設施、Mobile 前端基礎設施、Design System)
+已完成: 12 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis、Web 前端基礎設施、Mobile 前端基礎設施、Design System、OAuth 登入流程)
 進行中: 0
-待開始: 38
-完成率: 22.45%
+待開始: 37
+完成率: 24.49%
 
 🎉 Phase 1.0 基礎設施初始化完整完成！(4/4 features - 100%)
+🎉 Phase 1.1 認證系統（Web）完成！(Feature 1.1.1 - OAuth Google Login)
 ```
 
 ### 階段進度
@@ -548,18 +561,25 @@ Phase 1.0 成就解鎖 🏆:
   ✅ 170/170 測試全部通過（Backend: 27, Web: 46, Mobile: 97）
   ✅ TypeScript 0 errors, Linter 0 warnings, Formatter 100% formatted
 
-階段 2 (認證用戶):  0/7   (0%)    - ✅ 階段 1 已完成，可立即開始！
+階段 2 (認證用戶):  1/7   (14.29%) - 🚀 進行中（OAuth 登入已完成）
+  ✅ OAuth 登入流程（Feature 1.1.1 - Web）
+  🔲 Session 管理
+  🔲 Magic Link (可選)
+  🔲 查詢用戶資料
+  🔲 更新個人資料
+  🔲 上傳頭像
+  🔲 搜尋用戶
 階段 3 (好友系統):  0/8   (0%)    - 依賴階段 2 完成
 階段 4 (一對一聊天): 0/8   (0%)    - 依賴階段 3 完成
 階段 5 (即時功能):  0/7   (0%)    - 依賴階段 4 完成
-階段 6 (前端開發):  5/10 (50%) ✅ - Web & Mobile 基礎設施 + Design System 全部完成
+階段 6 (前端開發):  6/10 (60%) ✅ - Web 基礎設施 + Design System + OAuth 登入完成
   ✅ Web 架構設定
   ✅ Web 前端基礎設施（Feature 1.0.2）
   ✅ Mobile 架構設定
   ✅ Mobile 基礎設施（Feature 1.0.3）
   ✅ Design System 設定（Feature 1.0.4 - 2026-01-26 完成）
-  🔲 登入頁面（Web）（Feature 1.1.1 的一部分）
-  🔲 登入畫面（Mobile）（Feature 1.1.1 的一部分）
+  ✅ 登入頁面（Web）（Feature 1.1.1 - 2026-02-03 完成）
+  🔲 登入畫面（Mobile）（後續階段）
   🔲 對話列表頁面/畫面
   🔲 聊天室頁面/畫面
   🔲 好友管理頁面/畫面
@@ -893,29 +913,29 @@ E2E Tests: 目標涵蓋主要流程
 
 **更新頻率**: 每日更新
 **維護者**: All Agents
-**最後更新**: 2026-01-26 16:30
+**最後更新**: 2026-02-03 17:00
 **最新變更**:
-  - 🎉🎉🎉 **Phase 1.0 基礎設施初始化完整完成！**
-  - ✅ Feature 1.0.4（Design System 設定）完成
-    - 完成所有 4 個子任務（100%）
-    - 28 個 Design Tokens（OKLCH 色彩空間，Dark/Light mode）
-    - OKLCH to RGB conversion utility（React Native compatible）
-    - 12 個 UI 元件（4 Primitive + 4 Web + 4 Mobile）
-    - 2 個設計文檔（design-system.md, design-philosophy.md）
-    - CLAUDE.md Frontend UI/UX 設計規範更新
-    - TypeScript 0 errors, Linter 0 warnings, Formatter 100%
-    - Branch: feature/1.0.4-design-system（待 PR）
-  - 🏆 **Phase 1.0 成就解鎖**：
-    - ✅ Feature 1.0.1: Backend 基礎設施（27/27 測試通過）
-    - ✅ Feature 1.0.2: Web 前端基礎設施（46/46 測試通過）
-    - ✅ Feature 1.0.3: Mobile 基礎設施（97/97 測試通過）
-    - ✅ Feature 1.0.4: Design System 設定（28 tokens + 12 components）
-    - ✅ **總測試通過：170/170（100%）**
-    - ✅ **程式碼品質：TypeScript 0 errors, Linter 0 warnings**
+  - 🎉 **Feature 1.1.1（OAuth Google 登入）完成！**
+    - ✅ Server-Side Auth Middleware 實作（requireAuthServer, requireGuestServer, optionalAuthServer）
+    - ✅ OAuth 登入流程（Google, GitHub）
+    - ✅ Better Auth + TanStack Start 整合
+    - ✅ 路由保護與 session context
+    - ✅ SoundWaveLoader 路由切換動畫
+    - ✅ 測試覆蓋：79/79 測試通過（OAuth: 13, Middleware: 16, Better Auth: 5, Web: 46）
+    - 📝 PR #23: https://github.com/davelin18yufan/ping/pull/23（OPEN，等待 review）
+    - 📦 Commits: 8 個（+1728/-619 行）
+    - 📂 關鍵檔案:
+      - `frontend/src/middleware/auth.middleware.server.ts`
+      - `frontend/src/routes/__root.tsx`（SoundWaveLoader）
+      - `frontend/src/routes/auth/index.tsx`（OAuth 登入頁面）
+      - `frontend/src/routes/index.tsx`（首頁，需登入）
+      - `frontend/tests/integration/oauth-login.spec.tsx`
+      - `frontend/tests/integration/auth-middleware-server.spec.ts`
   - 📊 **進度更新**：
     - 階段 1 (基礎設施)：100% 完成 ✅
-    - 階段 6 (前端開發)：50% 完成 (5/10)
-    - 整體完成率：22.45%（11/49 features）
-  - 🚀 **準備進入 Phase 1.1 - 認證系統**
-    - 下一個 Feature：1.1.1 - OAuth Google 登入
-    - 預計完成時間：2-3 個工作日
+    - 階段 2 (認證用戶)：14.29% 完成（1/7 - OAuth 登入）
+    - 階段 6 (前端開發)：60% 完成（6/10）
+    - 整體完成率：24.49%（12/49 features）
+  - 🚀 **下一步**：
+    - 等待 PR #23 review 與 merge
+    - 準備 Feature 1.1.2 - Session 管理（或其他認證相關功能）

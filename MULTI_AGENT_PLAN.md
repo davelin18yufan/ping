@@ -584,7 +584,131 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
 
 ---
 
-### Phase 1.2：好友系統（Week 2-3）
+### Phase 1.2：UI/UX 設計改版（Week 3-4）
+
+#### 🔴 Feature 1.2.0 - UI/UX 大改版 + Session 認證整合
+
+| 欄位 | 內容 |
+|------|------|
+| **狀態** | 🔴 進行中（Stage 1/4 - Design Tokens + 樣板確認） |
+| **優先級** | P0（UI/UX 改版優先，Session 認證整合其次） |
+| **負責** | Full-Stack Frontend |
+| **SDD 參考** | frontend.md、design-philosophy.md、design-system.md |
+| **依賴** | Feature 1.0.4 ✅（Design System 基礎）、Feature 1.1.1 ✅（OAuth 登入） |
+| **預期完成日期** | 2026-02-10 |
+| **測試規格** | `/docs/architecture/Feature-1.2.0-TDD-Tests.md` |
+| **分支** | `feature/1.2.0-ui-ux-redesign` |
+
+**階段分解**（4 個 Stage）：
+
+**Stage 1 - Design Tokens + 樣板確認**（🔴 進行中 - 2 小時）
+- 🔴 更新 `/shared/design-tokens/colors.ts`
+  - Dark Mode: Noctis Obscuro（深沉神秘）
+    - Background: #0B0E13（深黑藍）
+    - Surface: #141821（深灰藍）
+    - Accent: #6B7FE8（柔和藍）
+  - Light Mode: Kyoto Whisper（日式簡樸）
+    - Background: #F5F4F0（米白色）
+    - Surface: #FDFCFA（柔和白）
+    - Text: #2C2C2E（深灰黑）
+- 🔴 建立樣板 HTML（`/frontend/design-preview.html`）
+  - 展示 Dark/Light 雙模式
+  - 包含主要元件預覽（Button, Card, Input）
+  - 展示配色系統
+- ⏳ 等待使用者確認配色與樣式
+
+**Stage 2 - CSS 架構重組 + 動畫系統**（待開始 - 3 小時）
+- 建立 `/frontend/src/styles/themes/dark.css`
+  - 定義 Dark Mode CSS Variables
+  - 整合新配色系統
+- 建立 `/frontend/src/styles/themes/light.css`
+  - 定義 Light Mode CSS Variables
+  - 整合新配色系統
+- 建立 `/frontend/src/styles/animations.css`
+  - View Transition API 配置
+  - Framer Motion 基礎動畫
+  - Reduced Motion 支援
+- 更新 `/frontend/src/styles.css`
+  - 匯入 themes 與 animations
+  - 重組 CSS 架構
+
+**Stage 3 - 雙模式系統 + 元件升級**（待開始 - 4 小時）
+- 建立雙模式切換系統
+  - 華麗模式（Glamorous）：完整動畫、特效
+  - 簡潔模式（Minimal）：簡化動畫、高效能
+- 升級 UI 元件
+  - Button, Input, Card, Avatar 使用新配色
+  - 整合 View Transition API
+  - 整合 Framer Motion
+- 升級 SoundWaveLoader
+  - 保留核心功能
+  - 增強視覺效果
+  - 支援雙模式切換
+
+**Stage 4 - Session 認證整合**（待開始 - 2 小時）
+- 整合 Better Auth session 管理
+  - Session 驗證與更新
+  - Session 延長邏輯
+- 實作登出流程
+  - 登出 mutation
+  - 清除 session cookie
+  - 導向登入頁
+- 測試與優化
+  - 測試 session 流程
+  - 測試登出流程
+  - 優化效能
+
+**當前狀況**：
+- ✅ Branch 已建立：`feature/1.2.0-ui-ux-redesign`
+- 🔴 Stage 1 進行中：Design Tokens 更新 + 樣板建立
+- ⏳ 等待使用者確認配色與樣式後繼續 Stage 2-4
+
+**核心變更**：
+1. **配色系統改革**（Dark Mode 跳脫 Discord 風格）
+   - Background: #0D1117 → #0B0E13（更深沉）
+   - Surface: #161B22 → #141821（更沉穩）
+   - Accent: #5865F2 → #6B7FE8（更柔和）
+
+2. **Light Mode 日式簡樸**
+   - Background: #FAF9F8 → #F5F4F0（米白色）
+   - Surface: #FFFFFF → #FDFCFA（柔和白）
+   - Text: #060607 → #2C2C2E（深灰黑）
+
+3. **字型系統優化**
+   - Heading: Noto Sans TC Medium (500)
+   - Body: Noto Sans TC Regular (400)
+   - Serif: Noto Serif TC Light (300)
+
+4. **動畫系統升級**
+   - 路由切換：View Transition API
+   - 元件互動：Framer Motion
+   - 支援 Reduced Motion
+
+5. **雙模式系統**
+   - 華麗模式（Glamorous）：完整特效
+   - 簡潔模式（Minimal）：高效能
+
+6. **SoundWaveLoader 保留與增強**
+   - 保留核心載入動畫
+   - 增強視覺效果
+   - 支援雙模式切換
+
+**產出**：
+- ✅ 新配色系統（28+ tokens，Dark/Light）
+- ⏳ 新字型系統（Noto Sans TC / Serif TC）
+- ⏳ 動畫系統（View Transition API + Framer Motion）
+- ⏳ 雙模式切換系統
+- ⏳ CSS 架構重組（themes/, animations/）
+- ⏳ SoundWaveLoader 升級版
+- ⏳ Session 認證整合（登出、session 更新）
+
+**測試規格**：
+- 測試規格文件：`/docs/architecture/Feature-1.2.0-TDD-Tests.md`
+- 預計測試案例：30+ 個（Design Tokens: 10, UI Components: 12, Animations: 5, Session: 8）
+
+---
+
+### Phase 1.3：好友系統（Week 2-3）
 
 #### 🔲 Feature 1.2.1 - 搜尋與加好友
 
@@ -655,6 +779,7 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
 ### 衝刺目標
 **Sprint 1 (已完成)**: Phase 1.0 基礎設施完整初始化（100% 完成）
 **Sprint 2 (已完成)**: Feature 1.1.1 OAuth 登入（Web 端完成，79/79 測試通過）
+**Sprint 3 (進行中)**: Feature 1.2.0 UI/UX 大改版 + Session 認證整合（Stage 1/4）
 
 ### 開發分工（3 Agents 配置）
 
@@ -711,6 +836,29 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
 - ✅ 79/79 測試全部通過（OAuth: 13, Middleware: 16, Better Auth: 5, Web: 46）
 - ✅ TypeScript 0 errors, Linter 0 warnings, Formatter 100%
 - ✅ PR #23 已建立（等待 review）
+
+---
+
+#### 🔴 Sprint 3: Feature 1.2.0 UI/UX 大改版（進行中）
+
+| Agent | 分配任務 | 預計時間 | 狀態 |
+|-------|---------|---------|------|
+| **Architect** | 1. ✅ 建立測試規格文件（Feature-1.2.0-TDD-Tests.md）<br>2. 🔴 審查 Stage 1 樣板設計<br>3. ⏳ Code review Stage 2-4 實作 | 3 小時 | 🔴 33% |
+| **Full-Stack Frontend** | **Stage 1** (🔴 進行中 - 2h):<br>1. 🔴 更新 Design Tokens（colors.ts）<br>2. 🔴 建立樣板 HTML（design-preview.html）<br>3. ⏳ 等待使用者確認<br>**Stage 2** (⏳ 待開始 - 3h):<br>1. 建立 themes/dark.css, themes/light.css<br>2. 建立 animations.css<br>3. 更新 styles.css<br>**Stage 3** (⏳ 待開始 - 4h):<br>1. 建立雙模式切換系統<br>2. 升級 UI 元件<br>3. 升級 SoundWaveLoader<br>**Stage 4** (⏳ 待開始 - 2h):<br>1. 整合 Better Auth session 管理<br>2. 實作登出流程<br>3. 測試與優化 | 11 小時 | 🔴 18% (Stage 1) |
+
+**總計**：約 14 小時（約 2-3 個工作日）
+
+**完成標準**：
+- 🔴 Design Tokens 更新完成（新配色系統）
+- 🔴 樣板 HTML 建立完成（展示 Dark/Light 雙模式）
+- ⏳ 使用者確認配色與樣式
+- ⏳ CSS 架構重組完成（themes/, animations/）
+- ⏳ 雙模式系統實作完成
+- ⏳ UI 元件升級完成（使用新配色）
+- ⏳ SoundWaveLoader 升級完成
+- ⏳ Session 認證整合完成（登出、session 更新）
+- ⏳ 30+ 測試全部通過
+- ⏳ TypeScript 0 errors, Linter 0 warnings, Formatter 100%
 
 ---
 
@@ -801,10 +949,10 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
 
 ---
 
-**最後更新**：2026-02-03 17:00
+**最後更新**：2026-02-03 18:00
 **下次計畫更新**：2026-02-04 09:00
-**當前 Sprint**：Sprint 2 - Feature 1.1.1 OAuth 登入（100% 完成 ✅）
-**最新進展**：Feature 1.1.1 (OAuth Google 登入 - Web) 完成 ✅
+**當前 Sprint**：Sprint 3 - Feature 1.2.0 UI/UX 大改版（Stage 1/4 進行中 🔴）
+**最新進展**：Feature 1.2.0 (UI/UX 大改版) Stage 1 開始 🔴
   - Branch: feature/1.1.1-oauth-google-login
   - PR #23: https://github.com/davelin18yufan/ping/pull/23（OPEN，等待 review）
   - 完成進度：Web 端 100%（Mobile 端後續階段）
@@ -839,21 +987,44 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
     - ✅ 路由保護機制（需登入、訪客專用、可選登入）
     - ✅ 完整測試覆蓋（79/79 tests）
 
-**Phase 1.0 + 1.1 總結**：
+**Phase 1.0 + 1.1 + 1.2 總結**：
 - ✅ Feature 1.0.1 - Backend 基礎設施（100% 完成）
 - ✅ Feature 1.0.2 - Frontend (Web) 基礎設施（100% 完成）
 - ✅ Feature 1.0.3 - Mobile 基礎設施（100% 完成）
 - ✅ Feature 1.0.4 - Design System 設定（100% 完成）
 - ✅ Feature 1.1.1 - OAuth Google 登入（Web 端 100% 完成）
+- 🔴 Feature 1.2.0 - UI/UX 大改版（Stage 1/4 進行中）
 - **Sprint 1 完成度：4/4 features（100%）**
 - **Sprint 2 完成度：1/1 features（100%）**
-- **總測試通過數：249/249 tests（100%）**
+- **Sprint 3 完成度：0/1 features（18% - Stage 1 進行中）**
+- **總測試通過數：249/249 tests（100% - Feature 1.2.0 測試規格已完成，待實作）**
   - Backend: 27 tests
   - Frontend (Web Infrastructure): 46 tests
   - Frontend (OAuth + Middleware): 29 tests
   - Mobile: 97 tests
   - Design System: 50 tests（預估）
 - **下一步：等待 PR #23 review 與 merge**
+
+**Feature 1.2.0 最新進展**：
+  - Branch: feature/1.2.0-ui-ux-redesign
+  - Status: 🔴 Stage 1/4 進行中（Design Tokens + 樣板確認）
+  - 測試規格：`/docs/architecture/Feature-1.2.0-TDD-Tests.md` ✅（已完成，40 個測試案例）
+  - **階段分解**：
+    - 🔴 Stage 1: Design Tokens + 樣板確認（2h）- 進行中
+    - ⏳ Stage 2: CSS 架構重組 + 動畫系統（3h）- 待開始
+    - ⏳ Stage 3: 雙模式系統 + 元件升級（4h）- 待開始
+    - ⏳ Stage 4: Session 認證整合（2h）- 待開始
+  - **當前任務**：
+    - 🔴 更新 `/shared/design-tokens/colors.ts`（新配色系統）
+    - 🔴 建立 `/frontend/design-preview.html`（樣板 HTML）
+    - ⏳ 等待使用者確認配色與樣式
+  - **核心變更預覽**：
+    - Dark Mode: Noctis Obscuro（#0B0E13 深沉神秘）
+    - Light Mode: Kyoto Whisper（#F5F4F0 日式簡樸）
+    - 字型：Noto Sans TC / Noto Serif TC
+    - 動畫：View Transition API + Framer Motion
+    - 雙模式：華麗（Glamorous）/ 簡潔（Minimal）
+  - **預期完成**：2026-02-10（約 7 天）
 
 ---
 

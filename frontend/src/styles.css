@@ -2,95 +2,114 @@
 
 @import "tw-animate-css";
 
+/* Google Fonts - CJK Optimized */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@300;400;500;600;700&display=swap");
+
 @custom-variant dark (&:is(.dark *));
 
 body {
     @apply m-0;
     font-family:
-        -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",
-        "Fira Sans", "Droid Sans", "Helvetica Neue", sans-serif;
+        "Noto Sans TC",
+        -apple-system,
+        BlinkMacSystemFont,
+        "Segoe UI",
+        "Roboto",
+        sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
 code {
-    font-family: source-code-pro, Menlo, Monaco, Consolas, "Courier New", monospace;
+    font-family: "JetBrains Mono", source-code-pro, Menlo, Monaco, Consolas, monospace;
 }
 
 :root {
-    --background: oklch(1 0 0);
-    --foreground: oklch(0.141 0.005 285.823);
-    --card: oklch(1 0 0);
-    --card-foreground: oklch(0.141 0.005 285.823);
-    --popover: oklch(1 0 0);
-    --popover-foreground: oklch(0.141 0.005 285.823);
-    --primary: oklch(0.21 0.006 285.885);
-    --primary-foreground: oklch(0.985 0 0);
-    --secondary: oklch(0.967 0.001 286.375);
-    --secondary-foreground: oklch(0.21 0.006 285.885);
-    --muted: oklch(0.967 0.001 286.375);
-    --muted-foreground: oklch(0.552 0.016 285.938);
-    --accent: oklch(0.967 0.001 286.375);
-    --accent-foreground: oklch(0.21 0.006 285.885);
+    /* Light Mode - Kyoto Whisper (Japanese traditional colors) */
+    --background: oklch(0.97 0.005 80); /* Gofun warm ivory */
+    --foreground: oklch(0.25 0.01 280); /* Sumicha ink tea */
+    --card: oklch(0.95 0.008 75); /* Usuneri soft practice */
+    --card-foreground: oklch(0.25 0.01 280);
+    --popover: oklch(0.97 0.005 80);
+    --popover-foreground: oklch(0.25 0.01 280);
+    --primary: oklch(0.55 0.18 247); /* Hanada indigo blue */
+    --primary-foreground: oklch(0.98 0 0);
+    --secondary: oklch(0.92 0.01 70); /* Shironezumi white mouse */
+    --secondary-foreground: oklch(0.25 0.01 280);
+    --muted: oklch(0.95 0.008 75);
+    --muted-foreground: oklch(0.5 0.02 270); /* Shinbashi teal */
+    --accent: oklch(0.6 0.2 140); /* Wakatake young bamboo */
+    --accent-foreground: oklch(0.98 0 0);
     --destructive: oklch(0.577 0.245 27.325);
     --destructive-foreground: oklch(0.577 0.245 27.325);
-    --border: oklch(0.92 0.004 286.32);
-    --input: oklch(0.92 0.004 286.32);
-    --ring: oklch(0.871 0.006 286.286);
-    --chart-1: oklch(0.646 0.222 41.116);
-    --chart-2: oklch(0.6 0.118 184.704);
-    --chart-3: oklch(0.398 0.07 227.392);
-    --chart-4: oklch(0.828 0.189 84.429);
-    --chart-5: oklch(0.769 0.188 70.08);
+    --border: oklch(0.92 0.01 70);
+    --input: oklch(0.92 0.01 70);
+    --ring: oklch(0.55 0.18 247);
+    --chart-1: oklch(0.55 0.18 247); /* Hanada blue */
+    --chart-2: oklch(0.6 0.2 140); /* Wakatake green */
+    --chart-3: oklch(0.8 0.12 340); /* Sakura pink */
+    --chart-4: oklch(0.65 0.015 260); /* Asagi light blue */
+    --chart-5: oklch(0.5 0.02 270); /* Shinbashi teal */
     --radius: 0.625rem;
-    --sidebar: oklch(0.985 0 0);
-    --sidebar-foreground: oklch(0.141 0.005 285.823);
-    --sidebar-primary: oklch(0.21 0.006 285.885);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.967 0.001 286.375);
-    --sidebar-accent-foreground: oklch(0.21 0.006 285.885);
-    --sidebar-border: oklch(0.92 0.004 286.32);
-    --sidebar-ring: oklch(0.871 0.006 286.286);
+    --sidebar: oklch(0.95 0.008 75);
+    --sidebar-foreground: oklch(0.25 0.01 280);
+    --sidebar-primary: oklch(0.55 0.18 247);
+    --sidebar-primary-foreground: oklch(0.98 0 0);
+    --sidebar-accent: oklch(0.92 0.01 70);
+    --sidebar-accent-foreground: oklch(0.25 0.01 280);
+    --sidebar-border: oklch(0.92 0.01 70);
+    --sidebar-ring: oklch(0.55 0.18 247);
 
-    /* Glow color tokens (oklch format) */
-    --glow-purple: oklch(0.51 0.24 293); /* #8a2be2 - Electric Purple */
-    --glow-blue: oklch(0.65 0.18 247); /* #1e90ff - Dodger Blue */
-    --glow-cyan: oklch(0.74 0.14 231); /* #00bfff - Deep Sky Blue */
+    /* Glow color tokens (Y2K aesthetic) */
+    --glow-purple: oklch(0.65 0.24 293); /* Electric Purple */
+    --glow-blue: oklch(0.65 0.18 247); /* Dodger Blue */
+    --glow-cyan: oklch(0.74 0.14 231); /* Deep Sky Blue */
+
+    /* Ritual colors (Light Mode) */
+    --ritual-apology: oklch(0.55 0.18 247); /* Blue-purple apology */
+    --ritual-celebrate: oklch(0.85 0.15 85); /* Golden celebration */
+    --ritual-reconcile: oklch(0.8 0.12 340); /* Pink reconciliation */
 }
 
 .dark {
-    --background: oklch(0.141 0.005 285.823);
-    --foreground: oklch(0.985 0 0);
-    --card: oklch(0.141 0.005 285.823);
-    --card-foreground: oklch(0.985 0 0);
-    --popover: oklch(0.141 0.005 285.823);
-    --popover-foreground: oklch(0.985 0 0);
-    --primary: oklch(0.985 0 0);
-    --primary-foreground: oklch(0.21 0.006 285.885);
-    --secondary: oklch(0.274 0.006 286.033);
-    --secondary-foreground: oklch(0.985 0 0);
-    --muted: oklch(0.274 0.006 286.033);
-    --muted-foreground: oklch(0.705 0.015 286.067);
-    --accent: oklch(0.274 0.006 286.033);
-    --accent-foreground: oklch(0.985 0 0);
+    /* Dark Mode - Noctis Obscuro (Deep, mysterious, avoids Discord) */
+    --background: oklch(0.12 0.01 270); /* Deep purple-blue base */
+    --foreground: oklch(0.98 0 0); /* Pure white text */
+    --card: oklch(0.18 0.015 270); /* Secondary surface */
+    --card-foreground: oklch(0.98 0 0);
+    --popover: oklch(0.24 0.02 270); /* Hover state */
+    --popover-foreground: oklch(0.98 0 0);
+    --primary: oklch(0.65 0.24 293); /* Purple glow (Y2K vibe) */
+    --primary-foreground: oklch(0.98 0 0);
+    --secondary: oklch(0.18 0.015 270);
+    --secondary-foreground: oklch(0.98 0 0);
+    --muted: oklch(0.18 0.015 270);
+    --muted-foreground: oklch(0.75 0.01 270); /* Secondary text */
+    --accent: oklch(0.65 0.18 247); /* Blue electric glow */
+    --accent-foreground: oklch(0.98 0 0);
     --destructive: oklch(0.396 0.141 25.723);
     --destructive-foreground: oklch(0.637 0.237 25.331);
-    --border: oklch(0.274 0.006 286.033);
-    --input: oklch(0.274 0.006 286.033);
-    --ring: oklch(0.442 0.017 285.786);
-    --chart-1: oklch(0.488 0.243 264.376);
-    --chart-2: oklch(0.696 0.17 162.48);
-    --chart-3: oklch(0.769 0.188 70.08);
-    --chart-4: oklch(0.627 0.265 303.9);
-    --chart-5: oklch(0.645 0.246 16.439);
-    --sidebar: oklch(0.21 0.006 285.885);
-    --sidebar-foreground: oklch(0.985 0 0);
-    --sidebar-primary: oklch(0.488 0.243 264.376);
-    --sidebar-primary-foreground: oklch(0.985 0 0);
-    --sidebar-accent: oklch(0.274 0.006 286.033);
-    --sidebar-accent-foreground: oklch(0.985 0 0);
-    --sidebar-border: oklch(0.274 0.006 286.033);
-    --sidebar-ring: oklch(0.442 0.017 285.786);
+    --border: oklch(0.18 0.015 270);
+    --input: oklch(0.18 0.015 270);
+    --ring: oklch(0.65 0.24 293);
+    --chart-1: oklch(0.65 0.24 293); /* Purple glow */
+    --chart-2: oklch(0.65 0.18 247); /* Blue glow */
+    --chart-3: oklch(0.74 0.14 231); /* Cyan glow */
+    --chart-4: oklch(0.6 0.2 270); /* Apology blue-purple */
+    --chart-5: oklch(0.85 0.15 85); /* Celebrate gold */
+    --sidebar: oklch(0.12 0.01 270);
+    --sidebar-foreground: oklch(0.98 0 0);
+    --sidebar-primary: oklch(0.65 0.24 293);
+    --sidebar-primary-foreground: oklch(0.98 0 0);
+    --sidebar-accent: oklch(0.18 0.015 270);
+    --sidebar-accent-foreground: oklch(0.98 0 0);
+    --sidebar-border: oklch(0.18 0.015 270);
+    --sidebar-ring: oklch(0.65 0.24 293);
+
+    /* Ritual colors (Dark Mode) */
+    --ritual-apology: oklch(0.6 0.2 270); /* Blue-purple apology */
+    --ritual-celebrate: oklch(0.85 0.15 85); /* Golden celebration */
+    --ritual-reconcile: oklch(0.7 0.25 340); /* Pink reconciliation */
 }
 
 @theme inline {

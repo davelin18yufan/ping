@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>Ping UI/UX Design Preview - Feature 1.2.0</title>
+        <title>Ping UI/UX Design Preview - Enhanced with Micro-Interactions</title>
 
         <!-- Google Fonts - CJK Optimized -->
         <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -15,54 +15,48 @@
 
         <style>
             /* ============================================
-           CSS Variables - New Design System
+           CSS Variables - Enhanced Design System
            ============================================ */
             :root {
-                /* Light Mode - Kyoto Whisper (Japanese traditional colors) */
-                --background: oklch(0.97 0.005 80);
+                /* Light Mode - Kyoto Sunrise */
+                --background: oklch(0.96 0.01 70);
                 --foreground: oklch(0.25 0.01 280);
-                --card: oklch(0.95 0.008 75);
+                --card: oklch(0.94 0.012 65);
                 --card-foreground: oklch(0.25 0.01 280);
-                --primary: oklch(0.55 0.18 247);
+                --primary: oklch(0.58 0.16 250);
                 --primary-foreground: oklch(0.98 0 0);
-                --secondary: oklch(0.92 0.01 70);
-                --secondary-foreground: oklch(0.25 0.01 280);
-                --accent: oklch(0.6 0.2 140);
+                --muted: oklch(0.92 0.01 70);
+                --muted-foreground: oklch(0.45 0.01 280);
+                --accent: oklch(0.65 0.18 50);
                 --accent-foreground: oklch(0.98 0 0);
                 --border: oklch(0.92 0.01 70);
-                --ring: oklch(0.55 0.18 247);
-                --glow-purple: oklch(0.65 0.24 293);
-                --glow-blue: oklch(0.65 0.18 247);
-                --glow-cyan: oklch(0.74 0.14 231);
-                --ritual-apology: oklch(0.55 0.18 247);
-                --ritual-celebrate: oklch(0.85 0.15 85);
-                --ritual-reconcile: oklch(0.8 0.12 340);
-
+                --ring: oklch(0.58 0.16 250);
+                --glass-background: oklch(0.97 0.008 70 / 0.5);
+                --glass-background-hover: oklch(0.97 0.008 70 / 0.6);
+                --glass-blur: 30px;
                 --radius: 0.625rem;
             }
 
             .dark {
-                /* Dark Mode - Noctis Obscuro (Deep, mysterious, avoids Discord) */
-                --background: oklch(0.12 0.01 270);
-                --foreground: oklch(0.98 0 0);
-                --card: oklch(0.18 0.015 270);
-                --card-foreground: oklch(0.98 0 0);
-                --primary: oklch(0.65 0.24 293);
+                /* Dark Mode - Steel Frost */
+                --background: oklch(0.18 0.005 240);
+                --foreground: oklch(0.95 0 0);
+                --card: oklch(0.24 0.008 240);
+                --card-foreground: oklch(0.95 0 0);
+                --primary: oklch(0.6 0.18 250);
                 --primary-foreground: oklch(0.98 0 0);
-                --secondary: oklch(0.18 0.015 270);
-                --secondary-foreground: oklch(0.98 0 0);
-                --accent: oklch(0.65 0.18 247);
+                --muted: oklch(0.24 0.008 240);
+                --muted-foreground: oklch(0.65 0 0);
+                --accent: oklch(0.65 0.15 145);
                 --accent-foreground: oklch(0.98 0 0);
-                --border: oklch(0.18 0.015 270);
-                --ring: oklch(0.65 0.24 293);
-                --ritual-apology: oklch(0.6 0.2 270);
-                --ritual-celebrate: oklch(0.85 0.15 85);
-                --ritual-reconcile: oklch(0.7 0.25 340);
+                --border: oklch(0.24 0.008 240);
+                --ring: oklch(0.6 0.18 250);
+                --glass-background: oklch(0.22 0.008 240 / 0.5);
+                --glass-background-hover: oklch(0.26 0.008 240 / 0.6);
+                --glass-blur: 30px;
             }
 
-            /* ============================================
-           Base Styles
-           ============================================ */
+            /* Base Styles */
             * {
                 margin: 0;
                 padding: 0;
@@ -95,31 +89,33 @@
             }
 
             .container {
-                max-width: 1200px;
+                max-width: 1400px;
                 margin: 0 auto;
             }
 
-            /* ============================================
-           Theme Toggle
-           ============================================ */
+            /* Theme Toggle */
             .theme-toggle {
                 position: fixed;
                 top: 2rem;
                 right: 2rem;
                 display: flex;
                 gap: 0.5rem;
-                background: var(--card);
+                background: var(--glass-background);
+                backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+                -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
                 padding: 0.5rem;
                 border-radius: var(--radius);
-                border: 1px solid var(--border);
-                box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+                border: none;
+                box-shadow:
+                    0 8px 32px oklch(0 0 0 / 0.08),
+                    0 16px 64px oklch(0 0 0 / 0.12);
                 z-index: 1000;
             }
 
             .theme-btn {
                 padding: 0.5rem 1rem;
-                border: 1px solid var(--border);
-                background: var(--background);
+                border: none;
+                background: transparent;
                 color: var(--foreground);
                 border-radius: calc(var(--radius) - 2px);
                 cursor: pointer;
@@ -129,20 +125,15 @@
             }
 
             .theme-btn:hover {
-                background: var(--accent);
-                color: var(--accent-foreground);
-                transform: translateY(-1px);
+                background: var(--muted);
             }
 
             .theme-btn.active {
                 background: var(--primary);
                 color: var(--primary-foreground);
-                border-color: var(--primary);
             }
 
-            /* ============================================
-           Section Styles
-           ============================================ */
+            /* Section Styles */
             .section {
                 margin-bottom: 4rem;
             }
@@ -150,113 +141,298 @@
             .section-title {
                 font-size: 2rem;
                 margin-bottom: 1rem;
-                color: var(--foreground);
             }
 
             .section-description {
                 font-size: 1rem;
-                color: var(--foreground);
                 opacity: 0.8;
                 margin-bottom: 2rem;
             }
 
             /* ============================================
-           Color Palette Grid
-           ============================================ */
-            .color-grid {
-                display: grid;
-                grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 1.5rem;
-                margin-bottom: 2rem;
-            }
-
-            .color-card {
-                background: var(--card);
-                border: 1px solid var(--border);
+               PHASE 1: Ripple Effect Button
+               ============================================ */
+            .glass-button {
+                background: var(--glass-background);
+                backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+                -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+                border: none;
                 border-radius: var(--radius);
-                overflow: hidden;
-                box-shadow: 0 2px 8px rgb(0 0 0 / 0.05);
-                transition:
-                    transform 200ms ease,
-                    box-shadow 200ms ease;
-            }
-
-            .color-card:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 8px 16px rgb(0 0 0 / 0.1);
-            }
-
-            .color-swatch {
-                height: 100px;
-                width: 100%;
-            }
-
-            .color-info {
-                padding: 1rem;
-            }
-
-            .color-name {
-                font-weight: 600;
+                box-shadow:
+                    0 4px 16px oklch(0 0 0 / 0.08),
+                    0 8px 32px oklch(0 0 0 / 0.12);
+                color: var(--foreground);
+                font-family: inherit;
                 font-size: 0.875rem;
-                margin-bottom: 0.25rem;
-            }
-
-            .color-value {
-                font-family: "JetBrains Mono", monospace;
-                font-size: 0.75rem;
-                color: var(--foreground);
-                opacity: 0.7;
-            }
-
-            /* ============================================
-           Typography Showcase
-           ============================================ */
-            .typography-sample {
-                background: var(--card);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                padding: 2rem;
-                margin-bottom: 1.5rem;
-            }
-
-            .font-heading {
-                font-family: "Noto Serif TC", serif;
-                font-weight: 700;
-                font-size: 2.5rem;
-                margin-bottom: 1rem;
-                color: var(--foreground);
-            }
-
-            .font-subheading {
-                font-family: "Noto Sans TC", sans-serif;
                 font-weight: 500;
-                font-size: 1.5rem;
-                margin-bottom: 1rem;
-                color: var(--foreground);
+                padding: 0.75rem 1.5rem;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 0.5rem;
+                cursor: pointer;
+                transition: all 200ms ease-out;
+                margin-right: 0.5rem;
+                margin-bottom: 0.5rem;
+                position: relative;
+                overflow: visible;
             }
 
-            .font-body {
-                font-family: "Noto Sans TC", sans-serif;
-                font-weight: 400;
-                font-size: 1rem;
-                line-height: 1.8;
-                color: var(--foreground);
+            .glass-button::after {
+                content: "";
+                position: absolute;
+                inset: -2px;
+                border-radius: inherit;
+                background: transparent;
+                border: 2px solid oklch(from var(--primary) l c h / 0.5);
+                opacity: 0;
+                pointer-events: none;
+                transition: none;
             }
 
-            .font-meta {
-                display: inline-block;
-                font-family: "JetBrains Mono", monospace;
-                font-size: 0.75rem;
-                background: var(--secondary);
-                color: var(--secondary-foreground);
-                padding: 0.25rem 0.5rem;
-                border-radius: calc(var(--radius) - 4px);
-                margin-top: 0.5rem;
+            .glass-button:hover {
+                transform: translateY(-2px) scale(1.02);
+                box-shadow:
+                    0 6px 20px oklch(0 0 0 / 0.1),
+                    0 12px 40px oklch(0 0 0 / 0.15);
+            }
+
+            .glass-button:hover::after {
+                animation: border-ripple-expand 600ms ease-out;
+            }
+
+            @keyframes border-ripple-expand {
+                0% {
+                    inset: -2px;
+                    opacity: 0.6;
+                    border-width: 2px;
+                }
+                100% {
+                    inset: -12px;
+                    opacity: 0;
+                    border-width: 1px;
+                }
+            }
+
+            .glass-button:active {
+                transform: scale(0.98);
+            }
+
+            .glass-button:active::after {
+                animation: border-ripple-click 800ms ease-out;
+            }
+
+            @keyframes border-ripple-click {
+                0% {
+                    inset: -2px;
+                    opacity: 0.8;
+                    border-width: 3px;
+                }
+                100% {
+                    inset: -18px;
+                    opacity: 0;
+                    border-width: 0.5px;
+                }
+            }
+
+            .glass-button--send {
+                background: oklch(from var(--primary) l c h / 0.15);
+                color: var(--primary-foreground);
+            }
+
+            .glass-button--call {
+                background: oklch(from var(--accent) l c h / 0.15);
+                color: var(--accent-foreground);
+                border-radius: 50%;
+                width: 3rem;
+                height: 3rem;
+                padding: 0;
+                position: relative;
+            }
+
+            .glass-button--call::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                border-radius: 50%;
+                background: transparent;
+                border: 2px solid oklch(from var(--accent) l c h / 0.5);
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            .glass-button--call:hover::after {
+                animation: call-wave-expand 1.5s ease-out infinite;
+            }
+
+            @keyframes call-wave-expand {
+                0% {
+                    transform: scale(1);
+                    opacity: 0.5;
+                }
+                100% {
+                    transform: scale(2);
+                    opacity: 0;
+                }
             }
 
             /* ============================================
-           UI Components
-           ============================================ */
+               PHASE 2: Typing Indicator
+               ============================================ */
+            .typing-indicator {
+                display: inline-flex;
+                gap: 0.25rem;
+                padding: 0.75rem 1rem;
+                background: var(--glass-background);
+                backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+                -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+                border-radius: 1rem;
+                box-shadow: 0 0 10px oklch(from var(--muted) l c h / 0.3);
+                animation: typing-glow-pulse 2s ease-in-out infinite;
+            }
+
+            @keyframes typing-glow-pulse {
+                0%,
+                100% {
+                    box-shadow: 0 0 10px oklch(from var(--muted) l c h / 0.3);
+                }
+                50% {
+                    box-shadow: 0 0 20px oklch(from var(--muted) l c h / 0.6);
+                }
+            }
+
+            .typing-dot {
+                width: 8px;
+                height: 8px;
+                border-radius: 50%;
+                background: var(--muted-foreground);
+                animation: typing-wave 1.4s ease-in-out infinite;
+            }
+
+            .typing-dot:nth-child(1) {
+                animation-delay: 0s;
+            }
+
+            .typing-dot:nth-child(2) {
+                animation-delay: 0.2s;
+            }
+
+            .typing-dot:nth-child(3) {
+                animation-delay: 0.4s;
+            }
+
+            @keyframes typing-wave {
+                0%,
+                60%,
+                100% {
+                    transform: translateY(0);
+                    opacity: 0.7;
+                }
+                30% {
+                    transform: translateY(-8px);
+                    opacity: 1;
+                }
+            }
+
+            /* ============================================
+               PHASE 3: Frosted Glass Card
+               ============================================ */
+            .glass-card {
+                background: oklch(from var(--card) l c h / 0.5);
+                backdrop-filter: blur(30px) saturate(180%);
+                -webkit-backdrop-filter: blur(30px) saturate(180%);
+                border: 1px solid oklch(1 0 0 / 0.03);
+                border-radius: 1rem;
+                box-shadow:
+                    0 8px 32px oklch(0 0 0 / 0.08),
+                    0 16px 64px oklch(0 0 0 / 0.12),
+                    0 24px 96px oklch(0 0 0 / 0.15);
+                padding: 1.5rem;
+                transition: all 400ms ease-out;
+            }
+
+            .glass-card:hover {
+                transform: translateY(-8px);
+                box-shadow:
+                    0 12px 40px oklch(0 0 0 / 0.1),
+                    0 24px 80px oklch(0 0 0 / 0.15),
+                    0 36px 120px oklch(0 0 0 / 0.2);
+                background: oklch(from var(--card) calc(l + 0.02) c h / 0.6);
+            }
+
+            /* ============================================
+               PHASE 4: Bubble Cards
+               ============================================ */
+            .bubble-card {
+                background: oklch(from var(--card) l c h / 0.5);
+                backdrop-filter: blur(30px) saturate(180%);
+                -webkit-backdrop-filter: blur(30px) saturate(180%);
+                border: none;
+                border-radius: 1.5rem 1.2rem 1.5rem 1.2rem;
+                box-shadow:
+                    0 4px 16px oklch(0 0 0 / 0.06),
+                    0 8px 32px oklch(0 0 0 / 0.1),
+                    0 12px 48px oklch(0 0 0 / 0.12);
+                padding: 1rem 1.25rem;
+                transition:
+                    transform 150ms cubic-bezier(0.68, -0.55, 0.265, 1.55),
+                    border-radius 150ms ease-out,
+                    box-shadow 300ms ease-out,
+                    background 300ms ease-out;
+                max-width: 70%;
+                margin-bottom: 1rem;
+            }
+
+            .bubble-card:hover {
+                border-radius: 1.8rem 1.5rem 1.8rem 1.5rem;
+                transform: translateY(-4px);
+                box-shadow:
+                    0 6px 20px oklch(0 0 0 / 0.08),
+                    0 12px 40px oklch(0 0 0 / 0.12),
+                    0 18px 60px oklch(0 0 0 / 0.15);
+                background: oklch(from var(--card) calc(l + 0.02) c h / 0.6);
+            }
+
+            .bubble-card:active {
+                transform: translateY(-2px) scale(0.98);
+                border-radius: 1.2rem 1rem 1.2rem 1rem;
+                box-shadow:
+                    0 3px 12px oklch(0 0 0 / 0.06),
+                    0 6px 24px oklch(0 0 0 / 0.1),
+                    0 9px 36px oklch(0 0 0 / 0.12);
+            }
+
+            .bubble-card--send {
+                border-radius: 1.5rem 1.5rem 0.5rem 1.5rem;
+                background: oklch(from var(--primary) l c h / 0.15);
+                margin-left: auto;
+                margin-right: 0;
+            }
+
+            .bubble-card--send:hover {
+                border-radius: 1.8rem 1.8rem 0.8rem 1.8rem;
+            }
+
+            .bubble-card--send:active {
+                border-radius: 1.2rem 1.2rem 0.4rem 1.2rem;
+            }
+
+            .bubble-card--receive {
+                border-radius: 1.5rem 1.5rem 1.5rem 0.5rem;
+                background: oklch(from var(--card) l c h / 0.5);
+                margin-right: auto;
+                margin-left: 0;
+            }
+
+            .bubble-card--receive:hover {
+                border-radius: 1.8rem 1.8rem 1.8rem 0.8rem;
+            }
+
+            .bubble-card--receive:active {
+                border-radius: 1.2rem 1.2rem 1.2rem 0.4rem;
+            }
+
+            /* Grid Layouts */
             .component-grid {
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -264,223 +440,112 @@
                 margin-bottom: 2rem;
             }
 
-            .component-card {
-                background: var(--card);
-                border: 1px solid var(--border);
+            .demo-card {
+                background: var(--glass-background);
+                backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+                -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(180%);
+                border: 1px solid oklch(1 0 0 / 0.05);
                 border-radius: var(--radius);
                 padding: 2rem;
             }
 
-            .component-title {
+            .demo-title {
                 font-size: 1.25rem;
                 font-weight: 600;
-                margin-bottom: 1rem;
+                margin-bottom: 1.5rem;
             }
 
-            /* Button Styles */
-            .btn {
-                display: inline-block;
-                padding: 0.75rem 1.5rem;
-                border-radius: var(--radius);
-                font-family: "Noto Sans TC", sans-serif;
-                font-weight: 500;
-                font-size: 0.875rem;
-                cursor: pointer;
-                transition: all 200ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
-                border: none;
-                margin-right: 0.5rem;
-                margin-bottom: 0.5rem;
-            }
-
-            .btn-primary {
-                background: var(--primary);
-                color: var(--primary-foreground);
-            }
-
-            .btn-primary:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 0 20px var(--glow-purple);
-            }
-
-            .btn-secondary {
-                background: var(--secondary);
-                color: var(--secondary-foreground);
-                border: 1px solid var(--border);
-            }
-
-            .btn-secondary:hover {
-                background: var(--accent);
-                color: var(--accent-foreground);
-                transform: translateY(-1px);
-            }
-
-            .btn-outline {
-                background: transparent;
-                color: var(--primary);
-                border: 1px solid var(--primary);
-            }
-
-            .btn-outline:hover {
-                background: var(--primary);
-                color: var(--primary-foreground);
-            }
-
-            /* Input Styles */
-            .input {
-                width: 100%;
-                padding: 0.75rem 1rem;
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                background: var(--background);
-                color: var(--foreground);
-                font-family: "Noto Sans TC", sans-serif;
-                font-size: 0.875rem;
-                transition: all 200ms ease;
-                margin-bottom: 1rem;
-            }
-
-            .input:focus {
-                outline: none;
-                border-color: var(--ring);
-                box-shadow: 0 0 0 3px oklch(from var(--ring) l c h / 0.2);
-            }
-
-            .input::placeholder {
-                color: var(--foreground);
-                opacity: 0.5;
-            }
-
-            /* Card Styles */
-            .card {
-                background: var(--card);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                padding: 1.5rem;
-                transition: all 200ms ease;
-            }
-
-            .card:hover {
-                transform: translateY(-4px);
-                box-shadow: 0 12px 24px rgb(0 0 0 / 0.15);
-                border-color: var(--primary);
-            }
-
-            /* ============================================
-           SoundWaveLoader (Preserved)
-           ============================================ */
-            .loader-container {
+            .chat-demo {
                 display: flex;
-                justify-content: center;
-                align-items: center;
-                padding: 3rem;
-                background: var(--card);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
+                flex-direction: column;
+                gap: 0.75rem;
             }
 
-            .sound-wave-loader {
-                position: relative;
-                width: 90px;
-                height: 90px;
+            /* Avatar Demo */
+            .avatar-demo {
                 display: flex;
+                gap: 1rem;
                 align-items: center;
-                justify-content: center;
             }
 
-            .sound-wave-loader__glow {
-                position: absolute;
-                border-radius: 50%;
-                will-change: transform, opacity;
-            }
-
-            .sound-wave-loader__glow--primary {
+            .avatar {
                 width: 60px;
                 height: 60px;
-                background: radial-gradient(
-                    circle,
-                    oklch(from var(--glow-purple) l c h / 0.6) 0%,
-                    oklch(from var(--glow-blue) l c h / 0.4) 35%,
-                    oklch(from var(--glow-cyan) l c h / 0.2) 60%,
-                    transparent 75%
-                );
-                filter: blur(40px);
-                animation: glow-pulse 2.5s ease-in-out infinite;
-                z-index: 2;
-            }
-
-            .sound-wave-loader__glow--secondary {
-                width: 75px;
-                height: 75px;
-                background: radial-gradient(
-                    circle,
-                    oklch(from var(--glow-purple) l c h / 0.4) 0%,
-                    oklch(from var(--glow-blue) l c h / 0.25) 40%,
-                    oklch(from var(--glow-cyan) l c h / 0.15) 65%,
-                    transparent 80%
-                );
-                filter: blur(50px);
-                animation: glow-pulse 2.5s ease-in-out infinite;
-                z-index: 1;
-            }
-
-            @keyframes glow-pulse {
-                0%,
-                100% {
-                    transform: scale(1);
-                    opacity: 0.5;
-                }
-                50% {
-                    transform: scale(1.3);
-                    opacity: 0.8;
-                }
-            }
-
-            /* ============================================
-           Ritual Colors
-           ============================================ */
-            .ritual-grid {
-                display: grid;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 1.5rem;
-            }
-
-            .ritual-card {
-                background: var(--card);
-                border: 1px solid var(--border);
-                border-radius: var(--radius);
-                padding: 2rem;
-                text-align: center;
-                transition: all 300ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            }
-
-            .ritual-card:hover {
-                transform: translateY(-4px) scale(1.02);
-            }
-
-            .ritual-card--apology {
-                border-color: var(--ritual-apology);
-                box-shadow: 0 0 20px oklch(from var(--ritual-apology) l c h / 0.2);
-            }
-
-            .ritual-card--celebrate {
-                border-color: var(--ritual-celebrate);
-                box-shadow: 0 0 20px oklch(from var(--ritual-celebrate) l c h / 0.2);
-            }
-
-            .ritual-card--reconcile {
-                border-color: var(--ritual-reconcile);
-                box-shadow: 0 0 20px oklch(from var(--ritual-reconcile) l c h / 0.2);
-            }
-
-            .ritual-icon {
-                font-size: 3rem;
-                margin-bottom: 1rem;
-            }
-
-            .ritual-name {
+                border-radius: 50%;
+                background: var(--primary);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                color: var(--primary-foreground);
+                font-size: 1.5rem;
                 font-weight: 600;
-                font-size: 1.25rem;
-                margin-bottom: 0.5rem;
+                position: relative;
+                overflow: visible;
+                cursor: pointer;
+                transition: transform 150ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            }
+
+            /* Border ripple effect for avatar (consistent with button) */
+            .avatar::after {
+                content: "";
+                position: absolute;
+                inset: -2px;
+                border-radius: 50%;
+                background: transparent;
+                border: 2px solid oklch(from var(--primary) l c h / 0.5);
+                opacity: 0;
+                pointer-events: none;
+                transition: none;
+            }
+
+            .avatar:hover::after {
+                animation: avatar-border-ripple 600ms ease-out;
+            }
+
+            @keyframes avatar-border-ripple {
+                0% {
+                    inset: -2px;
+                    opacity: 0.6;
+                    border-width: 2px;
+                }
+                100% {
+                    inset: -12px;
+                    opacity: 0;
+                    border-width: 1px;
+                }
+            }
+
+            /* Avatar click: border ripple + slight scale */
+            .avatar:active {
+                transform: scale(1.05);
+            }
+
+            .avatar:active::after {
+                animation: avatar-border-ripple-click 800ms ease-out;
+            }
+
+            @keyframes avatar-border-ripple-click {
+                0% {
+                    inset: -2px;
+                    opacity: 0.8;
+                    border-width: 3px;
+                }
+                100% {
+                    inset: -18px;
+                    opacity: 0;
+                    border-width: 0.5px;
+                }
+            }
+
+            /* Reduced Motion Support */
+            @media (prefers-reduced-motion: reduce) {
+                *,
+                *::before,
+                *::after {
+                    animation-duration: 0.01ms !important;
+                    animation-iteration-count: 1 !important;
+                    transition-duration: 0.01ms !important;
+                }
             }
         </style>
     </head>
@@ -495,161 +560,245 @@
             <header style="margin-bottom: 3rem">
                 <h1 style="font-size: 3rem; margin-bottom: 0.5rem">Ping UI/UX 設計預覽</h1>
                 <p style="font-size: 1.25rem; opacity: 0.8">
-                    Feature 1.2.0 - Stage 1: Design Tokens + 樣板確認
+                    Enhanced with Ripple Effects, Micro-Interactions, Frosted Glass & Bubble Shapes
                 </p>
             </header>
 
-            <!-- Color Palette Section -->
+            <!-- Phase 1: Ripple Effect Buttons -->
             <section class="section">
-                <h2 class="section-title">配色系統</h2>
+                <h2 class="section-title">Phase 1: 邊框漣漪 Hover 效果</h2>
                 <p class="section-description">
-                    Dark Mode: Noctis Obscuro（深沉神秘，避免 Discord 風格）<br />
-                    Light Mode: Kyoto Whisper（日式簡樸，溫暖優雅）
+                    Hover 時從邊框向外擴散的漣漪效果，背景保持不變（參考 Aceternity UI）
                 </p>
-
-                <div class="color-grid">
-                    <div class="color-card">
-                        <div class="color-swatch" style="background: var(--background)"></div>
-                        <div class="color-info">
-                            <div class="color-name">Background</div>
-                            <div class="color-value">背景色</div>
-                        </div>
-                    </div>
-                    <div class="color-card">
-                        <div class="color-swatch" style="background: var(--card)"></div>
-                        <div class="color-info">
-                            <div class="color-name">Card</div>
-                            <div class="color-value">卡片色</div>
-                        </div>
-                    </div>
-                    <div class="color-card">
-                        <div class="color-swatch" style="background: var(--primary)"></div>
-                        <div class="color-info">
-                            <div class="color-name">Primary</div>
-                            <div class="color-value">主要品牌色</div>
-                        </div>
-                    </div>
-                    <div class="color-card">
-                        <div class="color-swatch" style="background: var(--accent)"></div>
-                        <div class="color-info">
-                            <div class="color-name">Accent</div>
-                            <div class="color-value">強調色</div>
-                        </div>
-                    </div>
-                    <div class="color-card">
-                        <div class="color-swatch" style="background: var(--glow-purple)"></div>
-                        <div class="color-info">
-                            <div class="color-name">Glow Purple</div>
-                            <div class="color-value">紫色光暈（Y2K）</div>
-                        </div>
-                    </div>
-                    <div class="color-card">
-                        <div class="color-swatch" style="background: var(--glow-blue)"></div>
-                        <div class="color-info">
-                            <div class="color-name">Glow Blue</div>
-                            <div class="color-value">藍色電光</div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Typography Section -->
-            <section class="section">
-                <h2 class="section-title">字型系統</h2>
-                <p class="section-description">
-                    CJK 優化：Noto Sans TC（正文）+ Noto Serif TC（標題）
-                </p>
-
-                <div class="typography-sample">
-                    <div class="font-heading">
-                        Ping 即時通訊應用
-                        <span class="font-meta">Noto Serif TC Bold (700)</span>
-                    </div>
-                    <div class="font-subheading">
-                        現代技術棧，Web + Mobile 雙平台
-                        <span class="font-meta">Noto Sans TC Medium (500)</span>
-                    </div>
-                    <p class="font-body">
-                        這是一段繁體中文正文範例。Ping 是一款以 Yahoo
-                        即時通訊應用為靈感的現代即時通訊應用，採用最新技術棧開發，支援 Web 和 Mobile
-                        雙平台。我們強調速度、流暢度與儀式感，為使用者打造獨特的溝通體驗。
-                        <span class="font-meta">Noto Sans TC Regular (400)</span>
-                    </p>
-                    <p class="font-body" style="font-weight: 300; margin-top: 1rem">
-                        輕盈字重範例：追求極致的視覺平衡與閱讀舒適度。
-                        <span class="font-meta">Noto Sans TC Light (300)</span>
-                    </p>
-                </div>
-            </section>
-
-            <!-- UI Components Section -->
-            <section class="section">
-                <h2 class="section-title">基礎元件</h2>
-                <p class="section-description">Button、Input、Card 等基礎 UI 元件展示</p>
 
                 <div class="component-grid">
-                    <!-- Buttons -->
-                    <div class="component-card">
-                        <div class="component-title">按鈕元件</div>
-                        <button class="btn btn-primary">主要按鈕</button>
-                        <button class="btn btn-secondary">次要按鈕</button>
-                        <button class="btn btn-outline">外框按鈕</button>
+                    <div class="demo-card">
+                        <div class="demo-title">通訊按鈕</div>
+                        <button class="glass-button glass-button--send">
+                            <span>✈️</span>
+                            <span>發送訊息</span>
+                        </button>
+                        <button class="glass-button glass-button--call" title="語音通話">📞</button>
+                        <button class="glass-button glass-button--call" title="視訊通話">📹</button>
+                        <button class="glass-button">一般按鈕</button>
+                        <p style="margin-top: 1rem; opacity: 0.7; font-size: 0.875rem">
+                            Hover: 邊框向外擴散 (inset: -2px → -12px)<br />
+                            Click: 更強的漣漪 (inset: -2px → -18px)<br />
+                            背景保持不變<br />
+                            <em style="color: oklch(from var(--accent) l c h / 1)"
+                                >✨ 擴散範圍減少 40%，更細緻</em
+                            >
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Phase 2: Micro-Interactions -->
+            <section class="section">
+                <h2 class="section-title">Phase 2: 微互動系統</h2>
+                <p class="section-description">每個互動都有細膩的動畫回饋,強化儀式感</p>
+
+                <div class="component-grid">
+                    <!-- Typing Indicator -->
+                    <div class="demo-card">
+                        <div class="demo-title">打字指示器</div>
+                        <div class="typing-indicator">
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                            <div class="typing-dot"></div>
+                        </div>
+                        <p style="margin-top: 1rem; opacity: 0.7; font-size: 0.875rem">
+                            3 個點點依序跳動,配合呼吸般的光暈
+                        </p>
                     </div>
 
-                    <!-- Inputs -->
-                    <div class="component-card">
-                        <div class="component-title">輸入框元件</div>
-                        <input type="text" class="input" placeholder="請輸入您的訊息..." />
-                        <input type="email" class="input" placeholder="電子郵件地址" />
-                    </div>
-
-                    <!-- Card -->
-                    <div class="component-card">
-                        <div class="component-title">卡片元件</div>
-                        <div class="card">
-                            <h3 style="margin-bottom: 0.5rem">卡片標題</h3>
-                            <p style="opacity: 0.8">這是一個互動式卡片元件，懸停時會有提升效果。</p>
+                    <!-- Avatar Interaction -->
+                    <div class="demo-card">
+                        <div class="demo-title">頭像互動（重新設計）</div>
+                        <div class="avatar-demo">
+                            <div class="avatar">P</div>
+                            <div style="flex: 1">
+                                <p style="font-weight: 500; margin-bottom: 0.25rem">Ping User</p>
+                                <p style="opacity: 0.7; font-size: 0.875rem">
+                                    Hover: 邊框漣漪 (與按鈕一致)<br />
+                                    Click: 邊框漣漪 + 輕微放大 (scale 1.05)<br />
+                                    <em style="color: oklch(from var(--accent) l c h / 1)"
+                                        >✨ 移除光暈旋轉，使用統一的邊框漣漪</em
+                                    >
+                                </p>
+                            </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- SoundWaveLoader Section -->
+            <!-- Phase 3: Frosted Glass Cards -->
             <section class="section">
-                <h2 class="section-title">SoundWaveLoader（保留）</h2>
-                <p class="section-description">Y2K 風格的脈衝光暈載入特效，效果優秀保留</p>
+                <h2 class="section-title">Phase 3: 霜化玻璃 + 擴散陰影</h2>
+                <p class="section-description">
+                    無邊框、超強模糊、柔和擴散陰影，保持雲朵浮空感但不會太誇張
+                </p>
 
-                <div class="loader-container">
-                    <div class="sound-wave-loader">
-                        <div class="sound-wave-loader__glow sound-wave-loader__glow--primary"></div>
-                        <div
-                            class="sound-wave-loader__glow sound-wave-loader__glow--secondary"
-                        ></div>
+                <div class="component-grid">
+                    <div class="glass-card">
+                        <h3 style="margin-bottom: 0.5rem; font-size: 1.25rem">霜化玻璃卡片</h3>
+                        <p style="opacity: 0.8; margin-bottom: 1rem">
+                            blur(30px) + 無邊框 + 3 層擴散陰影(最大 96px)<br />
+                            <em style="font-size: 0.875rem">這個元件保持原設計</em>
+                        </p>
+                        <ul style="padding-left: 1.5rem; opacity: 0.8">
+                            <li>Hover: 浮起 8px</li>
+                            <li>背景稍微變亮</li>
+                            <li>陰影擴散增強</li>
+                        </ul>
+                    </div>
+
+                    <div class="glass-card">
+                        <h3 style="margin-bottom: 0.5rem; font-size: 1.25rem">設計特點</h3>
+                        <p style="opacity: 0.8; margin-bottom: 0.5rem">
+                            • 無明顯邊框(opacity < 0.05)
+                        </p>
+                        <p style="opacity: 0.8; margin-bottom: 0.5rem">
+                            • 模糊效果增強(20px → 30px)
+                        </p>
+                        <p style="opacity: 0.8; margin-bottom: 0.5rem">
+                            • 陰影超柔和(最大模糊 96px)
+                        </p>
+                        <p style="opacity: 0.8">• 雲朵浮空感(Hover 浮起)</p>
                     </div>
                 </div>
             </section>
 
-            <!-- Ritual Colors Section -->
+            <!-- Phase 4: Bubble Cards -->
             <section class="section">
-                <h2 class="section-title">儀式色彩</h2>
-                <p class="section-description">道歉、慶祝、和好三種情緒儀式的專屬配色</p>
+                <h2 class="section-title">Phase 4: 訊息氣泡形狀（調整陰影）</h2>
+                <p class="section-description">
+                    非對稱圓角，模擬真實訊息氣泡的有機感。陰影範圍減半（96px →
+                    48px），更細緻的浮起效果
+                </p>
 
-                <div class="ritual-grid">
-                    <div class="ritual-card ritual-card--apology">
-                        <div class="ritual-icon">🙏</div>
-                        <div class="ritual-name">道歉儀式</div>
-                        <p style="opacity: 0.8">藍紫色調，誠摯溫和</p>
+                <div class="demo-card">
+                    <div class="demo-title">聊天氣泡範例</div>
+                    <div class="chat-demo">
+                        <!-- Receive -->
+                        <div class="bubble-card bubble-card--receive">
+                            <p style="margin-bottom: 0.25rem">哈囉! 你好嗎?</p>
+                            <p style="opacity: 0.6; font-size: 0.75rem">10:30 AM</p>
+                        </div>
+
+                        <!-- Send -->
+                        <div class="bubble-card bubble-card--send">
+                            <p style="margin-bottom: 0.25rem">很好啊! 今天天氣不錯</p>
+                            <p style="opacity: 0.8; font-size: 0.75rem; text-align: right">
+                                10:32 AM
+                            </p>
+                        </div>
+
+                        <!-- Receive -->
+                        <div class="bubble-card bubble-card--receive">
+                            <p style="margin-bottom: 0.25rem">是啊,我們要不要出去走走?</p>
+                            <p style="opacity: 0.6; font-size: 0.75rem">10:33 AM</p>
+                        </div>
+
+                        <!-- Typing Indicator -->
+                        <div style="max-width: 70%; margin-right: auto">
+                            <div class="typing-indicator">
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                                <div class="typing-dot"></div>
+                            </div>
+                        </div>
                     </div>
-                    <div class="ritual-card ritual-card--celebrate">
-                        <div class="ritual-icon">🎉</div>
-                        <div class="ritual-name">慶祝儀式</div>
-                        <p style="opacity: 0.8">金黃色調，喜悅歡欣</p>
+
+                    <div
+                        style="
+                            margin-top: 1.5rem;
+                            padding: 1rem;
+                            background: oklch(from var(--muted) l c h / 0.3);
+                            border-radius: 0.5rem;
+                        "
+                    >
+                        <p style="font-weight: 500; margin-bottom: 0.5rem">設計特點（已調整）:</p>
+                        <ul style="padding-left: 1.5rem; opacity: 0.8; font-size: 0.875rem">
+                            <li>非對稱圓角(模擬氣泡尾巴)</li>
+                            <li>Hover: 圓角變大(1.5rem → 1.8rem)</li>
+                            <li>Active: 輕微擠壓(scale 0.98)</li>
+                            <li>發送/接收兩種變體</li>
+                            <li>
+                                <strong>陰影範圍減半</strong>：靜態 48px（原 96px）、Hover 60px（原
+                                120px）
+                            </li>
+                            <li><strong>浮起高度不變</strong>：4px（更細緻的浮空感）</li>
+                        </ul>
                     </div>
-                    <div class="ritual-card ritual-card--reconcile">
-                        <div class="ritual-icon">💖</div>
-                        <div class="ritual-name">和好儀式</div>
-                        <p style="opacity: 0.8">粉紅色調，溫暖和諧</p>
-                    </div>
+                </div>
+            </section>
+
+            <!-- Summary -->
+            <section class="section">
+                <div class="glass-card">
+                    <h2 style="margin-bottom: 1rem">總結 - 設計交付檢查清單</h2>
+
+                    <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.125rem">
+                        ✅ 邊框漣漪（已優化）
+                    </h3>
+                    <ul style="padding-left: 1.5rem; opacity: 0.8; margin-bottom: 1rem">
+                        <li><strong>從邊框向外擴散</strong>（不是從中心，參考 Aceternity UI）</li>
+                        <li>
+                            Hover: 邊框漣漪 (inset: -2px → -12px, 600ms)
+                            <em style="color: oklch(from var(--accent) l c h / 1)">← 減少 40%</em>
+                        </li>
+                        <li>
+                            Click: 更強漣漪 (inset: -2px → -18px, 800ms)
+                            <em style="color: oklch(from var(--accent) l c h / 1)">← 減少 40%</em>
+                        </li>
+                        <li><strong>背景保持不變</strong>（無變化）</li>
+                        <li>漣漪伴隨 opacity 和 border-width 變化</li>
+                        <li><strong>更細緻的視覺回饋</strong>（不誇張但仍然明顯）</li>
+                    </ul>
+
+                    <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.125rem">
+                        ✅ 微互動（已統一）
+                    </h3>
+                    <ul style="padding-left: 1.5rem; opacity: 0.8; margin-bottom: 1rem">
+                        <li>打字指示器(3 點跳動 + 呼吸光暈)</li>
+                        <li>通話按鈕(聲波擴散 + 脈衝)</li>
+                        <li>
+                            頭像互動(邊框漣漪 + 輕微放大)
+                            <em style="color: oklch(from var(--accent) l c h / 1)"
+                                >← 統一使用邊框漣漪</em
+                            >
+                        </li>
+                        <li>支援 prefers-reduced-motion</li>
+                        <li><strong>統一的設計語言</strong>（所有元件使用相同的邊框漣漪效果）</li>
+                    </ul>
+
+                    <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.125rem">
+                        ✅ 霜化玻璃（保持原設計）
+                    </h3>
+                    <ul style="padding-left: 1.5rem; opacity: 0.8; margin-bottom: 1rem">
+                        <li>卡片無明顯邊框(opacity < 0.05)</li>
+                        <li>模糊效果增強(blur 30px)</li>
+                        <li>擴散陰影超柔和(最大模糊 96px)</li>
+                        <li>Hover 浮起效果流暢(雲朵感)</li>
+                        <li>此元件保持原設計，不調整陰影</li>
+                    </ul>
+
+                    <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.125rem">
+                        ✅ 訊息氣泡（已調整陰影）
+                    </h3>
+                    <ul style="padding-left: 1.5rem; opacity: 0.8">
+                        <li>非對稱圓角(模擬氣泡尾巴)</li>
+                        <li>Hover 圓角變大</li>
+                        <li>Active 輕微擠壓(scale 0.98)</li>
+                        <li>提供發送/接收兩種變體</li>
+                        <li>
+                            <strong>陰影範圍減半</strong>：靜態 48px（原 96px）、Hover 60px（原
+                            120px）
+                        </li>
+                        <li><strong>浮起高度不變</strong>：4px（保持細緻浮空感）</li>
+                        <li>仍然保持柔和擴散感與深度</li>
+                    </ul>
                 </div>
             </section>
 
@@ -658,14 +807,18 @@
                 style="
                     margin-top: 4rem;
                     padding-top: 2rem;
-                    border-top: 1px solid var(--border);
+                    border-top: 1px solid oklch(1 0 0 / 0.05);
                     text-align: center;
                     opacity: 0.7;
                 "
             >
-                <p>Ping UI/UX Design Preview - Feature 1.2.0 Stage 1</p>
+                <p>Ping UI/UX Design Preview - Enhanced with Micro-Interactions</p>
                 <p style="font-size: 0.875rem; margin-top: 0.5rem">
-                    使用 OKLCH 色彩空間 + Noto Sans/Serif TC 字型
+                    邊框漣漪 + 微互動 + 霜化玻璃 + 訊息氣泡（調整版）= 有溫度的儀式
+                </p>
+                <p style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6">
+                    ✨ 最新更新：漣漪範圍減少 40% | 頭像改用邊框漣漪 | 統一設計語言 | 參考
+                    Aceternity UI
                 </p>
             </footer>
         </div>

@@ -1,0 +1,182 @@
+/**
+ * Bubble Card - Message Bubble Shapes
+ *
+ * Design features:
+ * - Asymmetric rounded corners (bubble-like shape)
+ * - Hover: corners expand
+ * - Active: slight squeeze effect
+ * - Frosted glass background
+ * - Diffusion shadow
+ */
+
+@layer components {
+    /* Base bubble card */
+    .bubble-card {
+        /* Enhanced Glassmorphism (Frosted Glass) */
+        background: oklch(from var(--card) l c h / 0.5);
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+
+        /* No border or extremely subtle border */
+        border: none;
+
+        /* Asymmetric rounded corners (organic feel) */
+        border-radius: 1.5rem 1.2rem 1.5rem 1.2rem;
+
+        /* Diffusion shadow (reduced blur range) */
+        box-shadow:
+            0 4px 16px oklch(0 0 0 / 0.06),
+            0 8px 32px oklch(0 0 0 / 0.1),
+            0 12px 48px oklch(0 0 0 / 0.12);
+
+        /* Layout */
+        padding: 1.5rem;
+
+        /* Smooth animation */
+        transition:
+            transform 150ms cubic-bezier(0.68, -0.55, 0.265, 1.55),
+            border-radius 150ms ease-out,
+            box-shadow 300ms ease-out,
+            background 300ms ease-out;
+    }
+
+    .bubble-card:hover {
+        /* Corners expand */
+        border-radius: 1.8rem 1.5rem 1.8rem 1.5rem;
+
+        /* Cloud floating effect (reduced lift) */
+        transform: translateY(-4px);
+
+        /* Enhanced diffusion shadow (reduced blur range) */
+        box-shadow:
+            0 6px 20px oklch(0 0 0 / 0.08),
+            0 12px 40px oklch(0 0 0 / 0.12),
+            0 18px 60px oklch(0 0 0 / 0.15);
+
+        /* Slightly brighter */
+        background: oklch(from var(--card) calc(l + 0.02) c h / 0.6);
+    }
+
+    .bubble-card:active {
+        /* Bubble squeeze effect */
+        transform: translateY(-2px) scale(0.98);
+        border-radius: 1.2rem 1rem 1.2rem 1rem;
+
+        /* Shadow slightly reduced */
+        box-shadow:
+            0 3px 12px oklch(0 0 0 / 0.06),
+            0 6px 24px oklch(0 0 0 / 0.1),
+            0 9px 36px oklch(0 0 0 / 0.12);
+    }
+
+    /* ============================================
+       Variant: Send Message Bubble (Right Side)
+       ============================================ */
+    .bubble-card--send {
+        /* Asymmetric corners: small bottom-right (tail) */
+        border-radius: 1.5rem 1.5rem 0.5rem 1.5rem;
+
+        /* Primary color background */
+        background: oklch(from var(--primary) l c h / 0.15);
+
+        /* Align to right */
+        margin-left: auto;
+        max-width: 70%;
+    }
+
+    .bubble-card--send:hover {
+        border-radius: 1.8rem 1.8rem 0.8rem 1.8rem;
+    }
+
+    .bubble-card--send:active {
+        border-radius: 1.2rem 1.2rem 0.4rem 1.2rem;
+    }
+
+    /* ============================================
+       Variant: Receive Message Bubble (Left Side)
+       ============================================ */
+    .bubble-card--receive {
+        /* Asymmetric corners: small bottom-left (tail) */
+        border-radius: 1.5rem 1.5rem 1.5rem 0.5rem;
+
+        /* Card background */
+        background: oklch(from var(--card) l c h / 0.5);
+
+        /* Align to left */
+        margin-right: auto;
+        max-width: 70%;
+    }
+
+    .bubble-card--receive:hover {
+        border-radius: 1.8rem 1.8rem 1.8rem 0.8rem;
+    }
+
+    .bubble-card--receive:active {
+        border-radius: 1.2rem 1.2rem 1.2rem 0.4rem;
+    }
+
+    /* ============================================
+       Size Variants
+       ============================================ */
+    .bubble-card--compact {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+    }
+
+    .bubble-card--spacious {
+        padding: 2rem;
+        font-size: 1rem;
+    }
+
+    /* ============================================
+       Interactive States
+       ============================================ */
+    .bubble-card--interactive {
+        cursor: pointer;
+    }
+
+    .bubble-card--interactive:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+    }
+
+    /* ============================================
+       Accessibility: Reduced Motion
+       ============================================ */
+    @media (prefers-reduced-motion: reduce) {
+        .bubble-card {
+            transition:
+                background 200ms ease,
+                box-shadow 200ms ease;
+        }
+
+        .bubble-card:hover,
+        .bubble-card:active {
+            transform: none;
+            border-radius: 1.5rem 1.2rem 1.5rem 1.2rem;
+        }
+
+        .bubble-card--send:hover,
+        .bubble-card--send:active {
+            border-radius: 1.5rem 1.5rem 0.5rem 1.5rem;
+        }
+
+        .bubble-card--receive:hover,
+        .bubble-card--receive:active {
+            border-radius: 1.5rem 1.5rem 1.5rem 0.5rem;
+        }
+    }
+}
+
+/* Safari support check */
+@supports not (backdrop-filter: blur(30px)) {
+    .bubble-card {
+        background: var(--card);
+        border: 1px solid var(--border);
+    }
+
+    .bubble-card--send {
+        background: var(--primary);
+        color: var(--primary-foreground);
+    }
+}

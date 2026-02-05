@@ -1,0 +1,112 @@
+/**
+ * Glass Input - macOS Glassmorphism
+ *
+ * Design features:
+ * - Semi-transparent background + backdrop-filter blur
+ * - 1px semi-transparent border
+ * - Focus state with primary color glow
+ * - Low opacity placeholder (50%)
+ * - Smooth transitions
+ */
+
+@layer components {
+    /* Base glass input - Frosted Glass */
+    .glass-input {
+        /* Enhanced Glassmorphism (Frosted Glass) */
+        background: oklch(from var(--card) l c h / 0.4);
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+
+        /* Extremely subtle border */
+        border: 1px solid oklch(1 0 0 / 0.05);
+        border-radius: var(--radius);
+
+        /* Soft inset shadow */
+        box-shadow: inset 0 2px 4px oklch(0 0 0 / 0.03);
+
+        /* Typography */
+        color: var(--foreground);
+        font-family: inherit;
+        font-size: 0.875rem;
+
+        /* Layout */
+        padding: 0.75rem 1rem;
+        width: 100%;
+
+        /* Smooth animation */
+        transition: all 200ms ease-out;
+    }
+
+    .glass-input:focus {
+        background: oklch(from var(--card) l c h / 0.7);
+        border-color: var(--primary);
+        box-shadow:
+            0 0 0 3px oklch(from var(--primary) l c h / 0.15),
+            inset 0 1px 2px oklch(0 0 0 / 0.05);
+        outline: none;
+    }
+
+    .glass-input::placeholder {
+        color: var(--muted-foreground);
+        opacity: 0.5;
+    }
+
+    .glass-input:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+    /* Textarea variant */
+    .glass-textarea {
+        @apply glass-input;
+        resize: vertical;
+        min-height: 5rem;
+    }
+
+    /* Search variant (with icon) */
+    .glass-input--search {
+        @apply glass-input;
+        padding-left: 2.5rem;
+    }
+
+    /* Error state */
+    .glass-input--error {
+        border-color: var(--destructive);
+    }
+
+    .glass-input--error:focus {
+        box-shadow:
+            0 0 0 3px oklch(from var(--destructive) l c h / 0.15),
+            inset 0 1px 2px oklch(0 0 0 / 0.05);
+    }
+
+    /* Success state */
+    .glass-input--success {
+        border-color: var(--accent);
+    }
+
+    .glass-input--success:focus {
+        box-shadow:
+            0 0 0 3px oklch(from var(--accent) l c h / 0.15),
+            inset 0 1px 2px oklch(0 0 0 / 0.05);
+    }
+
+    /* Size variants */
+    .glass-input--sm {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.8125rem;
+    }
+
+    .glass-input--lg {
+        padding: 1rem 1.25rem;
+        font-size: 1rem;
+    }
+}
+
+/* Safari support check */
+@supports not (backdrop-filter: blur(20px)) {
+    .glass-input {
+        background: var(--background);
+        border-color: var(--border);
+    }
+}

@@ -173,6 +173,62 @@
         background: oklch(from var(--card) l c h / 0.7);
     }
 
+    /* OAuth Variants - Google, GitHub, Apple */
+    .glass-button--google {
+        background: oklch(from var(--glow-primary) l c h / 0.08);
+        border: 2px solid oklch(from var(--glow-primary) l c h / 0.6);
+        color: var(--foreground);
+    }
+
+    .glass-button--google:hover:not(:disabled) {
+        background: oklch(from var(--glow-primary) l c h / 0.15);
+        border-color: var(--glow-primary);
+        box-shadow:
+            0 6px 16px oklch(from var(--glow-primary) l c h / 0.3),
+            0 12px 32px oklch(from var(--glow-primary) l c h / 0.2);
+    }
+
+    .glass-button--google::after {
+        border-color: var(--glow-primary);
+    }
+
+    .glass-button--github {
+        background: oklch(from var(--glow-secondary) l c h / 0.08);
+        border: 2px solid oklch(from var(--glow-secondary) l c h / 0.6);
+        color: var(--foreground);
+    }
+
+    .glass-button--github:hover:not(:disabled) {
+        background: oklch(from var(--glow-secondary) l c h / 0.15);
+        border-color: var(--glow-secondary);
+        box-shadow:
+            0 6px 16px oklch(from var(--glow-secondary) l c h / 0.3),
+            0 12px 32px oklch(from var(--glow-secondary) l c h / 0.2);
+    }
+
+    .glass-button--github::after {
+        border-color: var(--glow-secondary);
+    }
+
+    .glass-button--apple {
+        /* Higher contrast: use foreground with alpha for visibility */
+        background: oklch(from var(--foreground) l c h / 0.08);
+        border: 2px solid oklch(from var(--foreground) l c h / 0.35);
+        color: var(--foreground);
+    }
+
+    .glass-button--apple:hover:not(:disabled) {
+        background: oklch(from var(--foreground) l c h / 0.15);
+        border-color: oklch(from var(--foreground) l c h / 0.5);
+        box-shadow:
+            0 6px 16px oklch(from var(--foreground) l c h / 0.2),
+            0 12px 32px oklch(from var(--foreground) l c h / 0.15);
+    }
+
+    .glass-button--apple::after {
+        border-color: var(--foreground);
+    }
+
     /* Size variants */
     .glass-button--sm {
         padding: 0.5rem 1rem;

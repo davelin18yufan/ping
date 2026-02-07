@@ -7,6 +7,8 @@ import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 
 import type { AuthSession } from "@/lib/auth"
 
+import SimpleHeader from "@/components/shared/SimpleHeader"
+
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools"
 import StoreDevtools from "../lib/demo-store-devtools"
 import appCss from "../styles.css?url"
@@ -48,7 +50,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                 <HeadContent />
             </head>
             <body>
-                {/* <Header /> */}
+                <SimpleHeader />
                 {children}
                 <TanStackDevtools
                     config={{

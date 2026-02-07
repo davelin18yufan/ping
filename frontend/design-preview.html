@@ -734,6 +734,82 @@
                 </div>
             </section>
 
+            <!-- Phase 5: Motion Animation System (NEW) -->
+            <section class="section">
+                <h2 class="section-title">Phase 5: Motion 動畫系統（NEW - Stage 2）</h2>
+                <p class="section-description">
+                    使用 Motion (formerly Framer Motion) + View Transition API
+                    實現流暢路由切換與元件動畫
+                </p>
+
+                <div class="component-grid">
+                    <div class="demo-card">
+                        <div class="demo-title">View Transition API</div>
+                        <p style="opacity: 0.8; margin-bottom: 1rem">
+                            路由切換動畫已啟用，使用原生 View Transition API
+                        </p>
+                        <ul style="padding-left: 1.5rem; opacity: 0.8; font-size: 0.875rem">
+                            <li>Duration: 300ms</li>
+                            <li>Easing: Y2K bouncy cubic-bezier(0.68, -0.55, 0.265, 1.55)</li>
+                            <li>Exit: Slide out left + fade</li>
+                            <li>Enter: Slide in from right + fade</li>
+                            <li>支援 prefers-reduced-motion (0.01ms 瞬間切換)</li>
+                        </ul>
+                    </div>
+
+                    <div class="demo-card">
+                        <div class="demo-title">Motion AnimatedCard Component</div>
+                        <p style="opacity: 0.8; margin-bottom: 1rem">
+                            可重複使用的動畫卡片元件（React）
+                        </p>
+                        <ul style="padding-left: 1.5rem; opacity: 0.8; font-size: 0.875rem">
+                            <li>Enter: fade + slide up + scale (95% → 100%)</li>
+                            <li>Exit: fade + slide up + scale down</li>
+                            <li>支援自訂 delay, duration, easing</li>
+                            <li>支援自訂 variants</li>
+                            <li>包含 AnimatedCardList (stagger 動畫)</li>
+                        </ul>
+                        <pre
+                            style="
+                                background: oklch(from var(--muted) l c h / 0.3);
+                                padding: 1rem;
+                                border-radius: 0.5rem;
+                                margin-top: 1rem;
+                                font-size: 0.75rem;
+                                overflow-x: auto;
+                            "
+                        >
+&lt;AnimatedCard delay={0.1}&gt;
+  &lt;h2&gt;Welcome&lt;/h2&gt;
+  &lt;p&gt;This card animates smoothly&lt;/p&gt;
+&lt;/AnimatedCard&gt;</pre
+                        >
+                    </div>
+                </div>
+
+                <div class="demo-card" style="margin-top: 2rem">
+                    <div class="demo-title">技術實作細節</div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem">
+                        <div>
+                            <h4 style="margin-bottom: 0.5rem; font-weight: 600">已安裝套件</h4>
+                            <ul style="padding-left: 1.5rem; opacity: 0.8; font-size: 0.875rem">
+                                <li>✅ motion (Web - 取代 framer-motion)</li>
+                                <li>✅ react-native-reanimated (Mobile)</li>
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 style="margin-bottom: 0.5rem; font-weight: 600">已實作檔案</h4>
+                            <ul style="padding-left: 1.5rem; opacity: 0.8; font-size: 0.875rem">
+                                <li>✅ /frontend/src/router.tsx (View Transition 已啟用)</li>
+                                <li>✅ /frontend/src/styles/animations/view-transitions.css</li>
+                                <li>✅ /frontend/src/components/ui/animated-card.tsx</li>
+                                <li>✅ /frontend/src/styles.css (已匯入)</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             <!-- Summary -->
             <section class="section">
                 <div class="glass-card">
@@ -787,7 +863,7 @@
                     <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.125rem">
                         ✅ 訊息氣泡（已調整陰影）
                     </h3>
-                    <ul style="padding-left: 1.5rem; opacity: 0.8">
+                    <ul style="padding-left: 1.5rem; opacity: 0.8; margin-bottom: 1rem">
                         <li>非對稱圓角(模擬氣泡尾巴)</li>
                         <li>Hover 圓角變大</li>
                         <li>Active 輕微擠壓(scale 0.98)</li>
@@ -798,6 +874,22 @@
                         </li>
                         <li><strong>浮起高度不變</strong>：4px（保持細緻浮空感）</li>
                         <li>仍然保持柔和擴散感與深度</li>
+                    </ul>
+
+                    <h3 style="margin-top: 1.5rem; margin-bottom: 0.75rem; font-size: 1.125rem">
+                        ✅ Motion 動畫系統（Stage 2 NEW）
+                    </h3>
+                    <ul style="padding-left: 1.5rem; opacity: 0.8">
+                        <li>✅ <strong>motion</strong> 套件已安裝（Web，取代 framer-motion）</li>
+                        <li>✅ <strong>react-native-reanimated</strong> 套件已安裝（Mobile）</li>
+                        <li>✅ TanStack Router <strong>View Transition API</strong> 已啟用</li>
+                        <li>✅ CSS View Transition 動畫已實作（view-transitions.css）</li>
+                        <li>✅ AnimatedCard 元件已建立（支援 enter/exit 動畫）</li>
+                        <li>✅ AnimatedCardList 元件已建立（支援 stagger 動畫）</li>
+                        <li>✅ Y2K bouncy easing 保留（cubic-bezier(0.68, -0.55, 0.265, 1.55)）</li>
+                        <li>✅ Reduced Motion 支援（所有動畫 0.01ms 瞬間完成）</li>
+                        <li>✅ oxlint 檢查通過（0 warnings, 0 errors）</li>
+                        <li>✅ TypeScript 編譯無錯誤</li>
                     </ul>
                 </div>
             </section>
@@ -812,13 +904,13 @@
                     opacity: 0.7;
                 "
             >
-                <p>Ping UI/UX Design Preview - Enhanced with Micro-Interactions</p>
+                <p>Ping UI/UX Design Preview - Enhanced with Motion Animation System</p>
                 <p style="font-size: 0.875rem; margin-top: 0.5rem">
-                    邊框漣漪 + 微互動 + 霜化玻璃 + 訊息氣泡（調整版）= 有溫度的儀式
+                    邊框漣漪 + 微互動 + 霜化玻璃 + 訊息氣泡 + Motion 動畫 = 有溫度的儀式
                 </p>
                 <p style="font-size: 0.75rem; margin-top: 0.5rem; opacity: 0.6">
-                    ✨ 最新更新：漣漪範圍減少 40% | 頭像改用邊框漣漪 | 統一設計語言 | 參考
-                    Aceternity UI
+                    ✨ Stage 2 完成：Motion 套件 | View Transition API | AnimatedCard 元件 | CSS
+                    動畫系統
                 </p>
             </footer>
         </div>

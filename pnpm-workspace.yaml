@@ -9,6 +9,4 @@ ignoredBuiltDependencies:
   - prisma
   - sharp
   - workerd
-
-onlyBuiltDependencies:
   - esbuild

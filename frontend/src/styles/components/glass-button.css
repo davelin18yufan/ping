@@ -1,0 +1,258 @@
+/**
+ * Glass Button - macOS Glassmorphism
+ *
+ * Design features:
+ * - Semi-transparent background + backdrop-filter blur
+ * - Gradient border (lighter top, darker bottom)
+ * - Soft shadow with subtle highlight
+ * - Smooth hover with scale
+ * - Active state with slight compression
+ *
+ * Communication theme variants:
+ * - Send message: primary blue, paper plane icon
+ * - Voice call: accent green, phone icon
+ * - Video call: accent green, camera icon
+ */
+
+@layer components {
+    /* Base glass button - Frosted Glass */
+    .glass-button {
+        /* Enhanced Glassmorphism (Frosted Glass) */
+        background: var(--glass-background);
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+
+        /* No border or extremely subtle border */
+        border: none;
+        border-radius: var(--radius);
+
+        /* Diffusion shadow (softer) */
+        box-shadow:
+            0 4px 16px oklch(0 0 0 / 0.08),
+            0 8px 32px oklch(0 0 0 / 0.12);
+
+        /* Typography */
+        color: var(--foreground);
+        font-family: inherit;
+        font-size: 0.875rem;
+        font-weight: 500;
+
+        /* Layout */
+        padding: 0.75rem 1.5rem;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        cursor: pointer;
+
+        /* Smooth animation */
+        transition: all 200ms ease-out;
+    }
+
+    .glass-button {
+        position: relative;
+        overflow: visible;
+    }
+
+    .glass-button:hover {
+        transform: translateY(-2px) scale(1.02);
+
+        /* Enhanced diffusion shadow */
+        box-shadow:
+            0 6px 20px oklch(0 0 0 / 0.1),
+            0 12px 40px oklch(0 0 0 / 0.15);
+    }
+
+    /* Border ripple effect layer - expands outward from border */
+    .glass-button::after {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        border-radius: inherit;
+        background: transparent;
+        border: 2px solid oklch(from var(--primary) l c h / 0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: none;
+    }
+
+    .glass-button:hover::after {
+        animation: border-ripple-expand 600ms ease-out;
+    }
+
+    @keyframes border-ripple-expand {
+        0% {
+            inset: -2px;
+            opacity: 0.6;
+            border-width: 2px;
+        }
+        100% {
+            inset: -12px;
+            opacity: 0;
+            border-width: 1px;
+        }
+    }
+
+    .glass-button:active {
+        transform: scale(0.98);
+        box-shadow:
+            0 1px 4px oklch(0 0 0 / 0.1),
+            inset 0 2px 4px oklch(0 0 0 / 0.1);
+    }
+
+    .glass-button:active::after {
+        animation: border-ripple-click 800ms ease-out;
+    }
+
+    @keyframes border-ripple-click {
+        0% {
+            inset: -2px;
+            opacity: 0.8;
+            border-width: 3px;
+        }
+        100% {
+            inset: -18px;
+            opacity: 0;
+            border-width: 0.5px;
+        }
+    }
+
+    .glass-button:focus-visible {
+        outline: none;
+        box-shadow:
+            0 0 0 3px oklch(from var(--ring) l c h / 0.3),
+            0 2px 8px oklch(0 0 0 / 0.1),
+            inset 0 1px 0 oklch(1 0 0 / 0.1);
+    }
+
+    .glass-button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+        transform: none;
+    }
+
+    /* Variant: Send Message (Primary Blue) */
+    .glass-button--send {
+        background: oklch(from var(--primary) l c h / 0.15);
+        border-color: oklch(from var(--primary) l c h / 0.3);
+        color: var(--primary-foreground);
+    }
+
+    .glass-button--send:hover {
+        background: oklch(from var(--primary) l c h / 0.25);
+        box-shadow:
+            0 4px 12px oklch(from var(--primary) l c h / 0.3),
+            inset 0 1px 0 oklch(1 0 0 / 0.15);
+    }
+
+    /* Variant: Voice/Video Call (Accent Green) */
+    .glass-button--call {
+        background: oklch(from var(--accent) l c h / 0.15);
+        border-color: oklch(from var(--accent) l c h / 0.3);
+        color: var(--accent-foreground);
+        border-radius: 50%;
+        width: 3rem;
+        height: 3rem;
+        padding: 0;
+    }
+
+    .glass-button--call:hover {
+        background: oklch(from var(--accent) l c h / 0.25);
+        box-shadow:
+            0 4px 12px oklch(from var(--accent) l c h / 0.3),
+            inset 0 1px 0 oklch(1 0 0 / 0.15);
+    }
+
+    /* Variant: Secondary (Muted) */
+    .glass-button--secondary {
+        background: oklch(from var(--card) l c h / 0.5);
+        border-color: oklch(from var(--border) l c h / 0.3);
+    }
+
+    .glass-button--secondary:hover {
+        background: oklch(from var(--card) l c h / 0.7);
+    }
+
+    /* OAuth Variants - Google, GitHub, Apple */
+    .glass-button--google {
+        background: oklch(from var(--glow-primary) l c h / 0.08);
+        border: 2px solid oklch(from var(--glow-primary) l c h / 0.6);
+        color: var(--foreground);
+    }
+
+    .glass-button--google:hover:not(:disabled) {
+        background: oklch(from var(--glow-primary) l c h / 0.15);
+        border-color: var(--glow-primary);
+        box-shadow:
+            0 6px 16px oklch(from var(--glow-primary) l c h / 0.3),
+            0 12px 32px oklch(from var(--glow-primary) l c h / 0.2);
+    }
+
+    .glass-button--google::after {
+        border-color: var(--glow-primary);
+    }
+
+    .glass-button--github {
+        background: oklch(from var(--glow-secondary) l c h / 0.08);
+        border: 2px solid oklch(from var(--glow-secondary) l c h / 0.6);
+        color: var(--foreground);
+    }
+
+    .glass-button--github:hover:not(:disabled) {
+        background: oklch(from var(--glow-secondary) l c h / 0.15);
+        border-color: var(--glow-secondary);
+        box-shadow:
+            0 6px 16px oklch(from var(--glow-secondary) l c h / 0.3),
+            0 12px 32px oklch(from var(--glow-secondary) l c h / 0.2);
+    }
+
+    .glass-button--github::after {
+        border-color: var(--glow-secondary);
+    }
+
+    .glass-button--apple {
+        /* Higher contrast: use foreground with alpha for visibility */
+        background: oklch(from var(--foreground) l c h / 0.08);
+        border: 2px solid oklch(from var(--foreground) l c h / 0.35);
+        color: var(--foreground);
+    }
+
+    .glass-button--apple:hover:not(:disabled) {
+        background: oklch(from var(--foreground) l c h / 0.15);
+        border-color: oklch(from var(--foreground) l c h / 0.5);
+        box-shadow:
+            0 6px 16px oklch(from var(--foreground) l c h / 0.2),
+            0 12px 32px oklch(from var(--foreground) l c h / 0.15);
+    }
+
+    .glass-button--apple::after {
+        border-color: var(--foreground);
+    }
+
+    /* Size variants */
+    .glass-button--sm {
+        padding: 0.5rem 1rem;
+        font-size: 0.8125rem;
+    }
+
+    .glass-button--lg {
+        padding: 1rem 2rem;
+        font-size: 1rem;
+    }
+
+    /* Icon-only variant */
+    .glass-button--icon {
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0;
+        border-radius: 50%;
+    }
+}
+
+/* Safari support check */
+@supports not (backdrop-filter: blur(20px)) {
+    .glass-button {
+        background: var(--card);
+        border-color: var(--border);
+    }
+}

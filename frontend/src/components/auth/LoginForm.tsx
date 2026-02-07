@@ -12,9 +12,10 @@
 import {} from "lucide-react"
 import { TriangleAlert } from "lucide-react"
 
-import "@/styles/login-form.css"
+import "@/styles/components/glass-button.css"
 import { ReactNode, useState } from "react"
 
+import { StaggeredList } from "@/components/ui/animated-card"
 import { signIn } from "@/lib/auth-client"
 import { cn } from "@/lib/utils"
 
@@ -67,7 +68,12 @@ const SoundWaveLoader = ({
     provider: "google" | "github" | "apple"
     children: ReactNode
 }) => (
-    <div className="sound-wave-container" aria-label="Loading authentication">
+    <div
+        className="sound-wave-container"
+        role="status"
+        aria-live="polite"
+        aria-label={`Loading ${provider} authentication`}
+    >
         <div className={`sound-wave sound-wave-${provider}`} />
         <div className={`sound-wave sound-wave-${provider}`} />
         <div className={`sound-wave sound-wave-${provider}`} />
@@ -112,11 +118,17 @@ export function LoginForm({ onSuccess, onError }: LoginFormProps) {
                 </div>
             )}
 
-            <div className="oauth-buttons">
+            <StaggeredList
+                className="oauth-buttons"
+                staggerDelay={0.1}
+                baseDelay={1.2}
+                variant="container"
+                spring="bouncy"
+            >
                 <button
                     onClick={() => handleOAuthLogin("google")}
                     disabled={loading !== null}
-                    className={cn("oauth-btn google", loading === null && "gap-4")}
+                    className={cn("glass-button glass-button--google", loading === null && "gap-4")}
                     aria-label="使用 Google 登入"
                     type="button"
                 >
@@ -133,12 +145,12 @@ export function LoginForm({ onSuccess, onError }: LoginFormProps) {
                 <button
                     onClick={() => handleOAuthLogin("github")}
                     disabled={loading !== null}
-                    className={cn("oauth-btn github", loading === null && "gap-4")}
+                    className={cn("glass-button glass-button--github", loading === null && "gap-4")}
                     aria-label="使用 GitHub 登入"
                     type="button"
                 >
                     {loading === "github" ? (
-                        <SoundWaveLoader provider="google">
+                        <SoundWaveLoader provider="github">
                             <span className="text-center text-nowrap ">Connecting...</span>
                         </SoundWaveLoader>
                     ) : (
@@ -150,12 +162,12 @@ export function LoginForm({ onSuccess, onError }: LoginFormProps) {
                 <button
                     onClick={() => handleOAuthLogin("apple")}
                     disabled={loading !== null}
-                    className={cn("oauth-btn apple", loading === null && "gap-4")}
+                    className={cn("glass-button glass-button--apple", loading === null && "gap-4")}
                     aria-label="使用 Apple 登入"
                     type="button"
                 >
                     {loading === "apple" ? (
-                        <SoundWaveLoader provider="google">
+                        <SoundWaveLoader provider="apple">
                             <span className="text-center text-nowrap ">Connecting...</span>
                         </SoundWaveLoader>
                     ) : (
@@ -163,7 +175,7 @@ export function LoginForm({ onSuccess, onError }: LoginFormProps) {
                     )}
                     <span>{loading !== "apple" && "Continue with Apple"}</span>
                 </button>
-            </div>
+            </StaggeredList>
         </div>
     )
 }

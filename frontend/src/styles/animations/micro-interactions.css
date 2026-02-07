@@ -1,0 +1,269 @@
+/**
+ * Micro-Interactions Animation Library
+ *
+ * Core micro-animations for Ping's ritual-first design philosophy.
+ * All animations respect prefers-reduced-motion.
+ */
+
+@layer animations {
+    /* ============================================
+       A. Send Message Animation
+       ============================================ */
+    .micro-send-message {
+        animation: send-message-fly 600ms cubic-bezier(0.68, -0.55, 0.265, 1.55) forwards;
+    }
+
+    @keyframes send-message-fly {
+        0% {
+            transform: scale(1) translateX(0);
+            opacity: 1;
+        }
+        50% {
+            transform: scale(0.8) translateX(20px) translateY(-10px) rotate(15deg);
+            opacity: 0.8;
+        }
+        100% {
+            transform: scale(0.3) translateX(100px) translateY(-30px) rotate(45deg);
+            opacity: 0;
+        }
+    }
+
+    /* ============================================
+       B. Receive Message Animation
+       ============================================ */
+    .micro-receive-message {
+        animation: receive-message-slide 400ms cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+    }
+
+    @keyframes receive-message-slide {
+        0% {
+            transform: translateY(20px) scale(0.95);
+            opacity: 0;
+        }
+        60% {
+            transform: translateY(-2px) scale(1.02);
+            opacity: 1;
+        }
+        100% {
+            transform: translateY(0) scale(1);
+            opacity: 1;
+        }
+    }
+
+    /* Message glow pulse (2 times) */
+    .micro-receive-glow {
+        animation: receive-glow-pulse 800ms ease-out;
+    }
+
+    @keyframes receive-glow-pulse {
+        0%,
+        100% {
+            box-shadow: 0 0 0 oklch(from var(--primary) l c h / 0);
+        }
+        25% {
+            box-shadow: 0 0 20px oklch(from var(--primary) l c h / 0.3);
+        }
+        50% {
+            box-shadow: 0 0 0 oklch(from var(--primary) l c h / 0);
+        }
+        75% {
+            box-shadow: 0 0 20px oklch(from var(--primary) l c h / 0.3);
+        }
+    }
+
+    /* ============================================
+       C. Typing Indicator Animation
+       ============================================ */
+    .micro-typing-indicator {
+        display: inline-flex;
+        gap: 0.25rem;
+    }
+
+    .micro-typing-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--muted-foreground);
+        animation: typing-wave 1.4s ease-in-out infinite;
+    }
+
+    .micro-typing-dot:nth-child(1) {
+        animation-delay: 0s;
+    }
+
+    .micro-typing-dot:nth-child(2) {
+        animation-delay: 0.2s;
+    }
+
+    .micro-typing-dot:nth-child(3) {
+        animation-delay: 0.4s;
+    }
+
+    @keyframes typing-wave {
+        0%,
+        60%,
+        100% {
+            transform: translateY(0);
+            opacity: 0.7;
+        }
+        30% {
+            transform: translateY(-8px);
+            opacity: 1;
+        }
+    }
+
+    /* Breathing glow around typing indicator */
+    .micro-typing-glow {
+        animation: typing-glow-pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes typing-glow-pulse {
+        0%,
+        100% {
+            box-shadow: 0 0 10px oklch(from var(--muted) l c h / 0.3);
+        }
+        50% {
+            box-shadow: 0 0 20px oklch(from var(--muted) l c h / 0.6);
+        }
+    }
+
+    /* ============================================
+       D. Call Button Animation
+       ============================================ */
+    .micro-call-hover {
+        position: relative;
+    }
+
+    .micro-call-hover::after {
+        content: "";
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        background: transparent;
+        border: 2px solid oklch(from var(--accent) l c h / 0.5);
+        animation: call-wave-expand 1.5s ease-out infinite;
+        pointer-events: none;
+    }
+
+    @keyframes call-wave-expand {
+        0% {
+            transform: scale(1);
+            opacity: 0.5;
+        }
+        100% {
+            transform: scale(2);
+            opacity: 0;
+        }
+    }
+
+    /* Call button pulse on click */
+    .micro-call-pulse {
+        animation: call-pulse 800ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    @keyframes call-pulse {
+        0% {
+            transform: scale(1);
+        }
+        50% {
+            transform: scale(1.2);
+        }
+        100% {
+            transform: scale(1);
+        }
+    }
+
+    /* ============================================
+       E. Avatar Interaction Animation
+       ============================================ */
+    .micro-avatar-hover {
+        position: relative;
+        overflow: visible;
+        transition: transform 150ms cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    }
+
+    /* Border ripple effect for avatar (consistent with button) */
+    .micro-avatar-hover::after {
+        content: "";
+        position: absolute;
+        inset: -2px;
+        border-radius: 50%;
+        background: transparent;
+        border: 2px solid oklch(from var(--primary) l c h / 0.5);
+        opacity: 0;
+        pointer-events: none;
+        transition: none;
+    }
+
+    .micro-avatar-hover:hover::after {
+        animation: avatar-border-ripple 600ms ease-out;
+    }
+
+    @keyframes avatar-border-ripple {
+        0% {
+            inset: -2px;
+            opacity: 0.6;
+            border-width: 2px;
+        }
+        100% {
+            inset: -12px;
+            opacity: 0;
+            border-width: 1px;
+        }
+    }
+
+    /* Avatar click: border ripple + slight scale */
+    .micro-avatar-hover:active {
+        transform: scale(1.05);
+    }
+
+    .micro-avatar-hover:active::after {
+        animation: avatar-border-ripple-click 800ms ease-out;
+    }
+
+    @keyframes avatar-border-ripple-click {
+        0% {
+            inset: -2px;
+            opacity: 0.8;
+            border-width: 3px;
+        }
+        100% {
+            inset: -18px;
+            opacity: 0;
+            border-width: 0.5px;
+        }
+    }
+
+    /* ============================================
+       Accessibility: Reduced Motion Support
+       ============================================ */
+    @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+            animation-duration: 0.01ms !important;
+            animation-iteration-count: 1 !important;
+            transition-duration: 0.01ms !important;
+        }
+
+        /* Disable ripple effects */
+        .glass-button::after,
+        .micro-call-hover::after,
+        .micro-avatar-hover::after {
+            display: none;
+        }
+
+        /* Disable transform animations */
+        .micro-send-message,
+        .micro-receive-message,
+        .micro-call-pulse {
+            animation: none;
+        }
+
+        /* Keep typing indicator functional but simplified */
+        .micro-typing-dot {
+            animation: none;
+            opacity: 0.7;
+        }
+    }
+}

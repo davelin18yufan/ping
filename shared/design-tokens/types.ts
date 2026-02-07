@@ -25,6 +25,9 @@ export interface ColorTokens {
     border: ColorToken
     input: ColorToken
     ring: ColorToken
+    glassBackground: ColorToken
+    glassBackgroundHover: ColorToken
+    glassBlur: ColorToken
     chart1: ColorToken
     chart2: ColorToken
     chart3: ColorToken

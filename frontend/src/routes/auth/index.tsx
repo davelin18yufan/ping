@@ -4,6 +4,7 @@
  * Features:
  * - Google/GitHub/Apple OAuth buttons
  * - Dark Mode glassmorphic design
+ * - Acoustic Field interactive background (sound wave theme)
  * - Route-level auth protection with beforeLoad
  * - Auto-redirect for logged-in users (no loading flicker)
  */
@@ -12,12 +13,15 @@ import { LoginForm } from "@components/auth/LoginForm"
 import { createFileRoute, useNavigate } from "@tanstack/react-router"
 import { LogIn } from "lucide-react"
 
+import { AcousticField } from "@/components/ui/acoustic-field"
+import { AnimatedCard } from "@/components/ui/animated-card"
 import { requireGuestServer } from "@/middleware/auth.middleware.server"
 import "@/styles/auth-login.css"
 
 export const Route = createFileRoute("/auth/")({
     // Redirect logged-in users to home (server-side protection)
     server: { middleware: [requireGuestServer] },
+    ssr: "data-only",
     // Validate search params for redirect URL
     validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
         return {
@@ -36,13 +40,12 @@ function LoginPage() {
 
     return (
         <div className="login-container">
-            {/* Ambient background */}
-            <div className="ambient-bg" />
+            {/* Acoustic Field - Interactive sound wave background */}
+            <AcousticField cols={30} rows={30} influenceRadius={120} maxScale={25} />
 
-            {/* Floating card */}
-            <div className="login-card">
+            {/* Animated floating card with depth & spring physics */}
+            <AnimatedCard className="login-card" variant="depth" spring="smooth" delay={0.8}>
                 <div className="logo-section">
-                    <div className="logo-glow" />
                     <LogIn className="logo-icon" size={48} strokeWidth={1.5} />
                     <h1 className="logo-text">Ping</h1>
                     <p className="tagline">Instant connection, lasting moments</p>
@@ -55,7 +58,7 @@ function LoginPage() {
                         })
                     }
                 />
-            </div>
+            </AnimatedCard>
         </div>
     )
 }

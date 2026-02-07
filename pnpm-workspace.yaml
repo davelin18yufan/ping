@@ -6,3 +6,7 @@ packages:
 
 ignoredBuiltDependencies:
   - msw
+  - prisma
+  - sharp
+  - workerd
+  - esbuild

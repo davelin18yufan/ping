@@ -1,0 +1,31 @@
+{
+  "name": "ping-monorepo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Ping - Modern instant messaging application",
+  "scripts": {
+    "dev:frontend": "pnpm --filter ping-web dev",
+    "dev:backend": "cd backend && bun run dev",
+    "dev:mobile": "pnpm --filter mobile dev",
+    "build:frontend": "pnpm --filter ping-web build",
+    "test": "pnpm --recursive test",
+    "lint": "pnpm --recursive lint",
+    "format": "pnpm --recursive format",
+    "typecheck": "pnpm --recursive typecheck"
+  },
+  "keywords": [
+    "messaging",
+    "instant-messaging",
+    "chat",
+    "monorepo"
+  ],
+  "author": "",
+  "license": "MIT",
+  "packageManager": "pnpm@10.28.2",
+  "pnpm": {
+    "overrides": {
+      "react": "19.2.4",
+      "react-dom": "19.2.4"
+    }
+  }
+}

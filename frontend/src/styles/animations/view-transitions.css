@@ -1,0 +1,262 @@
+/**
+ * Advanced View Transitions CSS
+ *
+ * Based on animation.md guidelines and UI/UX Pro Max best practices:
+ * - Container Transformation: Elements expand from origin
+ * - Depth & Zoom: Z-axis depth for spatial awareness
+ * - Spring Physics: Natural motion (implemented via Motion components)
+ * - Performance: GPU-accelerated (transform/opacity only)
+ * - Duration: 300-400ms for page transitions (UX guideline)
+ * - Easing: cubic-bezier(0.4, 0, 0.2, 1) - Material Design ease-out
+ */
+
+/* ============================================================================
+   BASE CONFIGURATION
+   ============================================================================ */
+
+::view-transition-old(root),
+::view-transition-new(root) {
+    /* Page transitions: 300-400ms (animation.md) */
+    animation-duration: 350ms;
+    /* Material Design ease-out for natural deceleration */
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* ============================================================================
+   CONTAINER TRANSFORMATION (Default)
+   Material Design 3 pattern - element expands from origin
+   ============================================================================ */
+
+::view-transition-old(root) {
+    animation-name: container-shrink;
+}
+
+::view-transition-new(root) {
+    animation-name: container-expand;
+}
+
+@keyframes container-shrink {
+    from {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+        filter: blur(0px);
+    }
+    to {
+        transform: scale(0.95) translateY(-10px);
+        opacity: 0;
+        filter: blur(2px);
+    }
+}
+
+@keyframes container-expand {
+    from {
+        transform: scale(0.92) translateY(20px);
+        opacity: 0;
+        filter: blur(4px);
+    }
+    to {
+        transform: scale(1) translateY(0);
+        opacity: 1;
+        filter: blur(0px);
+    }
+}
+
+/* ============================================================================
+   DEPTH & ZOOM (Z-axis spatial awareness)
+   Implements animation.md section 2
+   ============================================================================ */
+
+::view-transition-group(depth) {
+    animation-duration: 400ms;
+    animation-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+::view-transition-old(depth) {
+    animation-name: depth-zoom-out;
+}
+
+::view-transition-new(depth) {
+    animation-name: depth-zoom-in;
+}
+
+@keyframes depth-zoom-out {
+    from {
+        transform: scale(1) translateZ(0);
+        opacity: 1;
+        filter: blur(0px) brightness(1);
+    }
+    to {
+        transform: scale(1.1) translateZ(-100px);
+        opacity: 0;
+        filter: blur(8px) brightness(0.8);
+    }
+}
+
+@keyframes depth-zoom-in {
+    from {
+        transform: scale(0.85) translateZ(-100px);
+        opacity: 0;
+        filter: blur(8px) brightness(0.8);
+    }
+    to {
+        transform: scale(1) translateZ(0);
+        opacity: 1;
+        filter: blur(0px) brightness(1);
+    }
+}
+
+/* ============================================================================
+   HORIZONTAL SLIDE (Navigation direction awareness)
+   Forward = slide left to right, Back = slide right to left
+   ============================================================================ */
+
+::view-transition-group(slide-forward) {
+    animation-duration: 300ms;
+}
+
+::view-transition-old(slide-forward) {
+    animation-name: slide-out-left;
+}
+
+::view-transition-new(slide-forward) {
+    animation-name: slide-in-right;
+}
+
+::view-transition-group(slide-back) {
+    animation-duration: 300ms;
+}
+
+::view-transition-old(slide-back) {
+    animation-name: slide-out-right;
+}
+
+::view-transition-new(slide-back) {
+    animation-name: slide-in-left;
+}
+
+@keyframes slide-out-left {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(-100%);
+        opacity: 0.3;
+    }
+}
+
+@keyframes slide-in-right {
+    from {
+        transform: translateX(100%);
+        opacity: 0.3;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slide-out-right {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(100%);
+        opacity: 0.3;
+    }
+}
+
+@keyframes slide-in-left {
+    from {
+        transform: translateX(-100%);
+        opacity: 0.3;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* ============================================================================
+   FADE (Simple, minimal distraction)
+   Use for subtle transitions or when motion should be minimal
+   ============================================================================ */
+
+::view-transition-group(fade) {
+    animation-duration: 250ms;
+    animation-timing-function: ease-out;
+}
+
+::view-transition-old(fade) {
+    animation-name: fade-out;
+}
+
+::view-transition-new(fade) {
+    animation-name: fade-in;
+}
+
+@keyframes fade-out {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes fade-in {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+/* ============================================================================
+   REDUCED MOTION SUPPORT
+   Per UX guidelines: "Respect user's motion preferences"
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    ::view-transition-old(root),
+    ::view-transition-new(root),
+    ::view-transition-group(*) {
+        /* Instant transition, no motion */
+        animation-duration: 0.01ms !important;
+        animation-timing-function: linear !important;
+    }
+
+    /* Remove blur/transform effects for reduced motion */
+    ::view-transition-old(root),
+    ::view-transition-new(root) {
+        animation-name: fade-out, fade-in !important;
+        filter: none !important;
+        transform: none !important;
+    }
+}
+
+/* ============================================================================
+   PERFORMANCE OPTIMIZATIONS
+   ============================================================================ */
+
+/* Prevent white background flash during transitions */
+::view-transition-group(root) {
+    background-color: var(--background);
+}
+
+/* Force GPU acceleration for smooth animations */
+::view-transition-old(root),
+::view-transition-new(root) {
+    will-change: transform, opacity, filter;
+    backface-visibility: hidden;
+    perspective: 1000px;
+    background-color: var(--background);
+}
+
+/* Cleanup after animation completes */
+::view-transition-old(root):not(:active),
+::view-transition-new(root):not(:active) {
+    will-change: auto;
+}

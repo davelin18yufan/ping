@@ -58,14 +58,62 @@
 
     /* Textarea variant */
     .glass-textarea {
-        @apply glass-input;
+        /* Enhanced Glassmorphism (Frosted Glass) */
+        background: oklch(from var(--card) l c h / 0.4);
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+
+        /* Extremely subtle border */
+        border: 1px solid oklch(1 0 0 / 0.05);
+        border-radius: var(--radius);
+
+        /* Soft inset shadow */
+        box-shadow: inset 0 2px 4px oklch(0 0 0 / 0.03);
+
+        /* Typography */
+        color: var(--foreground);
+        font-family: inherit;
+        font-size: 0.875rem;
+
+        /* Layout */
+        padding: 0.75rem 1rem;
+        width: 100%;
+
+        /* Smooth animation */
+        transition: all 200ms ease-out;
+
+        /* Textarea specific */
         resize: vertical;
         min-height: 5rem;
     }
 
     /* Search variant (with icon) */
     .glass-input--search {
-        @apply glass-input;
+        /* Enhanced Glassmorphism (Frosted Glass) */
+        background: oklch(from var(--card) l c h / 0.4);
+        backdrop-filter: blur(30px) saturate(180%);
+        -webkit-backdrop-filter: blur(30px) saturate(180%);
+
+        /* Extremely subtle border */
+        border: 1px solid oklch(1 0 0 / 0.05);
+        border-radius: var(--radius);
+
+        /* Soft inset shadow */
+        box-shadow: inset 0 2px 4px oklch(0 0 0 / 0.03);
+
+        /* Typography */
+        color: var(--foreground);
+        font-family: inherit;
+        font-size: 0.875rem;
+
+        /* Layout */
+        padding: 0.75rem 1rem;
+        width: 100%;
+
+        /* Smooth animation */
+        transition: all 200ms ease-out;
+
+        /* Search specific */
         padding-left: 2.5rem;
     }
 

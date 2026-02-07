@@ -1,16 +1,22 @@
+/* Google Fonts - CJK Optimized */
+@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@300;400;500;600;700&display=swap");
 @import "tailwindcss";
 
 @import "tw-animate-css";
 
 /* Glass Components - macOS Glassmorphism */
-@import "./components/glass-button.css";
-@import "./components/glass-input.css";
-@import "./components/glass-card.css";
+@import "./styles/components/glass-button.css";
+@import "./styles/components/glass-input.css";
+@import "./styles/components/glass-card.css";
 
-/* Google Fonts - CJK Optimized */
-@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@300;400;500;600;700&display=swap");
+/* Animations - View Transitions & Motion */
+@import "./styles/animations/view-transitions.css";
 
 @custom-variant dark (&:is(.dark *));
+
+html {
+    background-color: var(--background);
+}
 
 body {
     @apply m-0;

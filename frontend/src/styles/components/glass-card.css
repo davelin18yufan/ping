@@ -99,14 +99,18 @@
     }
 
     .glass-card--message-own {
-        @apply glass-card--message;
+        padding: 0.75rem 1rem;
+        border-radius: 1rem;
+        max-width: 70%;
         background: oklch(from var(--primary) l c h / 0.15);
         border-color: oklch(from var(--primary) l c h / 0.3);
         margin-left: auto;
     }
 
     .glass-card--message-other {
-        @apply glass-card--message;
+        padding: 0.75rem 1rem;
+        border-radius: 1rem;
+        max-width: 70%;
         background: oklch(from var(--card) l c h / 0.6);
         margin-right: auto;
     }

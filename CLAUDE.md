@@ -390,7 +390,8 @@ try {
 
 ### 前端 UI/UX 設計規範
 
-**重要提醒**：所有前端 UI 設計與開發**必須遵循**以下文件與 Skills：
+**🚨 強制性要求（MANDATORY）🚨**：
+**所有前端 UI 的修改、製作、調整都必須遵照以下流程，不得跳過任何步驟**：
 
 #### 設計核心文件（必讀）
 1. **`/docs/design-philosophy.md`** - Ping 設計哲學與核心原則
@@ -407,40 +408,79 @@ try {
    - UI Components（Web + Mobile）
    - 使用指南與最佳實踐
 
-#### 必須使用的 Skills
-**所有前端畫面設計與實作必須先執行以下 Skills**：
+3. **設計系統 CSS 元件（必須使用）**
+   - `/frontend/src/styles/components/glass-button.css` - 按鈕樣式
+   - `/frontend/src/styles/components/glass-card.css` - 卡片樣式
+   - `/frontend/src/styles/components/glass-input.css` - 輸入框樣式
+   - 所有 UI 元件**必須使用**這些設計系統定義的 classes，不得自行撰寫重複樣式
 
-1. **`/frontend-design`** - 前端設計 Skill
-   - 用於：建立元件、頁面、UI 設計
-   - 目的：產生高設計品質、避免通用 AI 美學
-   - 何時使用：任何涉及畫面設計、元件開發、UI 調整的任務
+#### 🔴 強制執行 Skills（BLOCKING REQUIREMENT）
+**在開始任何 UI 工作前，必須先執行以下 Skills，不得跳過**：
 
-2. **`/ui-ux-pro-max`** - UI/UX 專業設計 Skill
-   - 包含：50 種風格、21 種調色盤、50 種字型配對、20 種圖表、8 種技術棧
-   - 涵蓋：React、Next.js、Vue、Svelte、SwiftUI、React Native、Flutter、Tailwind
-   - 適用：UI/UX 程式碼的規劃、建置、創建、設計、實作、審查、修復、改進、優化
+1. **`/ui-ux-pro-max`** - UI/UX 專業設計 Skill（必須優先執行）
+   - **何時執行**：任何 UI/UX 的修改、製作、調整、審查、改進
+   - **包含**：50 種風格、21 種調色盤、50 種字型配對、20 種圖表、8 種技術棧
+   - **涵蓋**：React、Next.js、Vue、Svelte、SwiftUI、React Native、Flutter、Tailwind
+   - **用途**：確保設計符合專業標準，檢查設計一致性
+
+2. **`/frontend-design`** - 前端設計 Skill（必須執行）
+   - **何時執行**：建立新元件、新頁面、重大 UI 調整
+   - **目的**：產生高設計品質、避免通用 AI 美學
+   - **用途**：確保視覺設計獨特且符合品牌風格
+
+**執行順序（強制）**：
+```
+1. 收到 UI 任務
+   ↓
+2. 執行 /ui-ux-pro-max（檢查設計標準）
+   ↓
+3. 執行 /frontend-design（產生設計方案）
+   ↓
+4. 閱讀設計核心文件
+   ↓
+5. 使用設計系統 CSS classes 實作
+   ↓
+6. 執行設計交付檢查
+   ↓
+7. 提交程式碼
+```
+
+**⚠️ 違反此流程的後果**：
+- ❌ 不符合設計系統一致性
+- ❌ 產生重複樣式程式碼
+- ❌ 破壞整體設計風格
+- ❌ PR 將被拒絕
 
 #### 設計流程規範
 **Fullstack Frontend Developer 在實作任何 UI 元件前必須**：
 
-1. **閱讀設計核心文件**：
+1. **強制執行 Skills**：
+   - ✅ 先執行 `/ui-ux-pro-max` 檢查設計標準
+   - ✅ 再執行 `/frontend-design` 產生設計方案
+   - ❌ 不得跳過，不得自行判斷
+
+2. **閱讀設計核心文件**：
    - 確認 `/docs/design-philosophy.md` 的相關設計原則
    - 檢查 `/docs/design-system.md` 的 Design Tokens 與元件規範
 
-2. **執行對應 Skill**：
-   - 涉及新元件設計：先執行 `/frontend-design`
-   - 涉及複雜 UI/UX：執行 `/ui-ux-pro-max` 確保專業品質
+3. **使用設計系統 CSS classes**：
+   - ✅ 使用 `.glass-button`、`.glass-card`、`.glass-input` 等已定義樣式
+   - ✅ 使用 Design Tokens (`var(--primary)`, `var(--card)`, 等)
+   - ❌ 不得撰寫重複的 inline styles 或自訂 classes
+   - ❌ 不得使用硬編碼顏色（例如 `bg-blue-500`）
 
-3. **遵循設計原則**：
-   - ✅ Dark Mode 為主（Discord 風格：#1E1F22, #2B2D31, #383A40）
-   - ✅ Light Mode 為輔（溫暖象牙白：#FAF9F8）
+4. **遵循設計原則**：
+   - ✅ Dark Mode 為主（macOS Glassmorphism：鋼灰色 + Messages 藍）
+   - ✅ Light Mode 為輔（日式溫暖風格：米色 + 柔和色調）
    - ✅ 使用 Design Tokens（`@shared/design-tokens`）
    - ✅ 儀式感互動（進房特效、訊息送出動畫、情緒儀式）
    - ✅ 流暢動畫（150-300ms，ease-out/ease-in）
    - ✅ 可訪問性（WCAG AAA、鍵盤導航、螢幕閱讀器）
    - ✅ 無障礙設計（Reduced Motion、色盲友善、觸控友善）
 
-4. **設計交付檢查**：
+5. **設計交付檢查**：
+   - [ ] 執行過 `/ui-ux-pro-max` 和 `/frontend-design` Skills
+   - [ ] 使用設計系統 CSS classes（不得有重複樣式）
    - [ ] 無 emoji 用作圖示（使用 Lucide React / Heroicons）
    - [ ] 所有圖示來自一致的圖示集
    - [ ] Hover 狀態不造成 layout shift
@@ -449,13 +489,15 @@ try {
    - [ ] TypeScript 類型完整
    - [ ] 通過 Linter/Formatter 檢查
 
-#### 禁止事項
+#### 禁止事項（嚴格執行）
+- ❌ **未執行 `/ui-ux-pro-max` 和 `/frontend-design` 就開始實作 UI**
 - ❌ 未參考設計核心文件就直接實作 UI
+- ❌ 撰寫重複的 CSS 樣式（必須使用設計系統 classes）
 - ❌ 使用硬編碼顏色（例如 `bg-blue-500`），必須使用 Design Tokens
+- ❌ 使用 inline styles 取代設計系統 classes
 - ❌ 跳過 Skills 執行，自行判斷設計方向
 - ❌ 違反設計哲學的三大核心原則
-- ❌ 純白背景（Light Mode 必須使用柔和的 #FAF9F8）
-- ❌ 使用紫色作為主色（品牌色為藍色 #5865F2）
+- ❌ 純白背景（Light Mode 必須使用柔和色調）
 
 ---
 
@@ -518,6 +560,8 @@ cmd.exe //C "npm run build"
 - Oxlint: https://oxc.rs/docs/guide/usage/linter.html
 - Oxfmt: https://oxc.rs/docs/guide/usage/formatter.html
 - apollo: https://www.apollographql.com/docs/react/get-started
+- motion: https://motion.dev/docs/react
+- React Native Reanimated: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/
 
 ---
 

@@ -44,6 +44,9 @@ export const getRouter = () => {
         defaultPendingMinMs: 500,
         // Custom loading component
         defaultPendingComponent: () => <SoundWaveLoader size="md" />,
+
+        // Enable View Transition API
+        defaultViewTransition: true,
     })
 
     setupRouterSsrQueryIntegration({ router, queryClient: rqContext.queryClient })

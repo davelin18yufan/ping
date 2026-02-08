@@ -15,6 +15,7 @@ import { LogIn } from "lucide-react"
 
 import { AcousticField } from "@/components/ui/acoustic-field"
 import { AnimatedCard } from "@/components/ui/animated-card"
+import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
 import { requireGuestServer } from "@/middleware/auth.middleware.server"
 import "@/styles/auth-login.css"
 
@@ -34,14 +35,15 @@ export const Route = createFileRoute("/auth/")({
 function LoginPage() {
     const navigate = useNavigate()
     const search = Route.useSearch()
+    const { isOrnate } = useAestheticMode()
 
     // Get redirect URL from search params (set by requireAuth)
     const redirectTo = search.redirect || "/"
 
     return (
         <div className="login-container">
-            {/* Acoustic Field - Interactive sound wave background */}
-            <AcousticField cols={40} rows={40} influenceRadius={100} maxScale={30} />
+            {/* Acoustic Field - Interactive sound wave background (Ornate mode only) */}
+            {isOrnate && <AcousticField cols={40} rows={40} influenceRadius={100} maxScale={30} />}
 
             {/* Animated floating card with depth & spring physics */}
             <AnimatedCard className="login-card" variant="depth" spring="smooth">

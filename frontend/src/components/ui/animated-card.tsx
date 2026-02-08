@@ -22,6 +22,7 @@ import { forwardRef, type ReactNode } from "react"
 
 /**
  * Spring presets based on animation.md recommendations
+ * Note: These are overridden by CSS variables in Aesthetic Mode system
  */
 export const springPresets = {
     /** Gentle bounce for page transitions (300-400ms) */
@@ -33,6 +34,24 @@ export const springPresets = {
     /** Jelly effect for message bubbles */
     jelly: { type: "spring", stiffness: 300, damping: 10 } as const,
 } as const
+
+/**
+ * Get spring physics from CSS variables
+ * Respects Aesthetic Mode (Ornate vs Minimal)
+ */
+function getSpringFromCSSVars(): { stiffness: number; damping: number } {
+    if (typeof window === "undefined") {
+        return { stiffness: 300, damping: 10 }
+    }
+
+    const root = document.documentElement
+    const style = getComputedStyle(root)
+
+    const stiffness = Number.parseFloat(style.getPropertyValue("--spring-stiffness")) || 300
+    const damping = Number.parseFloat(style.getPropertyValue("--spring-damping")) || 10
+
+    return { stiffness, damping }
+}
 
 // ============================================================================
 // ANIMATION VARIANTS
@@ -145,10 +164,7 @@ export interface AnimatedCardProps extends Omit<HTMLMotionProps<"div">, "childre
  * ```
  */
 export const AnimatedCard = forwardRef<HTMLDivElement, AnimatedCardProps>(
-    (
-        { children, delay = 0, variant = "container", spring = "smooth", customVariants, ...props },
-        ref
-    ) => {
+    ({ children, delay = 0, variant = "container", customVariants, ...props }, ref) => {
         const variantMap = {
             container: containerTransformVariants,
             depth: depthZoomVariants,
@@ -157,8 +173,13 @@ export const AnimatedCard = forwardRef<HTMLDivElement, AnimatedCardProps>(
             receive: slideReceiveVariants,
         }
 
+        // Get spring physics from CSS variables (respects Aesthetic Mode)
+        const cssSpring = getSpringFromCSSVars()
+
         const transition: Transition = {
-            ...springPresets[spring],
+            type: "spring",
+            stiffness: cssSpring.stiffness,
+            damping: cssSpring.damping,
             delay,
         }
 
@@ -269,6 +290,9 @@ export const MessageBubble = forwardRef<HTMLDivElement, MessageBubbleProps>(
     ({ children, isOwn = false, delay = 0, ...props }, ref) => {
         const variants = isOwn ? slideSendVariants : slideReceiveVariants
 
+        // Get spring physics from CSS variables (respects Aesthetic Mode)
+        const cssSpring = getSpringFromCSSVars()
+
         return (
             <motion.div
                 ref={ref}
@@ -277,7 +301,9 @@ export const MessageBubble = forwardRef<HTMLDivElement, MessageBubbleProps>(
                 exit="exit"
                 variants={variants}
                 transition={{
-                    ...springPresets.jelly,
+                    type: "spring",
+                    stiffness: cssSpring.stiffness,
+                    damping: cssSpring.damping,
                     delay,
                 }}
                 {...props}

@@ -121,7 +121,7 @@ export function LoginForm({ onSuccess, onError }: LoginFormProps) {
             <StaggeredList
                 className="oauth-buttons"
                 staggerDelay={0.1}
-                baseDelay={1.2}
+                baseDelay={0.6}
                 variant="container"
                 spring="bouncy"
             >

@@ -41,10 +41,10 @@ function LoginPage() {
     return (
         <div className="login-container">
             {/* Acoustic Field - Interactive sound wave background */}
-            <AcousticField cols={30} rows={30} influenceRadius={120} maxScale={25} />
+            <AcousticField cols={40} rows={40} influenceRadius={100} maxScale={30} />
 
             {/* Animated floating card with depth & spring physics */}
-            <AnimatedCard className="login-card" variant="depth" spring="smooth" delay={0.8}>
+            <AnimatedCard className="login-card" variant="depth" spring="smooth">
                 <div className="logo-section">
                     <LogIn className="logo-icon" size={48} strokeWidth={1.5} />
                     <h1 className="logo-text">Ping</h1>

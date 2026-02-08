@@ -53,6 +53,8 @@ const AppleIcon = () => (
     </svg>
 )
 
+type Provider = "google" | "github" | "apple"
+
 /**
  * SoundWaveLoader Component - Ripple Effect for OAuth Loading
  *
@@ -61,13 +63,7 @@ const AppleIcon = () => (
  *
  * @param provider - OAuth provider for color matching (google/github/apple)
  */
-const SoundWaveLoader = ({
-    provider,
-    children,
-}: {
-    provider: "google" | "github" | "apple"
-    children: ReactNode
-}) => (
+const SoundWaveLoader = ({ provider, children }: { provider: Provider; children: ReactNode }) => (
     <div
         className="sound-wave-container"
         role="status"
@@ -88,7 +84,7 @@ interface LoginFormProps {
 }
 
 export function LoginForm({ onSuccess, onError }: LoginFormProps) {
-    const [loading, setLoading] = useState<string | null>(null)
+    const [loading, setLoading] = useState<Provider | null>(null)
     const [error, setError] = useState<string>("")
 
     const handleOAuthLogin = async (provider: "google" | "github" | "apple") => {

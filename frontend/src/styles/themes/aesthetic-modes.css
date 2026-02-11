@@ -1,0 +1,116 @@
+/**
+ * Aesthetic Modes - Ornate vs Minimal
+ *
+ * Ornate Mode (Default - :root):
+ * - Full animations (300ms duration)
+ * - Spring physics (stiffness: 300)
+ * - Glow effects (20px intensity)
+ * - AcousticField background
+ *
+ * Minimal Mode (.minimal class):
+ * - Fast animations (150ms duration)
+ * - Simplified physics (stiffness: 150)
+ * - No glow effects
+ * - Pure color background
+ *
+ * Usage:
+ * - Add .minimal class to <html> element to activate Minimal mode
+ * - Use CSS variables in components: var(--animation-duration)
+ */
+
+/* ============================================================================
+   ORNATE MODE (Default - :root)
+   ============================================================================ */
+
+:root {
+    /* Animation Parameters */
+    --animation-duration: 300ms;
+    --animation-easing: cubic-bezier(0.68, -0.55, 0.265, 1.55); /* easeOutBack */
+
+    /* Glow Effects */
+    --glow-intensity: 20px;
+    --glow-opacity: 0.6;
+
+    /* Spring Physics (for Motion) */
+    --spring-stiffness: 300;
+    --spring-damping: 10;
+
+    /* Background Effects */
+    --acoustic-field-opacity: 1;
+
+    /* Transition Timing */
+    --transition-timing: var(--animation-duration) var(--animation-easing);
+}
+
+/* ============================================================================
+   MINIMAL MODE (.minimal class)
+   ============================================================================ */
+
+.minimal {
+    /* Fast Animations */
+    --animation-duration: 150ms;
+    --animation-easing: ease-out; /* Simple linear easing */
+
+    /* Disable Glow Effects */
+    --glow-intensity: 0px;
+    --glow-opacity: 0;
+
+    /* Simplified Spring Physics */
+    --spring-stiffness: 150;
+    --spring-damping: 20;
+
+    /* Hide Background Effects */
+    --acoustic-field-opacity: 0;
+
+    /* Fast Transitions */
+    --transition-timing: var(--animation-duration) var(--animation-easing);
+}
+
+/* ============================================================================
+   REDUCED MOTION SUPPORT (Accessibility)
+   Overrides both Ornate and Minimal modes
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    :root,
+    .minimal {
+        /* Instant animations (0.01ms to maintain state changes) */
+        --animation-duration: 0.01ms;
+        --animation-easing: linear;
+
+        /* Disable all effects */
+        --glow-intensity: 0px;
+        --glow-opacity: 0;
+        --acoustic-field-opacity: 0;
+
+        /* Instant transitions */
+        --transition-timing: 0.01ms linear;
+    }
+}
+
+/* ============================================================================
+   UTILITY CLASSES (Optional)
+   Can be used directly in components
+   ============================================================================ */
+
+/* Apply animation duration to any element */
+.animate-aesthetic {
+    transition-duration: var(--animation-duration);
+    transition-timing-function: var(--animation-easing);
+}
+
+/* Glow effect (respects mode) */
+.glow-effect {
+    filter: drop-shadow(0 0 var(--glow-intensity) var(--glow-primary));
+    opacity: var(--glow-opacity);
+}
+
+/* Hide in minimal mode */
+.ornate-only {
+    opacity: var(--acoustic-field-opacity);
+    pointer-events: auto;
+}
+
+.minimal .ornate-only {
+    pointer-events: none;
+}

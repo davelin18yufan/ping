@@ -108,154 +108,115 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 三、Agent 分工與職責
 
-### Architect Agent
-- **目標**：維護 SDD、高階設計、定義 API contract、**測試規格設計（TDD Red Phase）**、多 agent 協調
-- **操作範圍**：
-  - `/docs/architecture/**`（只動 SDD 文件，不寫實作）
-  - `/MULTI_AGENT_PLAN.md`（定義 feature 和分解 ticket）
-  - 測試規格文件（如 `Feature-X.X.X-TDD-Tests.md`）
-  - 監督 CI/CD 結果
-- **輸出物**：
-  - 新增 / 修改 SDD 文件
-  - 測試規格文件（RED phase）：定義測試案例、期望輸入輸出、錯誤碼、邊界情況
-  - 更新 `MULTI_AGENT_PLAN.md` 的 feature 狀態
-  - 與各子 agent 溝通設計變更
-  - PR 審查與設計符合性檢查
-  - CI/CD 配置
-  - 完成一個大 feature 更新 `task-board.md` 狀態
+### Architect Agent（設計與協調）
+**職責**：SDD 維護、API contract 定義、測試規格設計（TDD Red Phase）、多 agent 協調
 
-### Backend Developer
-- **目標**：後端 API、商業邏輯、資料庫存取、即時通訊（**TDD Green Phase 實作**）
-- **操作範圍**：
-  - `/backend/**`（包括 src、prisma、tests）
-  - `/backend/tests/unit/**` 和 `/backend/tests/integration/**`
-  - `/backend/prisma/migrations/**`
-- **禁止修改**：`/frontend/**`、`/mobile/**`、`/docs/**`（需與其他 agent 協調）
-- **輸出物**：
-  - Resolvers、Services、Middleware、Socket handlers
-  - Prisma schema 與 migrations
-  - 單元 / 整合測試實作（讓測試從紅燈變綠燈）
-  - Better Auth 配置
+**可操作**：
+- `/docs/architecture/**` - SDD 文件（不寫實作）
+- `/MULTI_AGENT_PLAN.md` - Feature 定義與分解
+- `Feature-X.X.X-TDD-Tests.md` - 測試規格文件
 
-### Fullstack Frontend Developer
-- **目標**：**Web（TanStack Start）+ Mobile（React Native/Expo）雙平台前端**、共享程式碼抽取（**TDD Green Phase 實作**）
-- **操作範圍**：
-  - `/frontend/**`（Web 前端，包括 src、tests）
-  - `/mobile/**`（Mobile 前端，包括 src、tests）
-  - `/shared/**`（Web + Mobile 共享程式碼：types、graphql、stores、hooks、utils）
-- **禁止修改**：`/backend/**`、`/docs/**`（需與其他 agent 協調）
-- **輸出物**：
-  - **Web**：TanStack Start 路由、元件、Apollo Client、Socket.io 整合
-  - **Mobile**：React Native 畫面、Expo Router、NativeWind 樣式、深度連結
-  - **共享**：TypeScript 類型、GraphQL 操作、TanStack Store stores、自訂 hooks
-  - 單元 / 整合 / E2E 測試實作（讓測試從紅燈變綠燈）
-  - Better Auth 整合（Web 與 Mobile）
-- **設計**
-   - UI設計請遵照 /fronend-design SKILL ，UI/UX請遵照 /ui-ux-pro-max SKILL
-   - 顏色以 oklch 為優先
-   - 樣式撰寫需要有架構性，簡單修改的以 tailwind utilities ，但是複雜的樣式以CSS 撰寫，並且要以變數使用為第一優先，並且永遠以復用原則為優先不要亂覆蓋舊樣式
+**輸出物**：SDD 文件、測試規格（RED phase）、PR 審查、CI/CD 配置、task-board.md 更新
 
 ---
 
-## 四、TDD + SDD 工作流程（日常流程）
+### Backend Developer（後端實作）
+**職責**：API、商業邏輯、資料庫、即時通訊（TDD Green Phase）
 
-### 階段 1：設計與測試規格（RED Phase - Architect）
-**Architect Agent 負責**：
-1. **收到新需求**（例如："支援 Google OAuth 登入"）
-2. **設計 SDD**：
-   - 更新 `/docs/architecture/backend.md`（認證部分）
-   - 更新 `/docs/architecture/frontend.md`（Web UI 部分）
-   - 更新 `/docs/architecture/mobile.md`（Mobile UI 部分）
-   - 更新 `/docs/architecture/database.md`（資料庫 schema）
-3. **撰寫測試規格文件**（例如 `Feature-1.1.1-TDD-Tests.md`）：
-   - **Backend 測試案例**：
-     - 測試檔案位置：`/backend/tests/integration/auth.spec.ts`
-     - 測試案例：`authenticateWithGoogle` mutation
-     - 期望結果：正確建立 session、寫入 Better Auth tables、回傳 user
-     - 錯誤情況：401, 400, 500 等
-   - **Frontend (Web) 測試案例**：
-     - 測試檔案位置：`/frontend/tests/integration/login.spec.tsx`
-     - 測試案例：LoginForm 點擊 Google 按鈕後流程
-     - 期望結果：導向認證頁面、處理 callback、儲存 session
-   - **Frontend (Mobile) 測試案例**：
-     - 測試檔案位置：`/mobile/tests/e2e/login.e2e.ts`
-     - 測試案例：OAuth deep link 回應
-     - 期望結果：處理 deep link、驗證 session、導向主畫面
-4. **更新 MULTI_AGENT_PLAN.md**：
-   - 新增 feature、狀態（設計中）
-   - 涉及子系統（Backend、Frontend Web、Mobile、DB）
-   - 預期 Resolvers / Components / Tables
-5. **通知 Backend 與 Fullstack Frontend Agents**：設計完成，可開始實作
+**可操作**：
+- `/backend/**` - 所有後端程式碼（src、prisma、tests、migrations）
 
-### 階段 2：後端實作（GREEN Phase - Backend Developer）
-**Backend Developer 負責**：
-1. **讀取設計文件與測試規格**：
-   - 閱讀 SDD（`backend.md`、`database.md`）
-   - 閱讀測試規格（`Feature-X.X.X-TDD-Tests.md`）
-2. **實作後端功能**（TDD 驅動）：
-   - 先執行測試 → 確認 FAIL ❌（紅燈）
-   - 實作 Prisma schema：`/backend/prisma/schema.prisma`
-   - 實作 GraphQL schema：`/backend/src/graphql/schema.ts`
-   - 實作 Resolvers：`/backend/src/graphql/resolvers/auth.ts`
-   - 實作 Services：`/backend/src/services/authService.ts`
-   - 實作 Middleware：`/backend/src/middleware.ts`
-   - 實作 Better Auth 配置：`/backend/src/lib/auth.ts`
-3. **執行測試 → 逐步變綠 ✅**（綠燈）
-4. **若發現設計問題**：通知 Architect Agent 調整 SDD
-5. **完成子任務後**：詢問使用者是否 commit
+**禁止修改**：`/frontend/**`、`/mobile/**`、`/docs/**`
 
-### 階段 3：前端實作（GREEN Phase - Fullstack Frontend Developer）
-**Fullstack Frontend Developer 負責**（**Web + Mobile 雙平台**）：
-1. **讀取設計文件與測試規格**：
-   - 閱讀 SDD（`frontend.md`、`mobile.md`）
-   - 閱讀測試規格（`Feature-X.X.X-TDD-Tests.md`）
-2. **優先抽取共享程式碼**（Shared-First 策略）：
-   - 定義 TypeScript 類型：`/shared/types/`
-   - 撰寫 GraphQL 操作：`/shared/graphql/`
-   - 建立 TanStack Store stores：`/shared/stores/authStore.ts`
-   - 實作自訂 hooks：`/shared/hooks/useOAuth.ts`
-3. **實作 Web 前端**（TDD 驅動）：
-   - 先執行測試 → 確認 FAIL ❌（紅燈）
-   - 實作路由：`/frontend/src/routes/auth/index.tsx`
-   - 實作元件：`/frontend/src/components/auth/LoginForm.tsx`
-   - 實作 Apollo Client：`/frontend/src/lib/apollo.ts`
-   - 實作 Better Auth 整合：`/frontend/src/lib/auth.ts`
-   - 執行測試 → 變綠 ✅
-4. **實作 Mobile 前端**（TDD 驅動）：
-   - 先執行測試 → 確認 FAIL ❌（紅燈）
-   - 實作畫面：`/mobile/src/screens/auth/LoginScreen.tsx`
-   - 實作 Navigation：`/mobile/src/navigation/`
-   - 實作 Deep Link 配置：`/mobile/app.config.ts`
-   - 實作 Better Auth Expo：`/mobile/src/lib/auth.ts`
-   - 使用 **NativeWind** 樣式（與 Web 一致的 Tailwind class names）
-   - 執行測試 → 變綠 ✅
-5. **確保 Web + Mobile 共享邏輯**：避免重複程式碼
-6. **完成子任務後**：詢問使用者是否 commit
+**輸出物**：Resolvers、Services、Middleware、Socket handlers、Prisma schema、測試實作
 
-### 階段 4：重構與審查（REFACTOR Phase - All Agents）
-**所有測試綠燈後**：
-1. **Backend Developer**：
-   - 檢查後端重複程式碼
-   - 改進命名、架構
-   - 優化資料庫查詢
-   - 確保測試仍綠燈
-2. **Fullstack Frontend Developer**：
-   - 檢查 Web + Mobile 是否有更多可共享程式碼
-   - 抽取共享 hooks / types / utilities 到 `/shared/`
-   - 優化元件效能（React.memo、useMemo）
-   - 確保測試仍綠燈
-3. **Architect Agent**：
-   - PR 審查：檢查設計符合性
-   - 檢查目錄邊界是否遵守
-   - 檢查測試覆蓋率（>80%）
-   - 更新 `MULTI_AGENT_PLAN.md` 狀態為「Done」
-   - 更新 `/docs/task-board.md` 對應功能為「已完成 ✅」
-4. **合併 branch**：所有 agent 確認無誤後合併
+---
 
-### 協作溝通原則
-- **Backend ↔ Fullstack Frontend**：API contract 需一致（GraphQL schema、Socket.io events）
-- **Architect ↔ All Agents**：設計變更需通知所有相關 agents
-- **Commit 頻率**：每完成子任務後詢問使用者是否 commit（小步提交）
+### Fullstack Frontend Developer（雙平台前端）
+**職責**：Web + Mobile 雙平台前端、共享程式碼抽取（TDD Green Phase）
+
+**可操作**：
+- `/frontend/**` - Web 前端（TanStack Start）
+- `/mobile/**` - Mobile 前端（React Native + Expo）
+- `/shared/**` - 共享程式碼（types、graphql、stores、hooks）
+
+**禁止修改**：`/backend/**`、`/docs/**`
+
+**輸出物**：
+- **Web**: TanStack Start 路由、元件、Apollo Client、Socket.io
+- **Mobile**: React Native 畫面、Expo Router、NativeWind 樣式、Deep Link
+- **共享**: TypeScript 類型、GraphQL 操作、TanStack Store、自訂 hooks
+- **測試**: 單元 / 整合 / E2E 測試實作
+
+**UI/UX 設計規範**：
+- ✅ 必須執行 `/ui-ux-pro-max` 和 `/frontend-design` Skills
+- ✅ 使用 oklch 顏色系統
+- ✅ 使用設計系統 CSS classes（`.glass-button`、`.glass-card`、`.glass-input`）
+- ✅ 複雜樣式用 CSS + CSS 變數（簡單修改用 Tailwind utilities）
+- ❌ 禁止硬編碼顏色、重複樣式、inline styles
+
+---
+
+## 四、TDD + SDD 核心規則
+
+### 規則 0：檢查現有結構（所有 Agents）
+- ✅ **必須先探索現有檔案**：使用 Glob/Grep 檢查是否已有類似功能或可修改的檔案
+- ✅ **必須先閱讀相關程式碼**：使用 Read 工具讀取相關檔案，理解現有架構
+- ✅ **優先修改而非新增**：能修改現有檔案就不要新增全新模組
+- ✅ **必須檢查命名慣例**：新檔案命名需符合專案現有慣例
+- ❌ **禁止盲目新增檔案**：沒有探索專案結構就新增全新模組
+- ❌ **禁止重複功能**：新增前必須確認沒有重複或類似的實作
+
+**檢查流程**：
+```
+1. 使用 Glob 搜尋相關檔案（例如：**/*auth*.ts）
+   ↓
+2. 使用 Grep 搜尋關鍵字（例如：authentication）
+   ↓
+3. 使用 Read 讀取相關檔案，理解現有實作
+   ↓
+4. 判斷：修改現有檔案 or 新增檔案？
+   ↓
+5. 若新增，確認命名、位置、架構符合專案慣例
+```
+
+### 規則 1：Architect 設計階段（RED Phase）
+- ✅ **必須先有 SDD**：更新 `/docs/architecture/*.md` 完成設計
+- ✅ **必須先有測試規格**：建立 `Feature-X.X.X-TDD-Tests.md`（包含 Backend、Web、Mobile 測試案例）
+- ✅ **必須更新計畫**：更新 `MULTI_AGENT_PLAN.md`（feature、狀態、子系統、預期產出）
+- ❌ **禁止跳過設計階段**：沒有 SDD 和測試規格不得開始實作
+
+### 規則 2：Developer 實作階段（GREEN Phase）
+- ✅ **必須先讀取設計**：閱讀 SDD 和測試規格文件
+- ✅ **必須先跑測試確認紅燈**：執行測試 → 確認 FAIL ❌
+- ✅ **必須讓測試變綠**：實作功能 → 執行測試 → 確認 PASS ✅
+- ✅ **完成子任務後詢問 commit**：小步提交，頻繁 commit
+- ❌ **禁止沒測試就實作**：先有紅燈測試，才能開始寫程式碼
+
+### 規則 3：Frontend 共享程式碼優先（Shared-First）
+- ✅ **優先抽取共享邏輯**：types、graphql、stores、hooks 放在 `/shared/`
+- ✅ **Web + Mobile 共用邏輯**：避免重複程式碼
+- ✅ **使用 NativeWind**：Mobile 使用與 Web 一致的 Tailwind class names
+- ❌ **禁止重複實作**：相同邏輯必須共享，不得分別實作
+
+### 規則 4：重構階段（REFACTOR Phase）
+- ✅ **必須所有測試綠燈**：確認所有測試 PASS 後才能重構
+- ✅ **重構後測試仍須綠燈**：改進程式碼不得破壞測試
+- ✅ **檢查測試覆蓋率**：確保 >80% 覆蓋率
+- ❌ **禁止破壞測試的重構**：測試變紅立即停止重構
+
+### 規則 5：協作溝通
+- ✅ **API Contract 一致**：Backend ↔ Frontend GraphQL schema 和 Socket.io events 必須同步
+- ✅ **設計變更通知**：Architect 改 SDD 需通知所有相關 agents
+- ✅ **發現設計問題立即回報**：Developer 發現 SDD 不合理立即通知 Architect
+- ❌ **禁止自行修改設計**：Developer 不得自行更改 SDD，必須由 Architect 決定
+
+### 規則 6：完成標準
+- ✅ **所有測試綠燈**：Backend、Frontend (Web)、Frontend (Mobile) 測試全通過
+- ✅ **程式碼品質檢查**：通過 Linter、Formatter、TypeScript 型別檢查
+- ✅ **目錄邊界遵守**：Backend Agent 不碰 Frontend 檔案，Frontend Agent 不碰 Backend 檔案
+- ✅ **更新文件**：更新 `MULTI_AGENT_PLAN.md` 和 `/docs/task-board.md`
+- ❌ **禁止測試未過就標記完成**：任何測試失敗都不得標記為完成
 
 ---
 

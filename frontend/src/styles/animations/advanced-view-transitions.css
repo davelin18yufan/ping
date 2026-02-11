@@ -1,0 +1,97 @@
+/**
+ * Advanced View Transitions - Circular Ripple Reveal
+ *
+ * Inspired by: https://theme-toggle.rdsx.dev/
+ * Design Philosophy: Simple, direct, and performant
+ *
+ * Features:
+ * - Circular ripple reveal effect from click position
+ * - Only applies when --ripple-x is set (theme/aesthetic toggles)
+ * - Preserves default page transition animations
+ * - Custom expo-out easing for smooth deceleration
+ * - GPU-accelerated performance
+ *
+ * Browser Support: Chrome 111+, Edge 111+, Safari 18+
+ */
+
+/* ============================================================================
+   CUSTOM EASING FUNCTIONS
+   Exponential ease-out using linear() notation (from theme-toggle.rdsx.dev)
+   ============================================================================ */
+
+:root {
+    /* Exponential ease-out (smooth deceleration) */
+    --expo-out: linear(
+        0,
+        0.0085 7.78%,
+        0.0327 13.89%,
+        0.0704 19.44%,
+        0.1198 24.44%,
+        0.1789 28.89%,
+        0.2459 32.78%,
+        0.3192 36.11%,
+        0.3972 38.89%,
+        0.4786 41.11%,
+        0.5623 42.78%,
+        0.6471 44.11%,
+        0.7321 45%,
+        0.8163 45.67%,
+        0.899 46.11%,
+        0.9796 46.33%,
+        1
+    );
+}
+
+/* ============================================================================
+   CIRCULAR RIPPLE REVEAL (Theme & Aesthetic Mode Toggles Only)
+   Only applies when --ripple-x CSS variable is set
+   ============================================================================ */
+
+/* Target only when ripple position is set (via inline style) */
+html[style*="--ripple-x"]::view-transition-old(root) {
+    /* Hide old state (no fade out) */
+    animation: none !important;
+}
+
+html[style*="--ripple-x"]::view-transition-new(root) {
+    /* Circular ripple reveal from click position */
+    animation: ripple-reveal 1s var(--expo-out) both !important;
+}
+
+html[style*="--ripple-x"]::view-transition-group(root) {
+    animation-duration: 1s !important;
+    animation-timing-function: var(--expo-out) !important;
+}
+
+@keyframes ripple-reveal {
+    from {
+        clip-path: circle(0% at var(--ripple-x, 50%) var(--ripple-y, 50%));
+    }
+    to {
+        clip-path: circle(150% at var(--ripple-x, 50%) var(--ripple-y, 50%));
+    }
+}
+
+/* ============================================================================
+   PERFORMANCE OPTIMIZATIONS (Ripple Only)
+   ============================================================================ */
+
+/* GPU acceleration for ripple transitions */
+html[style*="--ripple-x"]::view-transition-old(root),
+html[style*="--ripple-x"]::view-transition-new(root) {
+    will-change: clip-path;
+    backface-visibility: hidden;
+}
+
+/* ============================================================================
+   REDUCED MOTION SUPPORT (Accessibility)
+   ============================================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    html[style*="--ripple-x"]::view-transition-group(root),
+    html[style*="--ripple-x"]::view-transition-old(root),
+    html[style*="--ripple-x"]::view-transition-new(root) {
+        animation-duration: 0.01ms !important;
+        animation-name: none !important;
+    }
+}

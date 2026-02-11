@@ -11,6 +11,10 @@
 
 /* Animations - View Transitions & Motion */
 @import "./styles/animations/view-transitions.css";
+@import "./styles/animations/advanced-view-transitions.css";
+
+/* Aesthetic Modes - Ornate/Minimal System */
+@import "./styles/themes/aesthetic-modes.css";
 
 @custom-variant dark (&:is(.dark *));
 

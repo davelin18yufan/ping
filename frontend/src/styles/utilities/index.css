@@ -1,0 +1,11 @@
+/**
+ * Utilities - Index
+ * Imports all utility CSS files
+ *
+ * Contains:
+ * - Glass effects (glassmorphism utilities)
+ * - Interactions (hover, focus, active states)
+ */
+
+@import "./glass-effects.css";
+@import "./interactions.css";

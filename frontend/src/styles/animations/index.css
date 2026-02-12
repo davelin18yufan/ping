@@ -1,0 +1,11 @@
+/**
+ * Animations - Index
+ * Imports all animation CSS files
+ *
+ * Contains:
+ * - View Transitions (basic page transitions)
+ * - Advanced View Transitions (aesthetic mode ripple effect)
+ */
+
+@import "./view-transitions.css";
+@import "./advanced-view-transitions.css";

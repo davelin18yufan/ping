@@ -2,6 +2,13 @@
     "name": "ping-web",
     "private": true,
     "type": "module",
+    "imports": {
+        "#styles/base": "./src/styles/base/index.css",
+        "#styles/themes": "./src/styles/themes/index.css",
+        "#styles/utilities": "./src/styles/utilities/index.css",
+        "#styles/components": "./src/styles/components/index.css",
+        "#styles/animations": "./src/styles/animations/index.css"
+    },
     "scripts": {
         "dev": "cross-env NODE_OPTIONS=--import=./instrument.server.mjs vite dev --port 3000",
         "build": "vite build && cp instrument.server.mjs dist/server",

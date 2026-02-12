@@ -19,8 +19,8 @@
     .glass-button {
         /* Enhanced Glassmorphism (Frosted Glass) */
         background: var(--glass-background);
-        backdrop-filter: blur(30px) saturate(180%);
-        -webkit-backdrop-filter: blur(30px) saturate(180%);
+        backdrop-filter: blur(var(--blur-lg)) saturate(var(--glass-saturation-md));
+        -webkit-backdrop-filter: blur(var(--blur-lg)) saturate(var(--glass-saturation-md));
 
         /* No border or extremely subtle border */
         border: none;
@@ -46,7 +46,7 @@
         cursor: pointer;
 
         /* Smooth animation */
-        transition: all 200ms ease-out;
+        transition: all var(--duration-fast) var(--ease-out);
     }
 
     .glass-button {
@@ -77,7 +77,7 @@
     }
 
     .glass-button:hover::after {
-        animation: border-ripple-expand 600ms ease-out;
+        animation: border-ripple-expand var(--duration-slower) var(--ease-out);
     }
 
     @keyframes border-ripple-expand {
@@ -101,7 +101,7 @@
     }
 
     .glass-button:active::after {
-        animation: border-ripple-click 800ms ease-out;
+        animation: border-ripple-click calc(var(--duration-slower) * 1.33) var(--ease-out);
     }
 
     @keyframes border-ripple-click {

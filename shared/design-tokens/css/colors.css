@@ -1,0 +1,120 @@
+/* Shared Design Tokens - Colors (OKLCH format)
+ * Source: frontend/src/styles.css (user-confirmed colors)
+ * Used by: Frontend (Web) via @import
+ *
+ * This is the authoritative source for all color tokens.
+ * Light Mode: Kyoto Sunrise (Warm milky tones)
+ * Dark Mode: Steel Frost (macOS inspired)
+ */
+
+:root {
+    /* Light Mode - Kyoto Sunrise (Warm milky tones) */
+    --background: oklch(0.96 0.01 70); /* Warm milky white */
+    --foreground: oklch(0.25 0.01 280); /* Sumicha ink tea */
+    --card: oklch(0.94 0.012 65); /* Milky tea card */
+    --card-foreground: oklch(0.25 0.01 280);
+    --popover: oklch(0.96 0.01 70);
+    --popover-foreground: oklch(0.25 0.01 280);
+    --primary: oklch(0.58 0.16 250); /* Soft blue */
+    --primary-foreground: oklch(0.98 0 0);
+    --secondary: oklch(0.92 0.01 70); /* Shironezumi white mouse */
+    --secondary-foreground: oklch(0.25 0.01 280);
+    --muted: oklch(0.94 0.012 65);
+    --muted-foreground: oklch(0.5 0.02 270); /* Shinbashi teal */
+    --accent: oklch(0.65 0.18 50); /* Coral orange (warm, friendly) */
+    --accent-foreground: oklch(0.98 0 0);
+    --destructive: oklch(0.577 0.245 27.325);
+    --destructive-foreground: oklch(0.577 0.245 27.325);
+    --border: oklch(0.92 0.01 70);
+    --input: oklch(0.92 0.01 70);
+    --ring: oklch(0.58 0.16 250);
+
+    /* Chart colors */
+    --chart-1: oklch(0.58 0.16 250); /* Soft blue */
+    --chart-2: oklch(0.65 0.18 50); /* Coral orange */
+    --chart-3: oklch(0.8 0.12 340); /* Sakura pink */
+    --chart-4: oklch(0.65 0.015 260); /* Asagi light blue */
+    --chart-5: oklch(0.5 0.02 270); /* Shinbashi teal */
+
+    /* Sidebar */
+    --sidebar: oklch(0.94 0.012 65);
+    --sidebar-foreground: oklch(0.25 0.01 280);
+    --sidebar-primary: oklch(0.58 0.16 250);
+    --sidebar-primary-foreground: oklch(0.98 0 0);
+    --sidebar-accent: oklch(0.92 0.01 70);
+    --sidebar-accent-foreground: oklch(0.25 0.01 280);
+    --sidebar-border: oklch(0.92 0.01 70);
+    --sidebar-ring: oklch(0.58 0.16 250);
+
+    /* Glassmorphism */
+    --glass-background: oklch(0.97 0.008 70 / 0.8); /* 80% opacity warm white */
+    --glass-background-hover: oklch(0.97 0.008 70 / 0.9);
+    --glass-blur: 20px;
+
+    /* Glow colors (macOS inspired) */
+    --glow-primary: oklch(0.6 0.18 250); /* Messages blue */
+    --glow-accent: oklch(0.65 0.15 145); /* FaceTime green */
+    --glow-secondary: oklch(0.7 0.18 200); /* Cyan-blue */
+
+    /* Ritual colors (Light Mode) */
+    --ritual-apology: oklch(0.58 0.16 250); /* Blue apology */
+    --ritual-celebrate: oklch(0.85 0.15 85); /* Golden celebration */
+    --ritual-reconcile: oklch(0.8 0.12 340); /* Pink reconciliation */
+
+    /* Layout */
+    --radius: 0.625rem;
+}
+
+.dark {
+    /* Dark Mode - Steel Frost (macOS inspired deep steel gray) */
+    --background: oklch(0.18 0.005 240); /* Deep steel gray */
+    --foreground: oklch(0.95 0 0); /* Almost white, slightly warm */
+    --card: oklch(0.24 0.008 240); /* Lighter steel gray */
+    --card-foreground: oklch(0.95 0 0);
+    --popover: oklch(0.28 0.01 240); /* Even lighter (hover state) */
+    --popover-foreground: oklch(0.95 0 0);
+    --primary: oklch(0.6 0.18 250); /* macOS Messages blue */
+    --primary-foreground: oklch(0.98 0 0);
+    --secondary: oklch(0.24 0.008 240);
+    --secondary-foreground: oklch(0.95 0 0);
+    --muted: oklch(0.24 0.008 240);
+    --muted-foreground: oklch(0.65 0.005 240); /* Steel gray text (secondary info) */
+    --accent: oklch(0.65 0.15 145); /* macOS FaceTime green */
+    --accent-foreground: oklch(0.98 0 0);
+    --destructive: oklch(0.396 0.141 25.723);
+    --destructive-foreground: oklch(0.637 0.237 25.331);
+    --border: oklch(0.24 0.008 240);
+    --input: oklch(0.24 0.008 240);
+    --ring: oklch(0.6 0.18 250);
+
+    /* Chart colors (Dark) */
+    --chart-1: oklch(0.6 0.18 250); /* Messages blue */
+    --chart-2: oklch(0.65 0.15 145); /* FaceTime green */
+    --chart-3: oklch(0.7 0.18 200); /* Cyan-blue */
+    --chart-4: oklch(0.6 0.2 270); /* Apology blue-purple */
+    --chart-5: oklch(0.85 0.15 85); /* Celebrate gold */
+
+    /* Sidebar (Dark) */
+    --sidebar: oklch(0.18 0.005 240);
+    --sidebar-foreground: oklch(0.95 0 0);
+    --sidebar-primary: oklch(0.6 0.18 250);
+    --sidebar-primary-foreground: oklch(0.98 0 0);
+    --sidebar-accent: oklch(0.24 0.008 240);
+    --sidebar-accent-foreground: oklch(0.95 0 0);
+    --sidebar-border: oklch(0.24 0.008 240);
+    --sidebar-ring: oklch(0.6 0.18 250);
+
+    /* Glassmorphism (Dark) */
+    --glass-background: oklch(0.22 0.008 240 / 0.7); /* 70% opacity steel gray */
+    --glass-background-hover: oklch(0.26 0.008 240 / 0.8);
+
+    /* Glow colors (Dark) */
+    --glow-primary: oklch(0.6 0.18 250); /* Messages blue */
+    --glow-accent: oklch(0.65 0.15 145); /* FaceTime green */
+    --glow-secondary: oklch(0.7 0.18 200); /* Cyan-blue */
+
+    /* Ritual colors (Dark Mode) */
+    --ritual-apology: oklch(0.6 0.2 270); /* Blue-purple apology */
+    --ritual-celebrate: oklch(0.85 0.15 85); /* Golden celebration */
+    --ritual-reconcile: oklch(0.7 0.25 340); /* Pink reconciliation */
+}

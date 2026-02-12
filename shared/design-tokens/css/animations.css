@@ -1,0 +1,30 @@
+/**
+ * Animation Tokens - Duration and easing for consistent motion design
+ * Used by: Frontend (Web) animations and transitions
+ *
+ * Defined in @theme for proper Tailwind CSS v4 integration.
+ * This allows utilities to use * syntax for theme value matching.
+ */
+
+@theme {
+    /* Duration tokens */
+    --duration-instant: 0ms;
+    --duration-fast: 150ms;
+    --duration-normal: 250ms;
+    --duration-slow: 400ms;
+    --duration-slower: 600ms;
+
+    /* Easing tokens */
+    --ease-in: cubic-bezier(0.7, 0, 0.84, 0);
+    --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+    --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+    --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+    /* Spring physics tokens (for motion library) */
+    --spring-stiffness-slow: 150;
+    --spring-stiffness-normal: 300;
+    --spring-stiffness-fast: 500;
+    --spring-damping-low: 10;
+    --spring-damping-normal: 20;
+    --spring-damping-high: 30;
+}

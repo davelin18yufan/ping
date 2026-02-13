@@ -76,7 +76,8 @@
 
 @utility glass-saturation-* {
     backdrop-filter: blur(var(--blur-lg)) saturate(--value(--glass-saturation-*, [percentage]));
-    -webkit-backdrop-filter: blur(var(--blur-lg)) saturate(--value(--glass-saturation-*, [percentage]));
+    -webkit-backdrop-filter: blur(var(--blur-lg))
+        saturate(--value(--glass-saturation-*, [percentage]));
 }
 
 /* ============================================

@@ -1,0 +1,98 @@
+/**
+ * Glass Effect Utilities - Tailwind CSS v4
+ *
+ * Enhanced with theme value matching for better extensibility.
+ * Supports arbitrary values and theme color references.
+ */
+
+/* ============================================
+   Glass Base Utility
+   ============================================ */
+
+@utility glass-base {
+    background: oklch(from var(--card) l c h / 0.7);
+    backdrop-filter: blur(var(--glass-blur, 20px)) saturate(var(--glass-saturation-md));
+    -webkit-backdrop-filter: blur(var(--glass-blur, 20px)) saturate(var(--glass-saturation-md));
+    border: 1px solid oklch(from var(--primary) l c h / 0.15);
+}
+
+/* ============================================
+   Glass Blur Utilities (Theme Value Matching)
+   ============================================
+   Properly matches --blur-* tokens from \@\theme using --value() syntax.
+   Supports both theme tokens and arbitrary values.
+   ============================================ */
+
+@utility glass-blur-* {
+    backdrop-filter: blur(--value(--blur-*, [length])) saturate(var(--glass-saturation-md));
+    -webkit-backdrop-filter: blur(--value(--blur-*, [length])) saturate(var(--glass-saturation-md));
+}
+
+/* ============================================
+   Glass Opacity Utilities (Theme Value Matching)
+   ============================================
+   Matches --glass-opacity-* tokens from \@\theme using --value() syntax.
+   Supports both theme tokens and arbitrary values.
+   ============================================ */
+
+@utility glass-opacity-* {
+    background: oklch(from var(--card) l c h / --value(--glass-opacity-*, [number]));
+}
+
+/* ============================================
+   Glass Glow Utilities (Theme Value Matching)
+   ============================================
+   Matches --glow-intensity-* tokens from \@theme.
+   Supports both theme tokens and arbitrary intensity values.
+   For color-specific glows, use predefined utilities below.
+   ============================================ */
+
+@utility glass-glow-* {
+    box-shadow: 0 0 --value(--glow-intensity-*, [length]) var(--glow-primary);
+}
+
+/* Predefined color glows (semantic) */
+@utility glass-glow-primary {
+    box-shadow: 0 0 var(--glow-intensity-md)
+        oklch(from var(--glow-primary) l c h / var(--glow-opacity-primary));
+}
+
+@utility glass-glow-accent {
+    box-shadow: 0 0 var(--glow-intensity-md)
+        oklch(from var(--glow-accent) l c h / var(--glow-opacity-accent));
+}
+
+@utility glass-glow-secondary {
+    box-shadow: 0 0 var(--glow-intensity-md)
+        oklch(from var(--glow-secondary) l c h / var(--glow-opacity-secondary));
+}
+
+/* ============================================
+   Saturation Utilities (Theme Value Matching)
+   ============================================
+   Matches --glass-saturation-* tokens from \@theme.
+   Supports both theme tokens and arbitrary saturation values.
+   ============================================ */
+
+@utility glass-saturation-* {
+    backdrop-filter: blur(var(--blur-lg)) saturate(--value(--glass-saturation-*, [percentage]));
+    -webkit-backdrop-filter: blur(var(--blur-lg))
+        saturate(--value(--glass-saturation-*, [percentage]));
+}
+
+/* ============================================
+   Safari Fallback
+   ============================================
+   Provides solid background for browsers that don't support backdrop-filter.
+   Applies to all glass-blur-* utilities.
+   ============================================ */
+
+@layer utilities {
+    @supports not (backdrop-filter: blur(20px)) {
+        [class*="glass-base"],
+        [class*="glass-blur-"] {
+            background: var(--card);
+            border-color: var(--border);
+        }
+    }
+}

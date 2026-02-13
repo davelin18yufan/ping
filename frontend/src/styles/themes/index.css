@@ -1,0 +1,9 @@
+/**
+ * Themes - Index
+ * Imports all theme CSS files
+ *
+ * Contains:
+ * - Aesthetic modes (Dark/Light theme system)
+ */
+
+@import "./aesthetic-modes.css";

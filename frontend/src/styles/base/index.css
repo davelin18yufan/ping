@@ -1,0 +1,11 @@
+/**
+ * Base Styles - Index
+ * Imports all base CSS files in correct order
+ *
+ * Order:
+ * 1. Overrides - Tailwind Preflight extensions & overrides
+ * 2. Typography - Custom font definitions
+ */
+
+@import "./overrides.css";
+@import "./typography.css";

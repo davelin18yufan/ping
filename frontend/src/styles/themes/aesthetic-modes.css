@@ -1,111 +1,74 @@
-/**
- * Aesthetic Modes - Ornate vs Minimal
- *
- * Ornate Mode (Default - :root):
- * - Full animations (300ms duration)
- * - Spring physics (stiffness: 300)
- * - Glow effects (20px intensity)
- * - AcousticField background
- *
- * Minimal Mode (.minimal class):
- * - Fast animations (150ms duration)
- * - Simplified physics (stiffness: 150)
- * - No glow effects
- * - Pure color background
- *
- * Usage:
- * - Add .minimal class to <html> element to activate Minimal mode
- * - Use CSS variables in components: var(--animation-duration)
- */
+@theme {
+    /* Ornate Mode Tokens */
+    --animation-duration-ornate: 300ms;
+    --animation-easing-ornate: cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --glow-intensity-ornate: var(--glow-intensity-md);
+    --glow-opacity-ornate: var(--glow-opacity-primary);
+    --spring-stiffness-ornate: var(--spring-stiffness-normal);
+    --spring-damping-ornate: var(--spring-damping-low);
+    --acoustic-field-opacity-ornate: 1;
+    --transition-timing-ornate: var(--animation-duration-ornate) var(--animation-easing-ornate);
 
-/* ============================================================================
-   ORNATE MODE (Default - :root)
-   ============================================================================ */
+    /* Minimal Mode Tokens */
+    --animation-duration-minimal: var(--duration-fast);
+    --animation-easing-minimal: ease-out;
+    --glow-intensity-minimal: 0px;
+    --glow-opacity-minimal: 0;
+    --spring-stiffness-minimal: var(--spring-stiffness-slow);
+    --spring-damping-minimal: var(--spring-damping-normal);
+    --acoustic-field-opacity-minimal: 0;
+    --transition-timing-minimal: var(--animation-duration-minimal) var(--animation-easing-minimal);
+}
+
+/* Active Aesthetic Mode Variables */
 
 :root {
-    /* Animation Parameters */
-    --animation-duration: 300ms;
-    --animation-easing: cubic-bezier(0.68, -0.55, 0.265, 1.55); /* easeOutBack */
-
-    /* Glow Effects */
-    --glow-intensity: 20px;
-    --glow-opacity: 0.6;
-
-    /* Spring Physics (for Motion) */
-    --spring-stiffness: 300;
-    --spring-damping: 10;
-
-    /* Background Effects */
-    --acoustic-field-opacity: 1;
-
-    /* Transition Timing */
-    --transition-timing: var(--animation-duration) var(--animation-easing);
+    --animation-duration: var(--animation-duration-ornate);
+    --animation-easing: var(--animation-easing-ornate);
+    --glow-intensity: var(--glow-intensity-ornate);
+    --glow-opacity: var(--glow-opacity-ornate);
+    --spring-stiffness: var(--spring-stiffness-ornate);
+    --spring-damping: var(--spring-damping-ornate);
+    --acoustic-field-opacity: var(--acoustic-field-opacity-ornate);
+    --transition-timing: var(--transition-timing-ornate);
 }
-
-/* ============================================================================
-   MINIMAL MODE (.minimal class)
-   ============================================================================ */
 
 .minimal {
-    /* Fast Animations */
-    --animation-duration: 150ms;
-    --animation-easing: ease-out; /* Simple linear easing */
-
-    /* Disable Glow Effects */
-    --glow-intensity: 0px;
-    --glow-opacity: 0;
-
-    /* Simplified Spring Physics */
-    --spring-stiffness: 150;
-    --spring-damping: 20;
-
-    /* Hide Background Effects */
-    --acoustic-field-opacity: 0;
-
-    /* Fast Transitions */
-    --transition-timing: var(--animation-duration) var(--animation-easing);
+    --animation-duration: var(--animation-duration-minimal);
+    --animation-easing: var(--animation-easing-minimal);
+    --glow-intensity: var(--glow-intensity-minimal);
+    --glow-opacity: var(--glow-opacity-minimal);
+    --spring-stiffness: var(--spring-stiffness-minimal);
+    --spring-damping: var(--spring-damping-minimal);
+    --acoustic-field-opacity: var(--acoustic-field-opacity-minimal);
+    --transition-timing: var(--transition-timing-minimal);
 }
 
-/* ============================================================================
-   REDUCED MOTION SUPPORT (Accessibility)
-   Overrides both Ornate and Minimal modes
-   ============================================================================ */
-
+/* Reduced Motion Accessibility */
 @media (prefers-reduced-motion: reduce) {
     :root,
     .minimal {
-        /* Instant animations (0.01ms to maintain state changes) */
         --animation-duration: 0.01ms;
         --animation-easing: linear;
-
-        /* Disable all effects */
         --glow-intensity: 0px;
         --glow-opacity: 0;
         --acoustic-field-opacity: 0;
-
-        /* Instant transitions */
         --transition-timing: 0.01ms linear;
     }
 }
 
-/* ============================================================================
-   UTILITY CLASSES (Optional)
-   Can be used directly in components
-   ============================================================================ */
+/* Utility Classes */
 
-/* Apply animation duration to any element */
 .animate-aesthetic {
     transition-duration: var(--animation-duration);
     transition-timing-function: var(--animation-easing);
 }
 
-/* Glow effect (respects mode) */
 .glow-effect {
     filter: drop-shadow(0 0 var(--glow-intensity) var(--glow-primary));
     opacity: var(--glow-opacity);
 }
 
-/* Hide in minimal mode */
 .ornate-only {
     opacity: var(--acoustic-field-opacity);
     pointer-events: auto;
@@ -114,3 +77,46 @@
 .minimal .ornate-only {
     pointer-events: none;
 }
+
+/*
+===============================================
+DOCUMENTATION
+===============================================
+
+Aesthetic Modes System
+
+This file defines two aesthetic modes:
+
+1. Ornate Mode - Default mode with full effects
+   - Animations: 300ms with easeOutBack easing
+   - Spring physics: stiffness 300, damping 10
+   - Glow effects: 20px intensity, 0.6 opacity
+   - Background effects visible
+
+2. Minimal Mode - Simplified mode with reduced effects
+   - Animations: 150ms with ease-out easing
+   - Spring physics: stiffness 150, damping 20
+   - No glow effects
+   - Background effects hidden
+
+Usage:
+  Default: Ornate mode active automatically
+  Minimal: Add class minimal to html element
+
+Design Pattern:
+  Tokens defined in @theme with mode suffixes
+  Active values assigned via :root and .minimal
+  Extensible for future modes
+
+Accessibility:
+  Reduced motion media query support
+  All animations become instant when enabled
+  All visual effects disabled
+
+Implementation:
+  Tailwind CSS v4 @theme directive
+  Namespaced CSS custom properties
+  Documentation at bottom to avoid parser issues
+
+===============================================
+*/

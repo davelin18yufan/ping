@@ -1,0 +1,36 @@
+/**
+ * Effect Tokens - Glassmorphism, blur, glow intensities
+ * Used by: Frontend (Web) glass components and utilities
+ *
+ * Defined in @theme for proper Tailwind CSS v4 integration.
+ * This allows utilities to use * syntax for theme value matching.
+ */
+
+@theme {
+    /* Blur values */
+    --blur-sm: 10px;
+    --blur-md: 20px;
+    --blur-lg: 30px;
+    --blur-xl: 40px;
+
+    /* Glass opacity levels */
+    --glass-opacity-50: 0.5;
+    --glass-opacity-70: 0.7;
+    --glass-opacity-80: 0.8;
+    --glass-opacity-90: 0.9;
+
+    /* Glass saturation levels */
+    --glass-saturation-sm: 150%;
+    --glass-saturation-md: 180%;
+    --glass-saturation-lg: 200%;
+
+    /* Glow intensity */
+    --glow-intensity-sm: 10px;
+    --glow-intensity-md: 20px;
+    --glow-intensity-lg: 30px;
+
+    /* Glow opacity */
+    --glow-opacity-primary: 0.6;
+    --glow-opacity-accent: 0.5;
+    --glow-opacity-secondary: 0.4;
+}

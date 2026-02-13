@@ -1,0 +1,65 @@
+/**
+ * Base Overrides & Enhancements
+ * Styles that extend or override Tailwind Preflight
+ *
+ * These rules are NOT covered by Tailwind Preflight and are
+ * necessary for the project's design requirements.
+ */
+
+/* ============================================
+   Font Rendering Improvements
+   ============================================ */
+
+html {
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+}
+
+/* ============================================
+   Layout - Full Viewport Height
+   ============================================ */
+
+body {
+    min-height: 100vh;
+}
+
+#root {
+    min-height: 100vh;
+}
+
+/* ============================================
+   Media Elements (Extended beyond Preflight)
+   ============================================ */
+
+picture {
+    display: block;
+    max-width: 100%;
+}
+
+canvas,
+svg {
+    max-width: 100%;
+}
+
+/* ============================================
+   Typography - Prevent Text Overflow
+   ============================================ */
+
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+    overflow-wrap: break-word;
+}
+
+/* ============================================
+   UX - Pointer Cursor on Buttons
+   ============================================ */
+
+button {
+    cursor: pointer;
+}

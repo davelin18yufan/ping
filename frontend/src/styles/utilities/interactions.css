@@ -1,0 +1,224 @@
+/**
+ * Interaction Utilities - Tailwind CSS v4
+ *
+ * Enhanced with theme value matching for better extensibility.
+ * Supports arbitrary values for durations, transforms, and offsets.
+ */
+
+/* ============================================
+   Hover Lift Utilities (Theme Value Matching)
+   ============================================ */
+
+/* Accept arbitrary lift values */
+@utility hover-lift-* {
+    transition: transform var(--duration-fast) var(--ease-out);
+
+    &:hover {
+        transform: translateY(--value([length]));
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &:hover {
+            transform: none;
+        }
+    }
+}
+
+/* Predefined lift utility */
+@utility hover-lift {
+    transition: transform var(--duration-fast) var(--ease-out);
+
+    &:hover {
+        transform: translateY(-2px);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &:hover {
+            transform: none;
+        }
+    }
+}
+
+/* ============================================
+   Hover Scale Utilities (Theme Value Matching)
+   ============================================ */
+
+/* Accept arbitrary scale values */
+@utility hover-scale-* {
+    transition: transform var(--duration-fast) var(--ease-out);
+
+    &:hover {
+        transform: scale(--value([number]));
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &:hover {
+            transform: none;
+        }
+    }
+}
+
+/* Predefined scale utility */
+@utility hover-scale {
+    transition: transform var(--duration-fast) var(--ease-out);
+
+    &:hover {
+        transform: scale(1.02);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &:hover {
+            transform: none;
+        }
+    }
+}
+
+/* ============================================
+   Active Compress Utilities (Theme Value Matching)
+   ============================================ */
+
+/* Accept arbitrary scale values */
+@utility active-compress-* {
+    &:active {
+        transform: scale(--value([number]));
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &:active {
+            transform: none;
+        }
+    }
+}
+
+/* Predefined compress utility */
+@utility active-compress {
+    &:active {
+        transform: scale(0.98);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        &:active {
+            transform: none;
+        }
+    }
+}
+
+/* ============================================
+   Focus Ring Utilities (Theme Value Matching)
+   ============================================ */
+
+/* Accept arbitrary width values */
+@utility focus-ring-* {
+    &:focus-visible {
+        outline: --value([length]) solid var(--ring);
+        outline-offset: 2px;
+    }
+}
+
+/* Predefined ring utility */
+@utility focus-ring {
+    &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: 2px;
+    }
+}
+
+/* Focus ring inset with arbitrary offset */
+@utility focus-ring-inset-* {
+    &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: --value([length]);
+    }
+}
+
+@utility focus-ring-inset {
+    &:focus-visible {
+        outline: 2px solid var(--ring);
+        outline-offset: -2px;
+    }
+}
+
+/* ============================================
+   Transition Utilities (Theme Value Matching)
+   ============================================
+   Matches --duration-* and --ease-* tokens from \@theme.
+   Supports both theme tokens and arbitrary duration values.
+   ============================================ */
+
+/* Theme value matching for duration */
+@utility transition-duration-* {
+    transition-duration: --value(--duration-*, [time]);
+}
+
+/* Smooth color transitions with theme value matching */
+@utility transition-colors-* {
+    transition:
+        color --value(--duration-*, [time]) var(--ease-out),
+        background-color --value(--duration-*, [time]) var(--ease-out),
+        border-color --value(--duration-*, [time]) var(--ease-out);
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+}
+
+/* Predefined color transitions utility */
+@utility transition-colors {
+    transition:
+        color var(--duration-fast) var(--ease-out),
+        background-color var(--duration-fast) var(--ease-out),
+        border-color var(--duration-fast) var(--ease-out);
+
+    @media (prefers-reduced-motion: reduce) {
+        transition: none;
+    }
+}
+
+/* ============================================
+   Alternative: Separate Effect Utilities
+   For use with Tailwind built-in hover modifier
+   ============================================ */
+
+@utility lift-effect {
+    transform: translateY(-2px);
+}
+
+@utility lift-effect-* {
+    transform: translateY(--value([length]));
+}
+
+@utility scale-effect {
+    transform: scale(1.02);
+}
+
+@utility scale-effect-* {
+    transform: scale(--value([number]));
+}
+
+@utility compress-effect {
+    transform: scale(0.98);
+}
+
+@utility compress-effect-* {
+    transform: scale(--value([number]));
+}
+
+@utility ring-effect {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+}
+
+@utility ring-effect-* {
+    outline: --value([length]) solid var(--ring);
+    outline-offset: 2px;
+}
+
+@utility ring-inset-effect {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+}
+
+@utility ring-inset-effect-* {
+    outline: 2px solid var(--ring);
+    outline-offset: --value([length]);
+}

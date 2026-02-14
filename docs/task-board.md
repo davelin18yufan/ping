@@ -186,58 +186,40 @@
 - [ ] **Feature 1.2.0 - UI/UX 大改版 + Session 認證整合**
   - Agent: Architect → Full-Stack Frontend Developer → Architect (Review)
   - 任務: 配色系統改革、字型系統優化、動畫系統升級、雙模式系統、CSS 架構重組、Session 認證整合
-  - 狀態: 🔴 進行中（Stage 1 - Design Tokens + 樣板確認）
+  - 狀態: ⏳ 進行中（Stage 3/4 完成 - 雙模式系統 + 元件升級，待 Stage 4 Session 整合）
   - 優先度: P0（UI/UX 改版優先，Session 認證整合其次）
   - 依賴: Feature 1.0.4（Design System 基礎）✅、Feature 1.1.1（OAuth 登入）✅
   - 測試規格: `/docs/architecture/Feature-1.2.0-TDD-Tests.md`
-  - 分支: `feature/1.2.0-ui-ux-redesign`
+  - 主分支: `feature/1.2.0-ui-ux-redesign`
   - **階段分解**:
-    1. **Stage 1 - Design Tokens + 樣板確認**（進行中）
-       - 更新 `/shared/design-tokens/colors.ts`
-       - 建立新配色系統（Dark Mode: Noctis Obscuro、Light Mode: Kyoto Whisper）
-       - 建立樣板 HTML（`/frontend/design-preview.html`）
-       - 等待使用者確認
-    2. **Stage 2 - CSS 架構重組 + 動畫系統**
-       - 建立 `/frontend/src/styles/themes/dark.css`
-       - 建立 `/frontend/src/styles/themes/light.css`
-       - 建立 `/frontend/src/styles/animations.css`
-       - 整合 View Transition API + Framer Motion
-    3. **Stage 3 - 雙模式系統 + 元件升級**
-       - 建立華麗模式與簡潔模式切換
-       - 升級 Button, Input, Card, Avatar 元件
-       - 升級 SoundWaveLoader（保留與增強）
-    4. **Stage 4 - Session 認證整合**
+    1. **Stage 1 - Design Tokens + 配色確認**（✅ 完成）
+       - ✅ 更新 `/shared/design-tokens/colors.ts`
+       - ✅ 新配色系統確認（Dark Mode: Noctis Obscuro、Light Mode: Kyoto Whisper）
+    2. **Stage 2 - CSS 架構重組 + Design Tokens CSS 擴展**（✅ 完成 - 2026-02-14）
+       - ✅ Branch: `feature/1.2.0-stage-4-css-architecture`
+       - ✅ PR #27: https://github.com/davelin18yufan/ping/pull/27 (OPEN)
+       - ✅ shared/design-tokens CSS 格式：colors.css, animations.css, effects.css, spacing.css
+       - ✅ shared/design-tokens TypeScript：animations.ts, borders.ts, effects.ts, z-index.ts
+       - ✅ frontend/src/styles/ 重組：themes/, animations/, base/, utilities/, components/
+       - ✅ 測試套件：aesthetic-mode-toggle.spec.tsx + aesthetic-mode-context.spec.tsx
+       - ✅ pnpm 10.29.3 + frontend 依賴更新
+    3. **Stage 3 - 雙模式系統 + 元件升級**（✅ 完成 - 2026-02-14）
+       - ✅ 建立華麗模式（Glamorous）與簡潔模式（Minimal）切換系統
+       - ✅ 升級 Button, Input, Card, Avatar 元件（新配色與動畫）
+       - ✅ 升級 SoundWaveLoader（增強視覺效果，支援雙模式切換）
+    4. **Stage 4 - Session 認證整合**（🔴 待開始）
        - 整合 Better Auth session 管理
        - 實作 session 驗證與更新
        - 實作登出流程
-  - **核心變更**:
-    - **配色系統**（Dark Mode 跳脫 Discord 風格）
-      - Background: #0D1117 → #0B0E13（更深）
-      - Surface: #161B22 → #141821（更沉穩）
-      - Accent: #5865F2 → #6B7FE8（更柔和的藍）
-    - **Light Mode**（日式簡樸）
-      - Background: #FAF9F8 → #F5F4F0（米白色）
-      - Surface: #FFFFFF → #FDFCFA（柔和白）
-      - Text: #060607 → #2C2C2E（深灰黑）
-    - **字型系統**（Noto Sans TC / Noto Serif TC）
-      - Heading: Noto Sans TC Medium (500)
-      - Body: Noto Sans TC Regular (400)
-      - Serif: Noto Serif TC Light (300)
-    - **動畫系統**（View Transition API + Framer Motion）
-      - 路由切換使用 View Transition API
-      - 元件互動使用 Framer Motion
-      - 支援 Reduced Motion
-    - **雙模式系統**
-      - 華麗模式（Glamorous）：完整動畫、特效、細節
-      - 簡潔模式（Minimal）：簡化動畫、純文字、高效能
   - **產出**:
     - ✅ 新配色系統（28+ tokens）
-    - ✅ 新字型系統（Noto Sans TC / Serif TC）
-    - ⏳ 動畫系統（View Transition API + Framer Motion）
-    - ⏳ 雙模式切換系統
-    - ⏳ CSS 架構重組（themes/, animations/, utilities/）
-    - ⏳ SoundWaveLoader 升級版
-    - ⏳ Session 認證整合（登出、session 更新）
+    - ✅ CSS 架構重組（themes/, animations/, base/, utilities/, components/）
+    - ✅ Design Tokens CSS 格式擴展（4 CSS + 4 TS）
+    - ✅ Feature 1.2.0 測試套件（675 行）
+    - ✅ 動畫系統（View Transition API + Framer Motion）
+    - ✅ 雙模式切換系統（Glamorous / Minimal）
+    - ✅ SoundWaveLoader 升級版
+    - 🔴 Session 認證整合（登出、session 更新）
 
 ---
 
@@ -581,7 +563,7 @@
 
 🎉 Phase 1.0 基礎設施初始化完整完成！(4/4 features - 100%)
 🎉 Phase 1.1 認證系統（Web）完成！(Feature 1.1.1 - OAuth Google Login)
-🔴 Phase 1.2 UI/UX 改版進行中（Feature 1.2.0 - Stage 1/4）
+⏳ Phase 1.2 UI/UX 改版進行中（Feature 1.2.0 - Stage 3/4 完成，待 Stage 4）
 ```
 
 ### 階段進度
@@ -632,8 +614,8 @@ Phase 1.0 成就解鎖 🏆:
   🔲 更新個人資料
   🔲 上傳頭像
   🔲 搜尋用戶
-階段 2.5 (UI/UX 改版): 0/1   (0%)    - 🔴 進行中（Stage 1/4）
-  🔴 Feature 1.2.0 - UI/UX 大改版 + Session 認證整合
+階段 2.5 (UI/UX 改版): 0/1   (0%)    - ⏳ 進行中（Stage 3/4 完成，待 Stage 4 Session 整合）
+  ⏳ Feature 1.2.0 - UI/UX 大改版 + Session 認證整合（Stage 3 完成，Stage 4 待開始）
 階段 3 (好友系統):  0/8   (0%)    - 依賴階段 2 完成
 階段 4 (一對一聊天): 0/8   (0%)    - 依賴階段 3 完成
 階段 5 (即時功能):  0/7   (0%)    - 依賴階段 4 完成
@@ -978,33 +960,26 @@ E2E Tests: 目標涵蓋主要流程
 
 **更新頻率**: 每日更新
 **維護者**: All Agents
-**最後更新**: 2026-02-03 18:00
+**最後更新**: 2026-02-14
 **最新變更**:
-  - 🔴 **Feature 1.2.0（UI/UX 大改版）開始！**
-    - 🔴 Stage 1/4 進行中：Design Tokens + 樣板確認
-    - ✅ 測試規格文件完成：`/docs/architecture/Feature-1.2.0-TDD-Tests.md`（40 個測試案例）
-    - 🔴 Branch 已建立：`feature/1.2.0-ui-ux-redesign`
-    - **當前任務**：
-      - 更新 `/shared/design-tokens/colors.ts`（新配色系統）
-      - 建立 `/frontend/design-preview.html`（樣板 HTML）
-      - 等待使用者確認配色與樣式
-    - **核心變更預覽**：
-      - Dark Mode: Noctis Obscuro（#0B0E13 深沉神秘）
-      - Light Mode: Kyoto Whisper（#F5F4F0 日式簡樸）
-      - 字型：Noto Sans TC / Noto Serif TC
-      - 動畫：View Transition API + Framer Motion
-      - 雙模式：華麗（Glamorous）/ 簡潔（Minimal）
-    - 📅 預期完成：2026-02-10（約 7 天，11 小時工作量）
-  - 🎉 **Feature 1.1.1（OAuth Google 登入）完成！**
-    - ✅ 79/79 測試通過
-    - 📝 PR #23: https://github.com/davelin18yufan/ping/pull/23（OPEN，等待 review）
+  - ⏳ **Feature 1.2.0（UI/UX 大改版）Stage 3 完成！**
+    - ✅ Stage 1: Design Tokens 配色確認（完成）
+    - ✅ Stage 2: CSS 架構重組 + Design Tokens CSS 擴展（完成 - 2026-02-14）
+      - Branch: `feature/1.2.0-stage-4-css-architecture`
+      - PR #27: https://github.com/davelin18yufan/ping/pull/27（OPEN）
+      - 33 個檔案變更（+2444/-1312 行）
+    - ✅ Stage 3: 雙模式系統 + 元件升級（完成 - 2026-02-14）
+      - 雙模式切換系統（Glamorous 華麗模式 / Minimal 簡潔模式）
+      - Button, Input, Card, Avatar 元件升級（新配色與動畫）
+      - SoundWaveLoader 升級（支援雙模式切換）
+    - 🔴 Stage 4 待開始：Session 認證整合
+    - 📅 預期完成：2026-02-21
   - 📊 **進度更新**：
     - 階段 1 (基礎設施)：100% 完成 ✅
     - 階段 2 (認證用戶)：14.29% 完成（1/7 - OAuth 登入）
-    - 階段 2.5 (UI/UX 改版)：0% 完成（Stage 1/4 進行中）
+    - 階段 2.5 (UI/UX 改版)：Stage 3/4 完成，待 Stage 4 Session 整合
     - 階段 6 (前端開發)：60% 完成（6/10）
     - 整體完成率：24.00%（12/50 features，1 個進行中）
   - 🚀 **下一步**：
-    - 完成 Feature 1.2.0 Stage 1（Design Tokens + 樣板確認）
-    - 等待使用者確認配色後繼續 Stage 2-4
-    - 並行：等待 PR #23 review 與 merge
+    - Feature 1.2.0 Stage 4（Session 認證整合）
+    - 整合 Better Auth session 管理、實作登出流程

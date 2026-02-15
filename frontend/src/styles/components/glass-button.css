@@ -247,6 +247,35 @@
         padding: 0;
         border-radius: 50%;
     }
+
+    /* Destructive / Sign Out variant - red tint on hover */
+    .app-header__sign-out {
+        transition: all var(--duration-fast) var(--ease-out);
+    }
+
+    .app-header__sign-out:hover:not(:disabled) {
+        background: oklch(from var(--destructive) l c h / 0.12);
+        color: var(--destructive-foreground);
+        box-shadow:
+            0 4px 12px oklch(from var(--destructive) l c h / 0.2),
+            0 8px 24px oklch(from var(--destructive) l c h / 0.1);
+    }
+
+    :root.dark .app-header__sign-out:hover:not(:disabled) {
+        background: oklch(from var(--destructive-foreground) l c h / 0.12);
+        color: var(--destructive-foreground);
+        box-shadow:
+            0 4px 12px oklch(from var(--destructive-foreground) l c h / 0.25),
+            0 8px 24px oklch(from var(--destructive-foreground) l c h / 0.12);
+    }
+
+    .app-header__sign-out::after {
+        border-color: var(--destructive);
+    }
+
+    .app-header__sign-out:hover:not(:disabled)::after {
+        animation: border-ripple-expand var(--duration-slower) var(--ease-out);
+    }
 }
 
 /* Safari support check */

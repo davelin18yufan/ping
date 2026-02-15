@@ -2,6 +2,8 @@ import { ApolloClient, HttpLink, InMemoryCache } from "@apollo/client"
 import { CombinedGraphQLErrors } from "@apollo/client/errors"
 import { ErrorLink } from "@apollo/client/link/error"
 
+import { signOut } from "@/lib/auth-client"
+
 /**
  * Get GraphQL endpoint from environment variable
  * Default to http://localhost:3000/graphql for development
@@ -27,10 +29,10 @@ export const errorLink = new ErrorLink(({ error }) => {
 
             // Handle specific error codes
             if (extensions?.code === "UNAUTHENTICATED") {
-                // Clear session and redirect to login
-                // This will be implemented with Better Auth integration
                 if (typeof window !== "undefined") {
-                    console.warn("User not authenticated, should redirect to login")
+                    signOut().then(() => {
+                        window.location.href = "/auth"
+                    })
                 }
             }
 

@@ -8,8 +8,9 @@ import { useEffect } from "react"
 
 import type { AuthSession } from "@/lib/auth"
 
-import SimpleHeader from "@/components/shared/SimpleHeader"
+import AppHeader from "@/components/shared/AppHeader"
 import { AestheticModeProvider, useAestheticMode } from "@/contexts/aesthetic-mode-context"
+import { useSessionGuard } from "@/hooks/useSessionGuard"
 
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools"
 import StoreDevtools from "../lib/demo-store-devtools"
@@ -63,6 +64,16 @@ function HtmlClassManager() {
     return null
 }
 
+/**
+ * SessionGuardMounter
+ * Mounts the useSessionGuard hook inside AestheticModeProvider
+ * so it has access to React context and is co-located with the app shell.
+ */
+function SessionGuardMounter() {
+    useSessionGuard()
+    return null
+}
+
 function RootDocument({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en">
@@ -72,7 +83,8 @@ function RootDocument({ children }: { children: React.ReactNode }) {
             <body>
                 <AestheticModeProvider>
                     <HtmlClassManager />
-                    <SimpleHeader />
+                    <SessionGuardMounter />
+                    <AppHeader />
                     {children}
                     <TanStackDevtools
                         config={{

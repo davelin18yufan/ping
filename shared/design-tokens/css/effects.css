@@ -33,4 +33,10 @@
     --glow-opacity-primary: 0.6;
     --glow-opacity-accent: 0.5;
     --glow-opacity-secondary: 0.4;
+
+    /* Presence status pulse (sound wave rings) */
+    --status-pulse-opacity-start: 0.55;
+    --status-pulse-opacity-end: 0;
+    --status-pulse-scale-end: 2.2;
+    --status-pulse-duration: 1800ms;
 }

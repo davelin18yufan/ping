@@ -56,6 +56,12 @@
     --glow-accent: oklch(0.65 0.15 145); /* FaceTime green */
     --glow-secondary: oklch(0.7 0.18 200); /* Cyan-blue */
 
+    /* Presence / user status colors (Light Mode) */
+    --status-online:  oklch(0.68 0.18 145); /* Vibrant green */
+    --status-away:    oklch(0.75 0.17 75);  /* Warm amber */
+    --status-busy:    oklch(0.56 0.23 25);  /* Alert red */
+    --status-offline: oklch(0.60 0.01 240); /* Muted steel */
+
     /* Ritual colors (Light Mode) */
     --ritual-apology: oklch(0.58 0.16 250); /* Blue apology */
     --ritual-celebrate: oklch(0.85 0.15 85); /* Golden celebration */
@@ -112,6 +118,12 @@
     --glow-primary: oklch(0.6 0.18 250); /* Messages blue */
     --glow-accent: oklch(0.65 0.15 145); /* FaceTime green */
     --glow-secondary: oklch(0.7 0.18 200); /* Cyan-blue */
+
+    /* Presence / user status colors (Dark Mode) */
+    --status-online:  oklch(0.72 0.18 145); /* Brighter green on dark */
+    --status-away:    oklch(0.78 0.17 75);  /* Bright amber on dark */
+    --status-busy:    oklch(0.60 0.23 25);  /* Alert red on dark */
+    --status-offline: oklch(0.45 0.01 240); /* Dimmed steel on dark */
 
     /* Ritual colors (Dark Mode) */
     --ritual-apology: oklch(0.6 0.2 270); /* Blue-purple apology */

@@ -19,7 +19,7 @@ import { AestheticModeToggle } from "@/components/shared/AestheticModeToggle"
 import { SoundWaveLoader } from "@/components/shared/SoundWaveLoader"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import { UserStatusAvatar } from "@/components/shared/UserStatusAvatar"
-import { useScrollDirection } from "@/hooks"
+import { useScrollDirection } from "@/hooks/useScrollDirection"
 import { signOut, useSession } from "@/lib/auth-client"
 import "@/styles/components/capsule-header.css"
 import "@/styles/components/glass-button.css"
@@ -38,12 +38,7 @@ export default function AppHeader() {
     const prevIsAuthenticated = useRef<boolean | null>(null)
     const nudgeTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-    // TODO: Dev fallback — always show header during development
-    const user = sessionData?.user || {
-        email: "example@gmail.com",
-        id: "test",
-        name: "Dave Lin",
-    }
+    const user = sessionData?.user ?? null
     const isAuthenticated = !isPending && !!user
 
     // Nudge animation when auth state changes
@@ -133,7 +128,6 @@ export default function AppHeader() {
                     ══════════════════════════════════════════════════ */}
                 <div
                     className="capsule-header__expanded-zone"
-                    aria-hidden={effectiveState !== "expanded"}
                 >
                     {/* child 1: user name */}
                     {isAuthenticated && user && (
@@ -156,7 +150,7 @@ export default function AppHeader() {
                         <button
                             onClick={handleSignOut}
                             disabled={isSigningOut}
-                            className="app-header__sign-out glass-button glass-button--sm"
+                            className="glass-button glass-button--sm glass-button--destructive"
                             aria-label="Sign out"
                             aria-busy={isSigningOut}
                         >

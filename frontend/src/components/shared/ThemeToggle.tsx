@@ -9,18 +9,23 @@
 import { Moon, Sun } from "lucide-react"
 import { useEffect, useState } from "react"
 
-import { useViewTransition } from "@/hooks"
+import { useViewTransition } from "@/hooks/use-view-transition"
+
+function getInitialTheme(): boolean {
+    if (typeof window === "undefined") return true // SSR: default dark
+    const stored = localStorage.getItem("theme")
+    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
+    return stored === "dark" || (!stored && prefersDark)
+}
 
 export function ThemeToggle() {
-    const [isDark, setIsDark] = useState(true)
+    const [isDark, setIsDark] = useState(() => getInitialTheme())
     const transition = useViewTransition()
 
+    // Sync document class on mount (initial render already has correct isDark value)
     useEffect(() => {
-        const stored = localStorage.getItem("theme")
-        const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches
-        const shouldBeDark = stored === "dark" || (!stored && prefersDark)
-        setIsDark(shouldBeDark)
-        document.documentElement.classList.toggle("dark", shouldBeDark)
+        document.documentElement.classList.toggle("dark", isDark)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const handleToggle = (event: React.MouseEvent<HTMLButtonElement>) => {

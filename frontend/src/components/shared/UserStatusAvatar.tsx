@@ -119,9 +119,9 @@ export function UserStatusAvatar({
                     <Facehash
                         name={userId}
                         size={size}
-                        showInitial={false}
+                        showInitial={true}
                         interactive={false}
-                        enableBlink={false}
+                        enableBlink={true}
                         intensity3d="subtle"
                         variant="gradient"
                     />

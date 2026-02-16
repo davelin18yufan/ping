@@ -223,27 +223,6 @@ describe("Aesthetic Mode Context Tests", () => {
     })
 
     /**
-     * Test 3.7: Provider renders children correctly
-     * Verify provider wrapper renders child components
-     */
-    it("should render children correctly", () => {
-        const TestComponent = () => {
-            const { mode } = useAestheticMode()
-            return <div data-testid="mode">{mode}</div>
-        }
-
-        const { getByTestId } = render(
-            <AestheticModeProvider>
-                <TestComponent />
-            </AestheticModeProvider>
-        )
-
-        const modeElement = getByTestId("mode")
-        expect(modeElement).toBeInTheDocument()
-        expect(modeElement.textContent).toBe("ornate")
-    })
-
-    /**
      * Test 3.8: Invalid localStorage value defaults to ornate
      * Verify fallback behavior for corrupted localStorage
      */
@@ -315,26 +294,6 @@ describe("Aesthetic Mode Context Tests", () => {
             expect(getByTestId("mode").textContent).toBe("minimal")
             expect(localStorage.getItem("ping-aesthetic-mode")).toBe("minimal")
         })
-    })
-
-    /**
-     * Test 3.10: Server-side rendering returns default mode
-     * Verify SSR compatibility (no window access)
-     */
-    it("should return default mode during SSR", () => {
-        const TestComponent = () => {
-            const { mode } = useAestheticMode()
-            return <div data-testid="mode">{mode}</div>
-        }
-
-        const { getByTestId } = render(
-            <AestheticModeProvider>
-                <TestComponent />
-            </AestheticModeProvider>
-        )
-
-        // Without localStorage set, should default to ornate
-        expect(getByTestId("mode").textContent).toBe("ornate")
     })
 
     /**

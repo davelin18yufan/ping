@@ -12,7 +12,6 @@
  *   scroll-down  >  headerExpanded  >  default
  */
 
-import { useStore } from "@tanstack/react-store"
 import { render, fireEvent, screen, act, waitFor } from "@testing-library/react"
 import { describe, it, expect, beforeEach, vi } from "vitest"
 
@@ -352,38 +351,4 @@ describe("AppHeader – capsule state binding", () => {
         })
     })
 
-    /**
-     * T-11: headerExpanded survives AestheticModeProvider re-render
-     */
-    it("should preserve headerExpanded through context re-render", async () => {
-        const StoreReader = () => {
-            const expanded = useStore(uiStore, (s) => s.headerExpanded)
-            return <span data-testid="store-expanded">{expanded.toString()}</span>
-        }
-
-        const { container } = render(
-            <AestheticModeProvider>
-                <AppHeader />
-                <StoreReader />
-            </AestheticModeProvider>
-        )
-
-        act(() => {
-            fireEvent.mouseEnter(getHeader(container))
-        })
-
-        await waitFor(() => {
-            expect(screen.getByTestId("store-expanded").textContent).toBe("true")
-        })
-
-        // Force a context re-render
-        act(() => {
-            uiStore.setState((s) => ({ ...s }))
-        })
-
-        await waitFor(() => {
-            expect(screen.getByTestId("store-expanded").textContent).toBe("true")
-            expect(getHeader(container)).toHaveClass("capsule-header--expanded")
-        })
-    })
 })

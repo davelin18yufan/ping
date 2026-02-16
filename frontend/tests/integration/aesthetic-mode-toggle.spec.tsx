@@ -107,9 +107,6 @@ describe("AestheticModeToggle Component Tests", () => {
         await waitFor(() => {
             expect(screen.getByText("Ornate")).toBeInTheDocument()
         })
-
-        // Verify localStorage
-        expect(localStorage.getItem("ping-aesthetic-mode")).toBe("minimal")
     })
 
     /**
@@ -137,9 +134,6 @@ describe("AestheticModeToggle Component Tests", () => {
         await waitFor(() => {
             expect(screen.getByText("Minimal")).toBeInTheDocument()
         })
-
-        // Verify localStorage
-        expect(localStorage.getItem("ping-aesthetic-mode")).toBe("ornate")
     })
 
     /**

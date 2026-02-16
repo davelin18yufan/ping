@@ -12,7 +12,7 @@
  *   scroll-down  >  headerExpanded  >  default
  */
 
-import { render, fireEvent, screen, act, waitFor } from "@testing-library/react"
+import { render, fireEvent, act, waitFor } from "@testing-library/react"
 import { describe, it, expect, beforeEach, vi } from "vitest"
 
 import AppHeader from "@/components/shared/AppHeader"
@@ -350,5 +350,4 @@ describe("AppHeader – capsule state binding", () => {
             expect(header).toHaveClass("capsule-header--expanded")
         })
     })
-
 })

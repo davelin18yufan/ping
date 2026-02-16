@@ -15,167 +15,173 @@
  *   Individual items use opacity + translateX for stagger — NOT max-width.
  *   This avoids each item being independently clipped by its own max-width.
  *
- * Glassmorphism: var(--glass-background)       ← @shared/design-tokens/colors.css
- * Status colors: var(--status-*)               ← @shared/design-tokens/colors.css
- * Pulse timing:  var(--status-pulse-*)         ← @shared/design-tokens/effects.css
- * Durations:     var(--duration-fast/normal)   ← @shared/design-tokens/animations.css
+ * Tokens used:
+ *   Glassmorphism:  var(--glass-background)        ← colors.css
+ *   Status colors:  var(--status-*)                ← colors.css
+ *   Pulse timing:   var(--status-pulse-*)           ← effects.css
+ *   Shadow colors:  var(--shadow-overlay/highlight-*) ← effects.css
+ *   Durations:      var(--duration-*)              ← animations.css
+ *   Easing:         var(--ease-spring/out)          ← animations.css
+ *   Spacing:        var(--spacing-*)               ← spacing.css
+ *   Radius:         var(--radius/radius-sm/radius-xl) ← colors.css
  */
 
-/* ══════════════════════════════════════════════════════
-   1. Presence Status Badge
-   ══════════════════════════════════════════════════════ */
-
-.user-status-badge {
-    position: absolute;
-    bottom: -1px;
-    right: -1px;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    box-shadow: 0 0 0 1.5px var(--background);
-    transition: background-color 300ms ease-out;
-    pointer-events: none;
-}
-
-.user-status-badge--online  { background: var(--status-online);  }
-.user-status-badge--away    { background: var(--status-away);    }
-.user-status-badge--busy    { background: var(--status-busy);    }
-.user-status-badge--offline { background: var(--status-offline); }
-
-/* ══════════════════════════════════════════════════════
-   2. Online Sound Wave (pulse rings)
-   ══════════════════════════════════════════════════════ */
-
-.user-status-wave {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    pointer-events: none;
-}
-
-.user-status-wave__ring {
-    position: absolute;
-    inset: 0;
-    border-radius: 50%;
-    border: 1.5px solid var(--status-online);
-    opacity: 0;
-    animation: status-wave-ring var(--status-pulse-duration, 1800ms) ease-out infinite;
-}
-
-.user-status-wave__ring:nth-child(1) { animation-delay: 0ms;    }
-.user-status-wave__ring:nth-child(2) { animation-delay: 540ms;  }
-.user-status-wave__ring:nth-child(3) { animation-delay: 1080ms; }
-
-@keyframes status-wave-ring {
-    0%   { transform: scale(1);    opacity: var(--status-pulse-opacity-start, 0.55); }
-    100% { transform: scale(var(--status-pulse-scale-end, 2.2));
-           opacity: var(--status-pulse-opacity-end, 0); }
-}
-
-/* ══════════════════════════════════════════════════════
-   3. Status Picker Popover
-   ══════════════════════════════════════════════════════ */
-
-.user-status-picker {
-    position: absolute;
-    top: calc(100% + 10px);
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 60;
-
-    background: var(--glass-background-hover);
-    backdrop-filter: blur(var(--blur-lg)) saturate(var(--glass-saturation-md));
-    -webkit-backdrop-filter: blur(var(--blur-lg)) saturate(var(--glass-saturation-md));
-
-    border: 1px solid oklch(from var(--border) l c h / 0.5);
-    border-radius: 14px;
-    box-shadow:
-        0 4px 24px oklch(0 0 0 / 0.22),
-        0 1px 0 oklch(1 0 0 / 0.08) inset;
-
-    padding: 6px;
-    min-width: 200px;
-    width: max-content;
-    animation: picker-appear 180ms cubic-bezier(0.34, 1.56, 0.64, 1) both;
-}
-
-@keyframes picker-appear {
-    from { opacity: 0; transform: translateX(-50%) scale(0.92) translateY(-4px); }
-    to   { opacity: 1; transform: translateX(-50%) scale(1)    translateY(0);    }
-}
-
-.user-status-picker__item {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    width: 100%;
-    padding: 8px 10px;
-    border: none;
-    border-radius: 9px;
-    background: transparent;
-    color: var(--foreground);
-    cursor: pointer;
-    transition: background var(--duration-fast) ease-out;
-    text-align: left;
-}
-
-.user-status-picker__item:hover      { background: oklch(from var(--primary) l c h / 0.10); }
-.user-status-picker__item--active    { background: oklch(from var(--primary) l c h / 0.14); }
-
-.user-status-picker__dot {
-    position: static;
-    display: inline-block;
-    width: 9px;
-    height: 9px;
-    border-radius: 50%;
-    flex-shrink: 0;
-}
-
-.user-status-picker__text  { display: flex; flex-direction: column; gap: 1px; }
-
-.user-status-picker__label {
-    font-size: 0.8125rem;
-    font-weight: 500;
-    line-height: 1.2;
-    color: var(--foreground);
-}
-
-.user-status-picker__desc {
-    font-size: 0.6875rem;
-    color: var(--muted-foreground);
-    line-height: 1.2;
-}
-
-/* ══════════════════════════════════════════════════════
-   4. Avatar interactive ring
-   ══════════════════════════════════════════════════════ */
-
-.user-status-avatar__wrapper--interactive {
-    border-radius: 50%;
-    transition: box-shadow var(--duration-fast) ease-out;
-}
-
-.user-status-avatar__wrapper--interactive:hover,
-.user-status-avatar__wrapper--interactive:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 2px oklch(from var(--primary) l c h / 0.5);
-}
-
-/* ══════════════════════════════════════════════════════
-   5. ThemeToggle label (hidden on small screens)
-   ══════════════════════════════════════════════════════ */
-
-.theme-toggle__label { display: inline; }
-
-@media (max-width: 639px) {
-    .theme-toggle__label { display: none; }
-}
-
-/* ══════════════════════════════════════════════════════
-   6. Capsule Container
-   ══════════════════════════════════════════════════════ */
-
 @layer components {
+    /* ══════════════════════════════════════════════════════
+       1. Presence Status Badge
+       ══════════════════════════════════════════════════════ */
+
+    .user-status-badge {
+        position: absolute;
+        bottom: -1px;
+        right: -1px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        box-shadow: 0 0 0 1.5px var(--background);
+        transition: background-color var(--duration-300) var(--ease-out);
+        pointer-events: none;
+    }
+
+    .user-status-badge--online  { background: var(--status-online);  }
+    .user-status-badge--away    { background: var(--status-away);    }
+    .user-status-badge--busy    { background: var(--status-busy);    }
+    .user-status-badge--offline { background: var(--status-offline); }
+
+    /* ══════════════════════════════════════════════════════
+       2. Online Sound Wave (pulse rings)
+       ══════════════════════════════════════════════════════ */
+
+    .user-status-wave {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .user-status-wave__ring {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 1.5px solid var(--status-online);
+        opacity: 0;
+        animation: status-wave-ring var(--status-pulse-duration, 1800ms) var(--ease-out) infinite;
+    }
+
+    /* Delays as proportions of pulse duration — stays in sync if token changes */
+    .user-status-wave__ring:nth-child(1) { animation-delay: 0ms; }
+    .user-status-wave__ring:nth-child(2) { animation-delay: calc(var(--status-pulse-duration, 1800ms) * 0.3); }
+    .user-status-wave__ring:nth-child(3) { animation-delay: calc(var(--status-pulse-duration, 1800ms) * 0.6); }
+
+    @keyframes status-wave-ring {
+        0%   { transform: scale(1);    opacity: var(--status-pulse-opacity-start, 0.55); }
+        100% { transform: scale(var(--status-pulse-scale-end, 2.2));
+               opacity: var(--status-pulse-opacity-end, 0); }
+    }
+
+    /* ══════════════════════════════════════════════════════
+       3. Status Picker Popover
+       ══════════════════════════════════════════════════════ */
+
+    .user-status-picker {
+        position: absolute;
+        top: calc(100% + var(--spacing-2\.5));
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 60;
+
+        background: var(--glass-background-hover);
+        backdrop-filter: blur(var(--blur-lg)) saturate(var(--glass-saturation-md));
+        -webkit-backdrop-filter: blur(var(--blur-lg)) saturate(var(--glass-saturation-md));
+
+        border: 1px solid oklch(from var(--border) l c h / 0.5);
+        border-radius: var(--radius-xl);
+        box-shadow:
+            0 4px 24px var(--shadow-overlay-xl),
+            0 1px 0 var(--shadow-highlight-sm) inset;
+
+        padding: 6px;
+        min-width: 200px;
+        width: max-content;
+        animation: picker-appear var(--duration-fast) var(--ease-spring) both;
+    }
+
+    @keyframes picker-appear {
+        from { opacity: 0; transform: translateX(-50%) scale(0.92) translateY(-4px); }
+        to   { opacity: 1; transform: translateX(-50%) scale(1)    translateY(0);    }
+    }
+
+    .user-status-picker__item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 8px 10px;
+        border: none;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: var(--foreground);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-out);
+        text-align: left;
+    }
+
+    .user-status-picker__item:hover      { background: oklch(from var(--primary) l c h / 0.10); }
+    .user-status-picker__item--active    { background: oklch(from var(--primary) l c h / 0.14); }
+
+    .user-status-picker__dot {
+        position: static;
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .user-status-picker__text  { display: flex; flex-direction: column; gap: 1px; }
+
+    .user-status-picker__label {
+        font-size: 0.8125rem;
+        font-weight: 500;
+        line-height: 1.2;
+        color: var(--foreground);
+    }
+
+    .user-status-picker__desc {
+        font-size: 0.6875rem;
+        color: var(--muted-foreground);
+        line-height: 1.2;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       4. Avatar interactive ring
+       ══════════════════════════════════════════════════════ */
+
+    .user-status-avatar__wrapper--interactive {
+        border-radius: 50%;
+        transition: box-shadow var(--duration-fast) var(--ease-out);
+    }
+
+    .user-status-avatar__wrapper--interactive:hover,
+    .user-status-avatar__wrapper--interactive:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 2px oklch(from var(--primary) l c h / 0.5);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       5. ThemeToggle label (hidden on small screens)
+       ══════════════════════════════════════════════════════ */
+
+    .theme-toggle__label { display: inline; }
+
+    @media (max-width: 639px) {
+        .theme-toggle__label { display: none; }
+    }
+
+    /* ══════════════════════════════════════════════════════
+       6. Capsule Container
+       ══════════════════════════════════════════════════════ */
+
     .capsule-header {
         border-radius: 9999px;
         overflow: hidden;
@@ -187,9 +193,9 @@
 
         border: 1px solid oklch(from var(--border) l c h / 0.6);
         box-shadow:
-            0 1px 0 oklch(1 0 0 / 0.1) inset,
-            0 4px 20px oklch(0 0 0 / 0.12),
-            0 12px 40px oklch(0 0 0 / 0.08);
+            0 1px 0 var(--shadow-highlight-md) inset,
+            0 4px 20px var(--shadow-overlay-md),
+            0 12px 40px var(--shadow-overlay-sm);
 
         max-width: var(--capsule-max-width, 220px);
         width: calc(100vw - 32px);
@@ -197,10 +203,10 @@
 
         /* Only max-width drives morphing — all others are style transitions */
         transition:
-            max-width    350ms cubic-bezier(0.34, 1.56, 0.64, 1),
-            background   200ms ease-out,
-            box-shadow   250ms ease-out,
-            border-color 200ms ease-out;
+            max-width    var(--duration-350) var(--ease-spring),
+            background   var(--duration-200) var(--ease-out),
+            box-shadow   var(--duration-normal) var(--ease-out),
+            border-color var(--duration-200) var(--ease-out);
 
         user-select: none;
         touch-action: manipulation;
@@ -208,9 +214,9 @@
 
     :root.dark .capsule-header {
         box-shadow:
-            0 1px 0 oklch(1 0 0 / 0.07) inset,
-            0 4px 20px oklch(0 0 0 / 0.28),
-            0 12px 40px oklch(0 0 0 / 0.18);
+            0 1px 0 var(--shadow-highlight-xs) inset,
+            0 4px 20px var(--shadow-overlay-2xl),
+            0 12px 40px var(--shadow-overlay-lg);
     }
 
     /* Minimal (~80px): logo dot + avatar */
@@ -221,9 +227,9 @@
         --capsule-max-width: 520px;
         border-color: oklch(from var(--primary) l c h / 0.28);
         box-shadow:
-            0 1px 0 oklch(1 0 0 / 0.12) inset,
-            0 6px 24px oklch(0 0 0 / 0.18),
-            0 16px 48px oklch(0 0 0 / 0.12),
+            0 1px 0 var(--shadow-highlight-lg) inset,
+            0 6px 24px var(--shadow-overlay-lg),
+            0 16px 48px var(--shadow-overlay-md),
             0 0 0 1px oklch(from var(--primary) l c h / 0.08);
     }
 
@@ -256,7 +262,7 @@
         min-width: 8px;
         border-radius: 50%;
         background: linear-gradient(135deg, var(--glow-primary), var(--glow-secondary));
-        transition: transform 200ms ease-out, box-shadow 200ms ease-out;
+        transition: transform var(--duration-200) var(--ease-out), box-shadow var(--duration-200) var(--ease-out);
         flex-shrink: 0;
     }
 
@@ -278,8 +284,8 @@
         overflow: hidden;
         opacity: 1;
         transition:
-            max-width 300ms cubic-bezier(0.34, 1.56, 0.64, 1),
-            opacity   200ms ease-out;
+            max-width var(--duration-300) var(--ease-spring),
+            opacity   var(--duration-200) var(--ease-out);
     }
 
     .capsule-header--minimal .capsule-header__logo-text {
@@ -315,7 +321,7 @@
         overflow: hidden;
         /* Do NOT set opacity here — children handle their own opacity for stagger */
         pointer-events: none;
-        transition: max-width 320ms cubic-bezier(0.34, 1.56, 0.64, 1);
+        transition: max-width var(--duration-320) var(--ease-spring);
     }
 
     .capsule-header--expanded .capsule-header__expanded-zone {
@@ -329,8 +335,8 @@
         opacity: 0;
         transform: translateX(6px);
         transition:
-            opacity   180ms ease-out,
-            transform 180ms ease-out;
+            opacity   var(--duration-fast) var(--ease-out),
+            transform var(--duration-fast) var(--ease-out);
         flex-shrink: 0;
     }
 
@@ -365,7 +371,7 @@
         flex-shrink: 0;
     }
 
-    /* ── Controls row (no extra wrapper needed) ── */
+    /* ── Controls row ── */
     .capsule-header__controls {
         display: flex;
         align-items: center;
@@ -373,7 +379,9 @@
         flex-shrink: 0;
     }
 
-    /* ── Strip glass-button backgrounds inside the capsule controls ── */
+    /* ── Strip glass-button backgrounds inside the capsule controls ──
+       Use icon color dimming (not element opacity) to avoid stagger
+       animation interference when expanded-zone opacity is in transition. */
     .capsule-header__controls .glass-button,
     .capsule-header__controls .glass-button:hover {
         background: transparent;
@@ -384,8 +392,8 @@
     }
 
     .capsule-header__controls .glass-button:hover {
-        color: var(--foreground);
-        opacity: 0.75;
+        /* Dim via color alpha, not element opacity — avoids stagger double-opacity issue */
+        color: oklch(from var(--foreground) l c h / 0.6);
         transform: none;
     }
 
@@ -402,36 +410,37 @@
     }
 
     .capsule-header--nudge {
-        animation: capsule-nudge 480ms cubic-bezier(0.34, 1.56, 0.64, 1);
-    }
-}
-
-/* ══════════════════════════════════════════════════════
-   7. Reduced Motion
-   ══════════════════════════════════════════════════════ */
-
-@media (prefers-reduced-motion: reduce) {
-    .capsule-header,
-    .capsule-header__logo-dot,
-    .capsule-header__logo-text,
-    .capsule-header__expanded-zone,
-    .capsule-header__expanded-zone > *,
-    .user-status-badge,
-    .user-status-wave__ring,
-    .user-status-picker {
-        transition: none !important;
-        animation: none !important;
+        animation: capsule-nudge var(--duration-480) var(--ease-spring);
     }
 
-    .capsule-header--minimal .capsule-header__logo-text { display: none; }
+    /* ══════════════════════════════════════════════════════
+       7. Reduced Motion
+       ══════════════════════════════════════════════════════ */
 
-    .capsule-header--expanded .capsule-header__expanded-zone {
-        max-width: 400px;
-    }
+    @media (prefers-reduced-motion: reduce) {
+        .capsule-header,
+        .capsule-header__logo-dot,
+        .capsule-header__logo-text,
+        .capsule-header__expanded-zone,
+        .capsule-header__expanded-zone > *,
+        .capsule-header--nudge,
+        .user-status-badge,
+        .user-status-wave__ring,
+        .user-status-picker {
+            transition: none !important;
+            animation: none !important;
+        }
 
-    .capsule-header--expanded .capsule-header__expanded-zone > * {
-        opacity: 1;
-        transform: none;
+        .capsule-header--minimal .capsule-header__logo-text { display: none; }
+
+        .capsule-header--expanded .capsule-header__expanded-zone {
+            max-width: 400px;
+        }
+
+        .capsule-header--expanded .capsule-header__expanded-zone > * {
+            opacity: 1;
+            transform: none;
+        }
     }
 }
 

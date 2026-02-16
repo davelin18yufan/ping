@@ -47,9 +47,8 @@
 
         /* Smooth animation */
         transition: all var(--duration-fast) var(--ease-out);
-    }
 
-    .glass-button {
+        /* Positioning for ripple pseudo-element */
         position: relative;
         overflow: visible;
     }
@@ -248,12 +247,12 @@
         border-radius: 50%;
     }
 
-    /* Destructive / Sign Out variant - red tint on hover */
-    .app-header__sign-out {
+    /* Variant: Destructive (Sign Out) — red tint on hover */
+    .glass-button--destructive {
         transition: all var(--duration-fast) var(--ease-out);
     }
 
-    .app-header__sign-out:hover:not(:disabled) {
+    .glass-button--destructive:hover:not(:disabled) {
         background: oklch(from var(--destructive) l c h / 0.12);
         color: var(--destructive-foreground);
         box-shadow:
@@ -261,7 +260,7 @@
             0 8px 24px oklch(from var(--destructive) l c h / 0.1);
     }
 
-    :root.dark .app-header__sign-out:hover:not(:disabled) {
+    :root.dark .glass-button--destructive:hover:not(:disabled) {
         background: oklch(from var(--destructive-foreground) l c h / 0.12);
         color: var(--destructive-foreground);
         box-shadow:
@@ -269,11 +268,11 @@
             0 8px 24px oklch(from var(--destructive-foreground) l c h / 0.12);
     }
 
-    .app-header__sign-out::after {
+    .glass-button--destructive::after {
         border-color: var(--destructive);
     }
 
-    .app-header__sign-out:hover:not(:disabled)::after {
+    .glass-button--destructive:hover:not(:disabled)::after {
         animation: border-ripple-expand var(--duration-slower) var(--ease-out);
     }
 }

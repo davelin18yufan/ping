@@ -69,6 +69,8 @@
 
     /* Layout */
     --radius: 0.625rem;
+    --radius-sm: calc(var(--radius) - 0.125rem); /* 8px */
+    --radius-xl: calc(var(--radius) + 0.25rem);  /* 14px */
 }
 
 .dark {

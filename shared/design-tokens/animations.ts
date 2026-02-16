@@ -7,8 +7,13 @@ export const animations = {
   duration: {
     instant: "0ms",
     fast: "150ms",
+    "200": "200ms",
     normal: "250ms",
+    "300": "300ms",
+    "320": "320ms",
+    "350": "350ms",
     slow: "400ms",
+    "480": "480ms",
     slower: "600ms",
   },
   easing: {

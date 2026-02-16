@@ -10,8 +10,13 @@
     /* Duration tokens */
     --duration-instant: 0ms;
     --duration-fast: 150ms;
+    --duration-200: 200ms;
     --duration-normal: 250ms;
+    --duration-300: 300ms;
+    --duration-320: 320ms;
+    --duration-350: 350ms;
     --duration-slow: 400ms;
+    --duration-480: 480ms;
     --duration-slower: 600ms;
 
     /* Easing tokens */

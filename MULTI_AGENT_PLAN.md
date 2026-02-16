@@ -586,11 +586,11 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
 
 ### Phase 1.2：UI/UX 設計改版（Week 3-4）
 
-#### ⏳ Feature 1.2.0 - UI/UX 大改版 + Session 認證整合
+#### ✅ Feature 1.2.0 - UI/UX 大改版 + Session 認證整合
 
 | 欄位 | 內容 |
 |------|------|
-| **狀態** | ⏳ 進行中（Stage 3/4 完成，待 Stage 4 Session 整合） |
+| **狀態** | ✅ 完成（5/5 Stage 完成 - 100%） |
 | **優先級** | P0（UI/UX 改版優先，Session 認證整合其次） |
 | **負責** | Full-Stack Frontend |
 | **SDD 參考** | frontend.md、design-philosophy.md、design-system.md |
@@ -675,22 +675,29 @@ CI / Dependencies 更新：
   - 增強視覺效果
   - 支援雙模式切換
 
-**Stage 4 - Session 認證整合**（🔴 待開始 - 2 小時）
-- 整合 Better Auth session 管理
+**Stage 4 - Session 認證整合**（✅ 完成 - 2026-02-16）
+- ✅ 整合 Better Auth session 管理
   - Session 驗證與更新
   - Session 延長邏輯
-- 實作登出流程
+- ✅ 實作登出流程
   - 登出 mutation
   - 清除 session cookie
-  - 導向登入頁
-- 測試與優化
+  - 導向登入頁（useNavigate 取代 window.location.href）
+- ✅ 測試與優化
   - 測試 session 流程
   - 測試登出流程
-  - 優化效能
+
+**Stage 5 - Capsule Morphing AppHeader**（✅ 完成 - 2026-02-16）
+- ✅ AppHeader 完整實作（三態：minimal / default / expanded）
+- ✅ uiStore（@tanstack/store）管理 headerExpanded + isViewTransitioning
+- ✅ View Transition 期間的 expanded 狀態保護（isViewTransitioning guard + cursorInHeaderRef）
+- ✅ useNavigate 取代 window.location.href 進行 sign-out 導航
+- ✅ 完整測試套件：app-header.spec.tsx（12 tests）、uiStore.spec.ts（6 tests）
+- ✅ 測試整理：移除 3 個重複測試，清理跨層測試責任
 
 **當前狀況**：
 - ✅ Stage 1 完成：Design Tokens 更新（新配色系統）
-- ✅ Stage 2 完成：CSS 架構重組（PR #27 已建立，等待 review）
+- ✅ Stage 2 完成：CSS 架構重組（2026-02-14）
   - shared/design-tokens CSS 格式擴展
   - frontend/src/styles/ 完整重組
   - Feature 1.2.0 測試套件新增（675 行）
@@ -698,7 +705,13 @@ CI / Dependencies 更新：
   - 雙模式切換系統（Glamorous / Minimal）
   - Button, Input, Card, Avatar 元件升級（新配色與動畫）
   - SoundWaveLoader 升級（支援雙模式切換）
-- 🔴 Stage 4 待開始：Session 認證整合
+- ✅ Stage 4 完成：Session 認證整合（2026-02-16）
+  - Better Auth session 管理整合
+  - 登出流程實作（useNavigate 導航）
+- ✅ Stage 5 完成：Capsule Morphing AppHeader（2026-02-16）
+  - AppHeader 三態實作（minimal / default / expanded）
+  - uiStore（headerExpanded + isViewTransitioning）
+  - View Transition 狀態保護機制
 
 **核心變更**：
 1. **配色系統改革**（Dark Mode 跳脫 Discord 風格）
@@ -737,11 +750,17 @@ CI / Dependencies 更新：
 - ✅ 雙模式切換系統（Glamorous / Minimal）
 - ✅ CSS 架構重組（themes/, animations/）
 - ✅ SoundWaveLoader 升級版
-- ⏳ Session 認證整合（登出、session 更新）
+- ✅ Session 認證整合（登出、session 更新）
+- ✅ Capsule Morphing AppHeader（三態、uiStore、View Transition 保護）
 
 **測試規格**：
 - 測試規格文件：`/docs/architecture/Feature-1.2.0-TDD-Tests.md`
-- 預計測試案例：30+ 個（Design Tokens: 10, UI Components: 12, Animations: 5, Session: 8）
+- 實際測試通過：175/175 tests（100%）
+  - aesthetic-mode-toggle.spec.tsx
+  - aesthetic-mode-context.spec.tsx
+  - app-header.spec.tsx（12 tests）
+  - uiStore.spec.ts（6 tests）
+- 實際完成日期：2026-02-16
 
 ---
 
@@ -816,7 +835,7 @@ CI / Dependencies 更新：
 ### 衝刺目標
 **Sprint 1 (已完成)**: Phase 1.0 基礎設施完整初始化（100% 完成）
 **Sprint 2 (已完成)**: Feature 1.1.1 OAuth 登入（Web 端完成，79/79 測試通過）
-**Sprint 3 (進行中)**: Feature 1.2.0 UI/UX 大改版 + Session 認證整合（Stage 3/4 完成，待 Stage 4 Session 整合）
+**Sprint 3 (已完成)**: Feature 1.2.0 UI/UX 大改版 + Session 認證整合（5/5 Stage 完成，175/175 測試通過）
 
 ### 開發分工（3 Agents 配置）
 
@@ -876,12 +895,12 @@ CI / Dependencies 更新：
 
 ---
 
-#### 🔴 Sprint 3: Feature 1.2.0 UI/UX 大改版（進行中）
+#### ✅ Sprint 3: Feature 1.2.0 UI/UX 大改版（已完成）
 
-| Agent | 分配任務 | 預計時間 | 狀態 |
+| Agent | 分配任務 | 實際時間 | 狀態 |
 |-------|---------|---------|------|
-| **Architect** | 1. ✅ 建立測試規格文件（Feature-1.2.0-TDD-Tests.md）<br>2. 🔴 審查 Stage 1 樣板設計<br>3. ⏳ Code review Stage 2-4 實作 | 3 小時 | 🔴 33% |
-| **Full-Stack Frontend** | **Stage 1** (✅ 完成):<br>1. ✅ 更新 Design Tokens（colors.ts）<br>2. ✅ 確認配色方向<br>**Stage 2** (✅ 完成 - 2026-02-14):<br>1. ✅ 擴展 shared/design-tokens CSS 格式（4 個 CSS 檔 + 4 個 TS 檔）<br>2. ✅ 重組 frontend/src/styles/ 架構（themes, animations, base, utilities, components）<br>3. ✅ 新增 Feature 1.2.0 測試套件（675 行）<br>4. ✅ PR #27 已建立（OPEN，等待 review）<br>**Stage 3** (✅ 完成 - 2026-02-14):<br>1. ✅ 建立雙模式切換系統（Glamorous / Minimal）<br>2. ✅ 升級 UI 元件（Button, Input, Card, Avatar）<br>3. ✅ 升級 SoundWaveLoader（支援雙模式切換）<br>**Stage 4** (🔴 待開始 - 2h):<br>1. 整合 Better Auth session 管理<br>2. 實作登出流程<br>3. 測試與優化 | 11 小時 | ⏳ 75% (Stage 3/4 完成) |
+| **Architect** | 1. ✅ 建立測試規格文件（Feature-1.2.0-TDD-Tests.md）<br>2. ✅ 審查 Stage 1 樣板設計<br>3. ✅ Code review Stage 2-5 實作<br>4. ✅ 更新文件（MULTI_AGENT_PLAN.md, task-board.md） | 3 小時 | ✅ 100% |
+| **Full-Stack Frontend** | **Stage 1** (✅ 完成):<br>1. ✅ 更新 Design Tokens（colors.ts）<br>2. ✅ 確認配色方向<br>**Stage 2** (✅ 完成 - 2026-02-14):<br>1. ✅ 擴展 shared/design-tokens CSS 格式（4 個 CSS 檔 + 4 個 TS 檔）<br>2. ✅ 重組 frontend/src/styles/ 架構（themes, animations, base, utilities, components）<br>3. ✅ 新增 Feature 1.2.0 測試套件（675 行）<br>**Stage 3** (✅ 完成 - 2026-02-14):<br>1. ✅ 建立雙模式切換系統（Glamorous / Minimal）<br>2. ✅ 升級 UI 元件（Button, Input, Card, Avatar）<br>3. ✅ 升級 SoundWaveLoader（支援雙模式切換）<br>**Stage 4** (✅ 完成 - 2026-02-16):<br>1. ✅ 整合 Better Auth session 管理<br>2. ✅ 實作登出流程（useNavigate 導航）<br>3. ✅ 測試與優化<br>**Stage 5** (✅ 完成 - 2026-02-16):<br>1. ✅ AppHeader 三態實作（minimal / default / expanded）<br>2. ✅ uiStore（headerExpanded + isViewTransitioning）<br>3. ✅ View Transition 狀態保護機制<br>4. ✅ app-header.spec.tsx（12 tests）+ uiStore.spec.ts（6 tests） | 14 小時 | ✅ 100% |
 
 **總計**：約 14 小時（約 2-3 個工作日）
 
@@ -890,13 +909,13 @@ CI / Dependencies 更新：
 - ✅ CSS 架構重組完成（themes/, animations/, base/, utilities/, components/）
 - ✅ shared/design-tokens CSS 格式擴展（4 CSS + 4 TS 新增）
 - ✅ Feature 1.2.0 測試套件新增（aesthetic-mode-toggle + aesthetic-mode-context）
-- ✅ PR #27 已建立（CSS 架構重組，等待 review）
 - ✅ 雙模式系統實作完成（Stage 3 - 2026-02-14）
 - ✅ UI 元件升級完成（使用新配色）（Stage 3 - 2026-02-14）
 - ✅ SoundWaveLoader 升級完成（Stage 3 - 2026-02-14）
-- 🔴 Session 認證整合完成（登出、session 更新）（Stage 4）
-- 🔴 30+ 測試全部通過（Stage 3-4 完成後）
-- 🔴 TypeScript 0 errors, Linter 0 warnings, Formatter 100%（最終確認）
+- ✅ Session 認證整合完成（登出、session 更新）（Stage 4 - 2026-02-16）
+- ✅ AppHeader Capsule Morphing 完成（Stage 5 - 2026-02-16）
+- ✅ 175/175 測試全部通過（100%）
+- ✅ TypeScript 0 errors, Linter 0 warnings, Formatter 100%
 
 ---
 
@@ -987,17 +1006,20 @@ CI / Dependencies 更新：
 
 ---
 
-**最後更新**：2026-02-14
-**下次計畫更新**：Stage 4 完成後
-**當前 Sprint**：Sprint 3 - Feature 1.2.0 UI/UX 大改版（Stage 3/4 完成，待 Stage 4 Session 整合）
-**最新進展**：Feature 1.2.0 Stage 3（雙模式系統 + 元件升級 + SoundWaveLoader 升級）完成（2026-02-14）
-  - Branch: feature/1.2.0-stage-4-css-architecture
-  - 完成進度：Stage 3/4（75%），待 Stage 4 Session 認證整合
-  - 完成內容：
-    - ✅ 雙模式切換系統（Glamorous 華麗模式 / Minimal 簡潔模式）
-    - ✅ UI 元件升級：Button, Input, Card, Avatar（新配色與動畫）
-    - ✅ SoundWaveLoader 升級（增強視覺效果，支援雙模式切換）
-  - 下一步：Stage 4 Session 認證整合（整合 Better Auth session、實作登出流程）
+**最後更新**：2026-02-16
+**下次計畫更新**：Feature 1.2.1 設計完成後
+**當前 Sprint**：Sprint 3 完成 - 準備 Sprint 4（Feature 1.2.1 搜尋與加好友）
+**最新進展**：Feature 1.2.0（UI/UX 大改版）全部完成（2026-02-16）
+  - Branch: feature/1.2.0-stage-5-capsule-header
+  - 完成進度：Stage 5/5（100%），175/175 tests 通過
+  - Stage 5 完成內容：
+    - ✅ AppHeader 三態實作（minimal / default / expanded）
+    - ✅ uiStore（@tanstack/store）：headerExpanded + isViewTransitioning
+    - ✅ View Transition 期間 expanded 狀態保護（cursorInHeaderRef guard）
+    - ✅ useNavigate 取代 window.location.href 進行 sign-out 導航
+    - ✅ app-header.spec.tsx（12 tests）+ uiStore.spec.ts（6 tests）
+    - ✅ 移除 3 個重複測試，清理跨層測試責任
+  - 下一步：Feature 1.2.1 搜尋與加好友（Architect 設計階段）
 
 **Phase 1.0 + 1.1 + 1.2 總結**：
 - ✅ Feature 1.0.1 - Backend 基礎設施（100% 完成）
@@ -1005,40 +1027,40 @@ CI / Dependencies 更新：
 - ✅ Feature 1.0.3 - Mobile 基礎設施（100% 完成）
 - ✅ Feature 1.0.4 - Design System 設定（100% 完成）
 - ✅ Feature 1.1.1 - OAuth Google 登入（Web 端 100% 完成）
-- ⏳ Feature 1.2.0 - UI/UX 大改版（Stage 3/4 完成，待 Stage 4 Session 整合）
+- ✅ Feature 1.2.0 - UI/UX 大改版（5/5 Stage 完成，175/175 測試通過 - 2026-02-16）
 - **Sprint 1 完成度：4/4 features（100%）**
 - **Sprint 2 完成度：1/1 features（100%）**
-- **Sprint 3 完成度：0/1 features（75% - Stage 3/4 完成，待 Stage 4 Session 整合）**
-- **總測試通過數：249/249 tests（100% - Feature 1.2.0 測試規格已完成，待實作）**
+- **Sprint 3 完成度：1/1 features（100%）**
+- **總測試通過數：175/175 tests（Feature 1.2.0 前端測試全通過）**
   - Backend: 27 tests
   - Frontend (Web Infrastructure): 46 tests
   - Frontend (OAuth + Middleware): 29 tests
   - Mobile: 97 tests
-  - Design System: 50 tests（預估）
-- **下一步：Feature 1.2.0 Stage 4（Session 認證整合）**
+  - Feature 1.2.0 (UI/UX Redesign): 175 tests
+- **下一步：Feature 1.2.1 搜尋與加好友**
 
-**Feature 1.2.0 最新進展**：
+**Feature 1.2.0 完成總結**：
   - 主分支: feature/1.2.0-ui-ux-redesign
-  - Status: ⏳ Stage 3/4 完成（雙模式系統 + 元件升級），待 Stage 4 Session 整合
-  - 測試規格：`/docs/architecture/Feature-1.2.0-TDD-Tests.md` ✅（已完成，40 個測試案例）
+  - Status: ✅ 全部完成（5/5 Stage，175/175 tests）
+  - 測試規格：`/docs/architecture/Feature-1.2.0-TDD-Tests.md` ✅
   - **階段分解**：
     - ✅ Stage 1: Design Tokens + 配色確認 - 完成
     - ✅ Stage 2: CSS 架構重組 + Design Tokens CSS 擴展 - 完成（2026-02-14）
       - Branch: `feature/1.2.0-stage-4-css-architecture`
-      - PR #27: https://github.com/davelin18yufan/ping/pull/27 (OPEN)
       - 33 個檔案變更（+2444/-1312 行）
     - ✅ Stage 3: 雙模式系統 + 元件升級 - 完成（2026-02-14）
       - 雙模式切換系統（Glamorous / Minimal）
       - Button, Input, Card, Avatar 元件升級（新配色與動畫）
       - SoundWaveLoader 升級（支援雙模式切換）
-    - 🔴 Stage 4: Session 認證整合（2h）- 待開始
-  - **Stage 2 完成內容**：
-    - ✅ shared/design-tokens CSS 格式：colors.css, animations.css, effects.css, spacing.css
-    - ✅ shared/design-tokens TypeScript：animations.ts, borders.ts, effects.ts, z-index.ts
-    - ✅ frontend/src/styles/ 完整重組：themes/, animations/, base/, utilities/, components/
-    - ✅ 測試套件：aesthetic-mode-toggle.spec.tsx（339 行）+ aesthetic-mode-context.spec.tsx（336 行）
-    - ✅ CI/Dependencies：pnpm 10.29.3, frontend 依賴更新, Invalid hook call 修復
-  - **預期完成**：2026-02-21（Stage 4 還需約 2 小時）
+    - ✅ Stage 4: Session 認證整合 - 完成（2026-02-16）
+      - Better Auth session 管理整合
+      - 登出流程（useNavigate 導航）
+    - ✅ Stage 5: Capsule Morphing AppHeader - 完成（2026-02-16）
+      - AppHeader 三態（minimal / default / expanded）
+      - uiStore（@tanstack/store）：headerExpanded + isViewTransitioning
+      - View Transition 狀態保護機制
+      - app-header.spec.tsx（12 tests）+ uiStore.spec.ts（6 tests）
+  - **實際完成**：2026-02-16
 
 ---
 

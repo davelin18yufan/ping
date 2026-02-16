@@ -183,11 +183,11 @@
 **注意**: 此階段專注於前端視覺與使用者體驗優化，與後端功能開發並行
 
 #### 2.5 UI/UX 大改版
-- [ ] **Feature 1.2.0 - UI/UX 大改版 + Session 認證整合**
+- [x] **Feature 1.2.0 - UI/UX 大改版 + Session 認證整合** ✅
   - Agent: Architect → Full-Stack Frontend Developer → Architect (Review)
-  - 任務: 配色系統改革、字型系統優化、動畫系統升級、雙模式系統、CSS 架構重組、Session 認證整合
-  - 狀態: ⏳ 進行中（Stage 3/4 完成 - 雙模式系統 + 元件升級，待 Stage 4 Session 整合）
-  - 優先度: P0（UI/UX 改版優先，Session 認證整合其次）
+  - 任務: 配色系統改革、字型系統優化、動畫系統升級、雙模式系統、CSS 架構重組、Session 認證整合、AppHeader Capsule Morphing
+  - 狀態: ✅ 完成（2026-02-16，5/5 Stage，175/175 tests）
+  - 優先度: P0
   - 依賴: Feature 1.0.4（Design System 基礎）✅、Feature 1.1.1（OAuth 登入）✅
   - 測試規格: `/docs/architecture/Feature-1.2.0-TDD-Tests.md`
   - 主分支: `feature/1.2.0-ui-ux-redesign`
@@ -197,7 +197,6 @@
        - ✅ 新配色系統確認（Dark Mode: Noctis Obscuro、Light Mode: Kyoto Whisper）
     2. **Stage 2 - CSS 架構重組 + Design Tokens CSS 擴展**（✅ 完成 - 2026-02-14）
        - ✅ Branch: `feature/1.2.0-stage-4-css-architecture`
-       - ✅ PR #27: https://github.com/davelin18yufan/ping/pull/27 (OPEN)
        - ✅ shared/design-tokens CSS 格式：colors.css, animations.css, effects.css, spacing.css
        - ✅ shared/design-tokens TypeScript：animations.ts, borders.ts, effects.ts, z-index.ts
        - ✅ frontend/src/styles/ 重組：themes/, animations/, base/, utilities/, components/
@@ -207,19 +206,25 @@
        - ✅ 建立華麗模式（Glamorous）與簡潔模式（Minimal）切換系統
        - ✅ 升級 Button, Input, Card, Avatar 元件（新配色與動畫）
        - ✅ 升級 SoundWaveLoader（增強視覺效果，支援雙模式切換）
-    4. **Stage 4 - Session 認證整合**（🔴 待開始）
-       - 整合 Better Auth session 管理
-       - 實作 session 驗證與更新
-       - 實作登出流程
+    4. **Stage 4 - Session 認證整合**（✅ 完成 - 2026-02-16）
+       - ✅ 整合 Better Auth session 管理
+       - ✅ 實作 session 驗證與更新
+       - ✅ 實作登出流程（useNavigate 導航）
+    5. **Stage 5 - Capsule Morphing AppHeader**（✅ 完成 - 2026-02-16）
+       - ✅ AppHeader 三態實作（minimal / default / expanded）
+       - ✅ uiStore（@tanstack/store）：headerExpanded + isViewTransitioning
+       - ✅ View Transition 狀態保護（cursorInHeaderRef guard）
+       - ✅ app-header.spec.tsx（12 tests）+ uiStore.spec.ts（6 tests）
   - **產出**:
     - ✅ 新配色系統（28+ tokens）
     - ✅ CSS 架構重組（themes/, animations/, base/, utilities/, components/）
     - ✅ Design Tokens CSS 格式擴展（4 CSS + 4 TS）
-    - ✅ Feature 1.2.0 測試套件（675 行）
+    - ✅ Feature 1.2.0 測試套件（175 tests 通過）
     - ✅ 動畫系統（View Transition API + Framer Motion）
     - ✅ 雙模式切換系統（Glamorous / Minimal）
     - ✅ SoundWaveLoader 升級版
-    - 🔴 Session 認證整合（登出、session 更新）
+    - ✅ Session 認證整合（登出、session 更新）
+    - ✅ AppHeader Capsule Morphing（三態、uiStore）
 
 ---
 
@@ -556,14 +561,14 @@
 ### 整體進度
 ```
 總功能數: 50
-已完成: 12 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis、Web 前端基礎設施、Mobile 前端基礎設施、Design System、OAuth 登入流程)
-進行中: 1 (Feature 1.2.0 - UI/UX 大改版)
+已完成: 13 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis、Web 前端基礎設施、Mobile 前端基礎設施、Design System、OAuth 登入流程、UI/UX 大改版)
+進行中: 0
 待開始: 37
-完成率: 24.00%
+完成率: 26.00%
 
 🎉 Phase 1.0 基礎設施初始化完整完成！(4/4 features - 100%)
 🎉 Phase 1.1 認證系統（Web）完成！(Feature 1.1.1 - OAuth Google Login)
-⏳ Phase 1.2 UI/UX 改版進行中（Feature 1.2.0 - Stage 3/4 完成，待 Stage 4）
+🎉 Phase 1.2 UI/UX 改版完成！(Feature 1.2.0 - 5/5 Stage，175/175 tests - 2026-02-16)
 ```
 
 ### 階段進度
@@ -614,8 +619,8 @@ Phase 1.0 成就解鎖 🏆:
   🔲 更新個人資料
   🔲 上傳頭像
   🔲 搜尋用戶
-階段 2.5 (UI/UX 改版): 0/1   (0%)    - ⏳ 進行中（Stage 3/4 完成，待 Stage 4 Session 整合）
-  ⏳ Feature 1.2.0 - UI/UX 大改版 + Session 認證整合（Stage 3 完成，Stage 4 待開始）
+階段 2.5 (UI/UX 改版): 1/1   (100%) ✅ - Feature 1.2.0 完整完成（2026-02-16）
+  ✅ Feature 1.2.0 - UI/UX 大改版 + Session 認證整合（5/5 Stage，175/175 tests）
 階段 3 (好友系統):  0/8   (0%)    - 依賴階段 2 完成
 階段 4 (一對一聊天): 0/8   (0%)    - 依賴階段 3 完成
 階段 5 (即時功能):  0/7   (0%)    - 依賴階段 4 完成
@@ -960,26 +965,27 @@ E2E Tests: 目標涵蓋主要流程
 
 **更新頻率**: 每日更新
 **維護者**: All Agents
-**最後更新**: 2026-02-14
+**最後更新**: 2026-02-16
 **最新變更**:
-  - ⏳ **Feature 1.2.0（UI/UX 大改版）Stage 3 完成！**
+  - ✅ **Feature 1.2.0（UI/UX 大改版）全部完成！（2026-02-16）**
     - ✅ Stage 1: Design Tokens 配色確認（完成）
     - ✅ Stage 2: CSS 架構重組 + Design Tokens CSS 擴展（完成 - 2026-02-14）
-      - Branch: `feature/1.2.0-stage-4-css-architecture`
-      - PR #27: https://github.com/davelin18yufan/ping/pull/27（OPEN）
-      - 33 個檔案變更（+2444/-1312 行）
     - ✅ Stage 3: 雙模式系統 + 元件升級（完成 - 2026-02-14）
-      - 雙模式切換系統（Glamorous 華麗模式 / Minimal 簡潔模式）
-      - Button, Input, Card, Avatar 元件升級（新配色與動畫）
-      - SoundWaveLoader 升級（支援雙模式切換）
-    - 🔴 Stage 4 待開始：Session 認證整合
-    - 📅 預期完成：2026-02-21
+    - ✅ Stage 4: Session 認證整合（完成 - 2026-02-16）
+      - Better Auth session 管理整合
+      - 登出流程（useNavigate 導航）
+    - ✅ Stage 5: Capsule Morphing AppHeader（完成 - 2026-02-16）
+      - AppHeader 三態（minimal / default / expanded）
+      - uiStore（@tanstack/store）：headerExpanded + isViewTransitioning
+      - View Transition 狀態保護機制
+      - app-header.spec.tsx（12 tests）+ uiStore.spec.ts（6 tests）
+      - 移除 3 個重複測試，清理跨層測試責任
+    - 測試：175/175 tests 全部通過（100%）
   - 📊 **進度更新**：
     - 階段 1 (基礎設施)：100% 完成 ✅
     - 階段 2 (認證用戶)：14.29% 完成（1/7 - OAuth 登入）
-    - 階段 2.5 (UI/UX 改版)：Stage 3/4 完成，待 Stage 4 Session 整合
+    - 階段 2.5 (UI/UX 改版)：100% 完成 ✅
     - 階段 6 (前端開發)：60% 完成（6/10）
-    - 整體完成率：24.00%（12/50 features，1 個進行中）
+    - 整體完成率：26.00%（13/50 features 完成）
   - 🚀 **下一步**：
-    - Feature 1.2.0 Stage 4（Session 認證整合）
-    - 整合 Better Auth session 管理、實作登出流程
+    - Feature 1.2.1 搜尋與加好友（Architect 設計階段）

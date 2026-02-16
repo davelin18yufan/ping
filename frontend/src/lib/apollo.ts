@@ -29,6 +29,7 @@ export const errorLink = new ErrorLink(({ error }) => {
 
             // Handle specific error codes
             if (extensions?.code === "UNAUTHENTICATED") {
+                console.warn("User not authenticated, should redirect to login")
                 if (typeof window !== "undefined") {
                     signOut().then(() => {
                         window.location.href = "/auth"

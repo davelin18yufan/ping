@@ -23,10 +23,10 @@ interface StatusOption {
 }
 
 const STATUS_OPTIONS: StatusOption[] = [
-    { value: "online",  label: "Online",           description: "Active and available"   },
-    { value: "away",    label: "Away",              description: "Stepped away"           },
-    { value: "busy",    label: "Do Not Disturb",    description: "Notifications silenced" },
-    { value: "offline", label: "Appear Offline",    description: "Hidden from others"     },
+    { value: "online", label: "Online", description: "Active and available" },
+    { value: "away", label: "Away", description: "Stepped away" },
+    { value: "busy", label: "Do Not Disturb", description: "Notifications silenced" },
+    { value: "offline", label: "Appear Offline", description: "Hidden from others" },
 ]
 
 interface UserStatusAvatarProps {
@@ -156,7 +156,9 @@ export function UserStatusAvatar({
                             />
                             <span className="user-status-picker__text">
                                 <span className="user-status-picker__label">{option.label}</span>
-                                <span className="user-status-picker__desc">{option.description}</span>
+                                <span className="user-status-picker__desc">
+                                    {option.description}
+                                </span>
                             </span>
                         </button>
                     ))}

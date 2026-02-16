@@ -43,10 +43,18 @@
         pointer-events: none;
     }
 
-    .user-status-badge--online  { background: var(--status-online);  }
-    .user-status-badge--away    { background: var(--status-away);    }
-    .user-status-badge--busy    { background: var(--status-busy);    }
-    .user-status-badge--offline { background: var(--status-offline); }
+    .user-status-badge--online {
+        background: var(--status-online);
+    }
+    .user-status-badge--away {
+        background: var(--status-away);
+    }
+    .user-status-badge--busy {
+        background: var(--status-busy);
+    }
+    .user-status-badge--offline {
+        background: var(--status-offline);
+    }
 
     /* ══════════════════════════════════════════════════════
        2. Online Sound Wave (pulse rings)
@@ -69,14 +77,25 @@
     }
 
     /* Delays as proportions of pulse duration — stays in sync if token changes */
-    .user-status-wave__ring:nth-child(1) { animation-delay: 0ms; }
-    .user-status-wave__ring:nth-child(2) { animation-delay: calc(var(--status-pulse-duration, 1800ms) * 0.3); }
-    .user-status-wave__ring:nth-child(3) { animation-delay: calc(var(--status-pulse-duration, 1800ms) * 0.6); }
+    .user-status-wave__ring:nth-child(1) {
+        animation-delay: 0ms;
+    }
+    .user-status-wave__ring:nth-child(2) {
+        animation-delay: calc(var(--status-pulse-duration, 1800ms) * 0.3);
+    }
+    .user-status-wave__ring:nth-child(3) {
+        animation-delay: calc(var(--status-pulse-duration, 1800ms) * 0.6);
+    }
 
     @keyframes status-wave-ring {
-        0%   { transform: scale(1);    opacity: var(--status-pulse-opacity-start, 0.55); }
-        100% { transform: scale(var(--status-pulse-scale-end, 2.2));
-               opacity: var(--status-pulse-opacity-end, 0); }
+        0% {
+            transform: scale(1);
+            opacity: var(--status-pulse-opacity-start, 0.55);
+        }
+        100% {
+            transform: scale(var(--status-pulse-scale-end, 2.2));
+            opacity: var(--status-pulse-opacity-end, 0);
+        }
     }
 
     /* ══════════════════════════════════════════════════════
@@ -107,8 +126,14 @@
     }
 
     @keyframes picker-appear {
-        from { opacity: 0; transform: translateX(-50%) scale(0.92) translateY(-4px); }
-        to   { opacity: 1; transform: translateX(-50%) scale(1)    translateY(0);    }
+        from {
+            opacity: 0;
+            transform: translateX(-50%) scale(0.92) translateY(-4px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(-50%) scale(1) translateY(0);
+        }
     }
 
     .user-status-picker__item {
@@ -126,8 +151,12 @@
         text-align: left;
     }
 
-    .user-status-picker__item:hover      { background: oklch(from var(--primary) l c h / 0.10); }
-    .user-status-picker__item--active    { background: oklch(from var(--primary) l c h / 0.14); }
+    .user-status-picker__item:hover {
+        background: oklch(from var(--primary) l c h / 0.1);
+    }
+    .user-status-picker__item--active {
+        background: oklch(from var(--primary) l c h / 0.14);
+    }
 
     .user-status-picker__dot {
         position: static;
@@ -138,7 +167,11 @@
         flex-shrink: 0;
     }
 
-    .user-status-picker__text  { display: flex; flex-direction: column; gap: 1px; }
+    .user-status-picker__text {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+    }
 
     .user-status-picker__label {
         font-size: 0.8125rem;
@@ -172,10 +205,14 @@
        5. ThemeToggle label (hidden on small screens)
        ══════════════════════════════════════════════════════ */
 
-    .theme-toggle__label { display: inline; }
+    .theme-toggle__label {
+        display: inline;
+    }
 
     @media (max-width: 639px) {
-        .theme-toggle__label { display: none; }
+        .theme-toggle__label {
+            display: none;
+        }
     }
 
     /* ══════════════════════════════════════════════════════
@@ -189,7 +226,8 @@
         /* Glassmorphism — shared token is defined for both light/dark */
         background: var(--glass-background);
         backdrop-filter: blur(var(--blur-lg)) saturate(var(--glass-saturation-md)) brightness(1.04);
-        -webkit-backdrop-filter: blur(var(--blur-lg)) saturate(var(--glass-saturation-md)) brightness(1.04);
+        -webkit-backdrop-filter: blur(var(--blur-lg)) saturate(var(--glass-saturation-md))
+            brightness(1.04);
 
         border: 1px solid oklch(from var(--border) l c h / 0.6);
         box-shadow:
@@ -203,9 +241,9 @@
 
         /* Only max-width drives morphing — all others are style transitions */
         transition:
-            max-width    var(--duration-350) var(--ease-spring),
-            background   var(--duration-200) var(--ease-out),
-            box-shadow   var(--duration-normal) var(--ease-out),
+            max-width var(--duration-350) var(--ease-spring),
+            background var(--duration-200) var(--ease-out),
+            box-shadow var(--duration-normal) var(--ease-out),
             border-color var(--duration-200) var(--ease-out);
 
         user-select: none;
@@ -220,7 +258,9 @@
     }
 
     /* Minimal (~80px): logo dot + avatar */
-    .capsule-header--minimal  { --capsule-max-width: 80px; }
+    .capsule-header--minimal {
+        --capsule-max-width: 80px;
+    }
 
     /* Expanded (~520px): all items visible */
     .capsule-header--expanded {
@@ -262,7 +302,9 @@
         min-width: 8px;
         border-radius: 50%;
         background: linear-gradient(135deg, var(--glow-primary), var(--glow-secondary));
-        transition: transform var(--duration-200) var(--ease-out), box-shadow var(--duration-200) var(--ease-out);
+        transition:
+            transform var(--duration-200) var(--ease-out),
+            box-shadow var(--duration-200) var(--ease-out);
         flex-shrink: 0;
     }
 
@@ -285,7 +327,7 @@
         opacity: 1;
         transition:
             max-width var(--duration-300) var(--ease-spring),
-            opacity   var(--duration-200) var(--ease-out);
+            opacity var(--duration-200) var(--ease-out);
     }
 
     .capsule-header--minimal .capsule-header__logo-text {
@@ -295,7 +337,10 @@
     }
 
     /* ── Flex spacer ── */
-    .capsule-header__spacer { flex: 1; min-width: 0; }
+    .capsule-header__spacer {
+        flex: 1;
+        min-width: 0;
+    }
 
     /* ── Avatar (always visible) ── */
     .capsule-header__avatar {
@@ -335,7 +380,7 @@
         opacity: 0;
         transform: translateX(6px);
         transition:
-            opacity   var(--duration-fast) var(--ease-out),
+            opacity var(--duration-fast) var(--ease-out),
             transform var(--duration-fast) var(--ease-out);
         flex-shrink: 0;
     }
@@ -346,10 +391,18 @@
     }
 
     /* Stagger delays for each child */
-    .capsule-header--expanded .capsule-header__expanded-zone > *:nth-child(1) { transition-delay: 40ms;  }
-    .capsule-header--expanded .capsule-header__expanded-zone > *:nth-child(2) { transition-delay: 80ms;  }
-    .capsule-header--expanded .capsule-header__expanded-zone > *:nth-child(3) { transition-delay: 110ms; }
-    .capsule-header--expanded .capsule-header__expanded-zone > *:nth-child(4) { transition-delay: 140ms; }
+    .capsule-header--expanded .capsule-header__expanded-zone > *:nth-child(1) {
+        transition-delay: 40ms;
+    }
+    .capsule-header--expanded .capsule-header__expanded-zone > *:nth-child(2) {
+        transition-delay: 80ms;
+    }
+    .capsule-header--expanded .capsule-header__expanded-zone > *:nth-child(3) {
+        transition-delay: 110ms;
+    }
+    .capsule-header--expanded .capsule-header__expanded-zone > *:nth-child(4) {
+        transition-delay: 140ms;
+    }
 
     /* ── User name inside expanded zone ── */
     .capsule-header__user-name {
@@ -403,10 +456,18 @@
 
     /* ── Nudge animation ── */
     @keyframes capsule-nudge {
-        0%   { transform: translateX(-50%) scaleY(1)    scaleX(1);    }
-        30%  { transform: translateX(-50%) scaleY(1.07) scaleX(0.97); }
-        65%  { transform: translateX(-50%) scaleY(0.97) scaleX(1.02); }
-        100% { transform: translateX(-50%) scaleY(1)    scaleX(1);    }
+        0% {
+            transform: translateX(-50%) scaleY(1) scaleX(1);
+        }
+        30% {
+            transform: translateX(-50%) scaleY(1.07) scaleX(0.97);
+        }
+        65% {
+            transform: translateX(-50%) scaleY(0.97) scaleX(1.02);
+        }
+        100% {
+            transform: translateX(-50%) scaleY(1) scaleX(1);
+        }
     }
 
     .capsule-header--nudge {
@@ -431,7 +492,9 @@
             animation: none !important;
         }
 
-        .capsule-header--minimal .capsule-header__logo-text { display: none; }
+        .capsule-header--minimal .capsule-header__logo-text {
+            display: none;
+        }
 
         .capsule-header--expanded .capsule-header__expanded-zone {
             max-width: 400px;
@@ -449,6 +512,12 @@
    ══════════════════════════════════════════════════════ */
 
 @supports not (backdrop-filter: blur(20px)) {
-    .capsule-header        { background: oklch(from var(--card) l c h / 0.97); border-color: var(--border); }
-    .user-status-picker    { background: var(--card); border-color: var(--border); }
+    .capsule-header {
+        background: oklch(from var(--card) l c h / 0.97);
+        border-color: var(--border);
+    }
+    .user-status-picker {
+        background: var(--card);
+        border-color: var(--border);
+    }
 }

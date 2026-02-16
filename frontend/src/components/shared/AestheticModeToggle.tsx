@@ -33,6 +33,7 @@ export function AestheticModeToggle() {
      * Toggle aesthetic mode with circular ripple View Transition
      */
     const toggleMode = (event: React.MouseEvent<HTMLButtonElement>) => {
+        event.stopPropagation()
         const newMode = isOrnate ? "minimal" : "ornate"
 
         // Use View Transition API with ripple effect from click position
@@ -48,8 +49,8 @@ export function AestheticModeToggle() {
             aria-label={`Switch to ${isOrnate ? "minimal" : "ornate"} mode`}
             title={isOrnate ? "Switch to Minimal mode" : "Switch to Ornate mode"}
         >
-            {isOrnate ? <Sparkles size={16} /> : <Minimize2 size={16} />}
-            <span>{isOrnate ? "Ornate" : "Minimal"}</span>
+            {isOrnate ? <Minimize2 size={16} /> : <Sparkles size={16} />}
+            <span>{isOrnate ? "Minimal" : "Ornate"}</span>
         </button>
     )
 }

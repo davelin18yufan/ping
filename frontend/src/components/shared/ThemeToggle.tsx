@@ -25,7 +25,7 @@ export function ThemeToggle() {
     // Sync document class on mount (initial render already has correct isDark value)
     useEffect(() => {
         document.documentElement.classList.toggle("dark", isDark)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [])
 
     const handleToggle = (event: React.MouseEvent<HTMLButtonElement>) => {

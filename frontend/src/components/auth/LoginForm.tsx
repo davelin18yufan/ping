@@ -9,7 +9,6 @@
  * - WCAG AAA accessibility
  */
 
-import {} from "lucide-react"
 import { TriangleAlert } from "lucide-react"
 
 import "@/styles/components/glass-button.css"

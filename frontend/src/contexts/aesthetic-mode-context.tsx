@@ -21,7 +21,15 @@
  * ```
  */
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from "react"
+import {
+    createContext,
+    useCallback,
+    useContext,
+    useEffect,
+    useMemo,
+    useState,
+    type ReactNode,
+} from "react"
 
 // ============================================================================
 // TYPES
@@ -74,22 +82,22 @@ export function AestheticModeProvider({ children }: { children: ReactNode }) {
 
     /**
      * Set mode directly (View Transition handled by AestheticModeToggle component)
-     * Simply updates state, no transition logic here
+     * Stable reference via useCallback — prevents unnecessary re-renders in consumers.
      */
-    const setMode = (newMode: AestheticMode) => {
+    const setMode = useCallback((newMode: AestheticMode) => {
         setModeState(newMode)
-    }
+    }, [])
 
     // Convenience properties
     const isOrnate = mode === "ornate"
     const isMinimal = mode === "minimal"
 
-    const value: AestheticModeContextValue = {
-        mode,
-        setMode,
-        isOrnate,
-        isMinimal,
-    }
+    // Memoized value — only changes when mode actually changes.
+    // Prevents all context consumers from re-rendering on unrelated parent renders.
+    const value = useMemo<AestheticModeContextValue>(
+        () => ({ mode, setMode, isOrnate, isMinimal }),
+        [mode, setMode, isOrnate, isMinimal]
+    )
 
     return <AestheticModeContext.Provider value={value}>{children}</AestheticModeContext.Provider>
 }

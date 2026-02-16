@@ -37,6 +37,26 @@ export const effects = {
   },
 } as const
 
+/**
+ * Shadow overlay color tokens
+ * Pure black/white with alpha — mode-independent, used in box-shadow values
+ */
+export const shadowOverlay = {
+    xs:   "oklch(0 0 0 / 0.07)",
+    sm:   "oklch(0 0 0 / 0.08)",
+    md:   "oklch(0 0 0 / 0.12)",
+    lg:   "oklch(0 0 0 / 0.18)",
+    xl:   "oklch(0 0 0 / 0.22)",
+    "2xl":"oklch(0 0 0 / 0.28)",
+} as const
+
+export const shadowHighlight = {
+    xs: "oklch(1 0 0 / 0.07)",
+    sm: "oklch(1 0 0 / 0.08)",
+    md: "oklch(1 0 0 / 0.10)",
+    lg: "oklch(1 0 0 / 0.12)",
+} as const
+
 export type GlassBlur = keyof typeof effects.glass.blur
 export type GlassOpacity = keyof typeof effects.glass.opacity
 export type GlassSaturation = keyof typeof effects.glass.saturation

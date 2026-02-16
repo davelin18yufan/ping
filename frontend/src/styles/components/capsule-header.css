@@ -1,0 +1,523 @@
+/**
+ * Capsule Header - Dynamic Island Style Morphing
+ *
+ * Three states:
+ * - Default  : [● Ping] [spacer] [avatar+status]                    ~220px
+ * - Minimal  : [●]      [spacer] [avatar+status]                    ~80px
+ * - Expanded : [● Ping] [spacer] [avatar+status] ‹expanded-zone›   ~520px
+ *
+ * expanded-zone contains (in a single flex row, no individual max-width):
+ *   [name] [aesthetic-toggle] [theme-toggle] [sign-out]
+ *
+ * Overflow fix:
+ *   A SINGLE .capsule-header__expanded-zone wraps all expanded items.
+ *   max-width: 0 → 400px collapses/reveals the whole zone at once.
+ *   Individual items use opacity + translateX for stagger — NOT max-width.
+ *   This avoids each item being independently clipped by its own max-width.
+ *
+ * Tokens used:
+ *   Glassmorphism:  var(--glass-background)        ← colors.css
+ *   Status colors:  var(--status-*)                ← colors.css
+ *   Pulse timing:   var(--status-pulse-*)           ← effects.css
+ *   Shadow colors:  var(--shadow-overlay/highlight-*) ← effects.css
+ *   Durations:      var(--duration-*)              ← animations.css
+ *   Easing:         var(--ease-spring/out)          ← animations.css
+ *   Spacing:        var(--spacing-*)               ← spacing.css
+ *   Radius:         var(--radius/radius-sm/radius-xl) ← colors.css
+ */
+
+@layer components {
+    /* ══════════════════════════════════════════════════════
+       1. Presence Status Badge
+       ══════════════════════════════════════════════════════ */
+
+    .user-status-badge {
+        position: absolute;
+        bottom: -1px;
+        right: -1px;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        box-shadow: 0 0 0 1.5px var(--background);
+        transition: background-color var(--duration-300) var(--ease-out);
+        pointer-events: none;
+    }
+
+    .user-status-badge--online {
+        background: var(--status-online);
+    }
+    .user-status-badge--away {
+        background: var(--status-away);
+    }
+    .user-status-badge--busy {
+        background: var(--status-busy);
+    }
+    .user-status-badge--offline {
+        background: var(--status-offline);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       2. Online Sound Wave (pulse rings)
+       ══════════════════════════════════════════════════════ */
+
+    .user-status-wave {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        pointer-events: none;
+    }
+
+    .user-status-wave__ring {
+        position: absolute;
+        inset: 0;
+        border-radius: 50%;
+        border: 1.5px solid var(--status-online);
+        opacity: 0;
+        animation: status-wave-ring var(--status-pulse-duration, 1800ms) var(--ease-out) infinite;
+    }
+
+    /* Delays as proportions of pulse duration — stays in sync if token changes */
+    .user-status-wave__ring:nth-child(1) {
+        animation-delay: 0ms;
+    }
+    .user-status-wave__ring:nth-child(2) {
+        animation-delay: calc(var(--status-pulse-duration, 1800ms) * 0.3);
+    }
+    .user-status-wave__ring:nth-child(3) {
+        animation-delay: calc(var(--status-pulse-duration, 1800ms) * 0.6);
+    }
+
+    @keyframes status-wave-ring {
+        0% {
+            transform: scale(1);
+            opacity: var(--status-pulse-opacity-start, 0.55);
+        }
+        100% {
+            transform: scale(var(--status-pulse-scale-end, 2.2));
+            opacity: var(--status-pulse-opacity-end, 0);
+        }
+    }
+
+    /* ══════════════════════════════════════════════════════
+       3. Status Picker Popover
+       ══════════════════════════════════════════════════════ */
+
+    .user-status-picker {
+        position: absolute;
+        top: calc(100% + var(--spacing-2\.5));
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 60;
+
+        background: var(--glass-background-hover);
+        backdrop-filter: blur(var(--blur-lg)) saturate(var(--glass-saturation-md));
+        -webkit-backdrop-filter: blur(var(--blur-lg)) saturate(var(--glass-saturation-md));
+
+        border: 1px solid oklch(from var(--border) l c h / 0.5);
+        border-radius: var(--radius-xl);
+        box-shadow:
+            0 4px 24px var(--shadow-overlay-xl),
+            0 1px 0 var(--shadow-highlight-sm) inset;
+
+        padding: 6px;
+        min-width: 200px;
+        width: max-content;
+        animation: picker-appear var(--duration-fast) var(--ease-spring) both;
+    }
+
+    @keyframes picker-appear {
+        from {
+            opacity: 0;
+            transform: translateX(-50%) scale(0.92) translateY(-4px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(-50%) scale(1) translateY(0);
+        }
+    }
+
+    .user-status-picker__item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 8px 10px;
+        border: none;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: var(--foreground);
+        cursor: pointer;
+        transition: background var(--duration-fast) var(--ease-out);
+        text-align: left;
+    }
+
+    .user-status-picker__item:hover {
+        background: oklch(from var(--primary) l c h / 0.1);
+    }
+    .user-status-picker__item--active {
+        background: oklch(from var(--primary) l c h / 0.14);
+    }
+
+    .user-status-picker__dot {
+        position: static;
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        flex-shrink: 0;
+    }
+
+    .user-status-picker__text {
+        display: flex;
+        flex-direction: column;
+        gap: 1px;
+    }
+
+    .user-status-picker__label {
+        font-size: 0.8125rem;
+        font-weight: 500;
+        line-height: 1.2;
+        color: var(--foreground);
+    }
+
+    .user-status-picker__desc {
+        font-size: 0.6875rem;
+        color: var(--muted-foreground);
+        line-height: 1.2;
+    }
+
+    /* ══════════════════════════════════════════════════════
+       4. Avatar interactive ring
+       ══════════════════════════════════════════════════════ */
+
+    .user-status-avatar__wrapper--interactive {
+        border-radius: 50%;
+        transition: box-shadow var(--duration-fast) var(--ease-out);
+    }
+
+    .user-status-avatar__wrapper--interactive:hover,
+    .user-status-avatar__wrapper--interactive:focus-visible {
+        outline: none;
+        box-shadow: 0 0 0 2px oklch(from var(--primary) l c h / 0.5);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       5. ThemeToggle label (hidden on small screens)
+       ══════════════════════════════════════════════════════ */
+
+    .theme-toggle__label {
+        display: inline;
+    }
+
+    @media (max-width: 639px) {
+        .theme-toggle__label {
+            display: none;
+        }
+    }
+
+    /* ══════════════════════════════════════════════════════
+       6. Capsule Container
+       ══════════════════════════════════════════════════════ */
+
+    .capsule-header {
+        border-radius: 9999px;
+        overflow: hidden;
+
+        /* Glassmorphism — shared token is defined for both light/dark */
+        background: var(--glass-background);
+        backdrop-filter: blur(var(--blur-lg)) saturate(var(--glass-saturation-md)) brightness(1.04);
+        -webkit-backdrop-filter: blur(var(--blur-lg)) saturate(var(--glass-saturation-md))
+            brightness(1.04);
+
+        border: 1px solid oklch(from var(--border) l c h / 0.6);
+        box-shadow:
+            0 1px 0 var(--shadow-highlight-md) inset,
+            0 4px 20px var(--shadow-overlay-md),
+            0 12px 40px var(--shadow-overlay-sm);
+
+        max-width: var(--capsule-max-width, 220px);
+        width: calc(100vw - 32px);
+        height: 48px;
+
+        /* Only max-width drives morphing — all others are style transitions */
+        transition:
+            max-width var(--duration-350) var(--ease-spring),
+            background var(--duration-200) var(--ease-out),
+            box-shadow var(--duration-normal) var(--ease-out),
+            border-color var(--duration-200) var(--ease-out);
+
+        user-select: none;
+        touch-action: manipulation;
+    }
+
+    :root.dark .capsule-header {
+        box-shadow:
+            0 1px 0 var(--shadow-highlight-xs) inset,
+            0 4px 20px var(--shadow-overlay-2xl),
+            0 12px 40px var(--shadow-overlay-lg);
+    }
+
+    /* Minimal (~80px): logo dot + avatar */
+    .capsule-header--minimal {
+        --capsule-max-width: 80px;
+    }
+
+    /* Expanded (~520px): all items visible */
+    .capsule-header--expanded {
+        --capsule-max-width: 520px;
+        border-color: oklch(from var(--primary) l c h / 0.28);
+        box-shadow:
+            0 1px 0 var(--shadow-highlight-lg) inset,
+            0 6px 24px var(--shadow-overlay-lg),
+            0 16px 48px var(--shadow-overlay-md),
+            0 0 0 1px oklch(from var(--primary) l c h / 0.08);
+    }
+
+    /* ── Inner flex row ── */
+    .capsule-header__inner {
+        display: flex;
+        align-items: center;
+        height: 100%;
+        padding: 0 12px;
+        gap: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+    }
+
+    /* ── Logo ── */
+    .capsule-header__logo {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        flex-shrink: 0;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 0;
+    }
+
+    .capsule-header__logo-dot {
+        width: 8px;
+        height: 8px;
+        min-width: 8px;
+        border-radius: 50%;
+        background: linear-gradient(135deg, var(--glow-primary), var(--glow-secondary));
+        transition:
+            transform var(--duration-200) var(--ease-out),
+            box-shadow var(--duration-200) var(--ease-out);
+        flex-shrink: 0;
+    }
+
+    .capsule-header:hover .capsule-header__logo-dot {
+        transform: scale(1.3);
+        box-shadow: 0 0 8px oklch(from var(--glow-primary) l c h / 0.5);
+    }
+
+    /* Logo text collapses in minimal */
+    .capsule-header__logo-text {
+        font-size: 0.9375rem;
+        font-weight: 700;
+        background: linear-gradient(135deg, var(--glow-primary), var(--glow-secondary));
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        flex-shrink: 0;
+        max-width: 60px;
+        overflow: hidden;
+        opacity: 1;
+        transition:
+            max-width var(--duration-300) var(--ease-spring),
+            opacity var(--duration-200) var(--ease-out);
+    }
+
+    .capsule-header--minimal .capsule-header__logo-text {
+        max-width: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    /* ── Flex spacer ── */
+    .capsule-header__spacer {
+        flex: 1;
+        min-width: 0;
+    }
+
+    /* ── Avatar (always visible) ── */
+    .capsule-header__avatar {
+        flex-shrink: 0;
+        display: flex;
+        align-items: center;
+    }
+
+    /* ══════════════════════════════════════════════════
+       EXPANDED ZONE — single container for ALL expanded
+       items. Uses ONE max-width clip, not per-item.
+       Items inside use opacity + translateX for stagger.
+       ══════════════════════════════════════════════════ */
+
+    .capsule-header__expanded-zone {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        flex-shrink: 0;
+
+        /* Collapsed state */
+        max-width: 0;
+        overflow: hidden;
+        /* Do NOT set opacity here — children handle their own opacity for stagger */
+        pointer-events: none;
+        transition: max-width var(--duration-320) var(--ease-spring);
+    }
+
+    .capsule-header--expanded .capsule-header__expanded-zone {
+        /* 400px gives plenty of room for name + 2 controls + sign-out */
+        max-width: 400px;
+        pointer-events: auto;
+    }
+
+    /* ── Stagger: each direct child fades + slides in ── */
+    .capsule-header__expanded-zone > * {
+        opacity: 0;
+        transform: translateX(6px);
+        transition:
+            opacity var(--duration-fast) var(--ease-out),
+            transform var(--duration-fast) var(--ease-out);
+        flex-shrink: 0;
+    }
+
+    .capsule-header--expanded .capsule-header__expanded-zone > * {
+        opacity: 1;
+        transform: translateX(0);
+    }
+
+    /* Stagger delays for each child */
+    .capsule-header--expanded .capsule-header__expanded-zone > *:nth-child(1) {
+        transition-delay: 40ms;
+    }
+    .capsule-header--expanded .capsule-header__expanded-zone > *:nth-child(2) {
+        transition-delay: 80ms;
+    }
+    .capsule-header--expanded .capsule-header__expanded-zone > *:nth-child(3) {
+        transition-delay: 110ms;
+    }
+    .capsule-header--expanded .capsule-header__expanded-zone > *:nth-child(4) {
+        transition-delay: 140ms;
+    }
+
+    /* ── User name inside expanded zone ── */
+    .capsule-header__user-name {
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--muted-foreground);
+        max-width: 90px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        padding: 0 2px;
+    }
+
+    /* ── Divider between name and controls ── */
+    .capsule-header__divider {
+        width: 1px;
+        height: 16px;
+        background: oklch(from var(--border) l c h / 0.5);
+        flex-shrink: 0;
+    }
+
+    /* ── Controls row ── */
+    .capsule-header__controls {
+        display: flex;
+        align-items: center;
+        gap: 4px;
+        flex-shrink: 0;
+    }
+
+    /* ── Strip glass-button backgrounds inside the capsule controls ──
+       Use icon color dimming (not element opacity) to avoid stagger
+       animation interference when expanded-zone opacity is in transition. */
+    .capsule-header__controls .glass-button,
+    .capsule-header__controls .glass-button:hover {
+        background: transparent;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        box-shadow: none;
+        border: none;
+    }
+
+    .capsule-header__controls .glass-button:hover {
+        /* Dim via color alpha, not element opacity — avoids stagger double-opacity issue */
+        color: oklch(from var(--foreground) l c h / 0.6);
+        transform: none;
+    }
+
+    .capsule-header__controls .glass-button:hover::after {
+        animation: none;
+    }
+
+    /* ── Nudge animation ── */
+    @keyframes capsule-nudge {
+        0% {
+            transform: translateX(-50%) scaleY(1) scaleX(1);
+        }
+        30% {
+            transform: translateX(-50%) scaleY(1.07) scaleX(0.97);
+        }
+        65% {
+            transform: translateX(-50%) scaleY(0.97) scaleX(1.02);
+        }
+        100% {
+            transform: translateX(-50%) scaleY(1) scaleX(1);
+        }
+    }
+
+    .capsule-header--nudge {
+        animation: capsule-nudge var(--duration-480) var(--ease-spring);
+    }
+
+    /* ══════════════════════════════════════════════════════
+       7. Reduced Motion
+       ══════════════════════════════════════════════════════ */
+
+    @media (prefers-reduced-motion: reduce) {
+        .capsule-header,
+        .capsule-header__logo-dot,
+        .capsule-header__logo-text,
+        .capsule-header__expanded-zone,
+        .capsule-header__expanded-zone > *,
+        .capsule-header--nudge,
+        .user-status-badge,
+        .user-status-wave__ring,
+        .user-status-picker {
+            transition: none !important;
+            animation: none !important;
+        }
+
+        .capsule-header--minimal .capsule-header__logo-text {
+            display: none;
+        }
+
+        .capsule-header--expanded .capsule-header__expanded-zone {
+            max-width: 400px;
+        }
+
+        .capsule-header--expanded .capsule-header__expanded-zone > * {
+            opacity: 1;
+            transform: none;
+        }
+    }
+}
+
+/* ══════════════════════════════════════════════════════
+   8. Safari: no backdrop-filter
+   ══════════════════════════════════════════════════════ */
+
+@supports not (backdrop-filter: blur(20px)) {
+    .capsule-header {
+        background: oklch(from var(--card) l c h / 0.97);
+        border-color: var(--border);
+    }
+    .user-status-picker {
+        background: var(--card);
+        border-color: var(--border);
+    }
+}

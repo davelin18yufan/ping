@@ -664,6 +664,116 @@ it('should redirect to login page after logout', async () => {
 });
 ```
 
+#### 6.3 AppHeader Session 整合測試（5 個測試）
+
+**Test 4.9**: AppHeader 未登入時不顯示 Avatar 與登出按鈕
+```typescript
+it('should not render avatar or sign-out button when unauthenticated', () => {
+  vi.mocked(useSession).mockReturnValue({
+    data: null,
+    isPending: false,
+    error: null,
+  } as any);
+
+  render(<AppHeader />);
+
+  expect(screen.queryByRole('img', { name: /avatar/i })).not.toBeInTheDocument();
+  expect(screen.queryByRole('button', { name: /sign out/i })).not.toBeInTheDocument();
+});
+```
+
+**Test 4.10**: AppHeader 已登入時顯示 Facehash Avatar + User Name + 登出按鈕
+```typescript
+it('should render facehash avatar, user name and sign-out button when authenticated', () => {
+  vi.mocked(useSession).mockReturnValue({
+    data: {
+      session: { id: 'sess-123' },
+      user: { id: 'user-abc', name: 'Alice', email: 'alice@example.com' },
+    },
+    isPending: false,
+    error: null,
+  } as any);
+
+  render(<AppHeader />);
+
+  expect(screen.getByText('Alice')).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: /sign out/i })).toBeInTheDocument();
+  // Facehash renders a deterministic face avatar div
+  expect(document.querySelector('[data-facehash]')).toBeTruthy();
+});
+```
+
+**Test 4.11**: 登出按鈕 loading 狀態（點擊後禁用 + SoundWaveLoader）
+```typescript
+it('should disable sign-out button and show loader during sign-out', async () => {
+  vi.mocked(useSession).mockReturnValue({
+    data: {
+      session: { id: 'sess-123' },
+      user: { id: 'user-abc', name: 'Alice', email: 'alice@example.com' },
+    },
+    isPending: false,
+    error: null,
+  } as any);
+
+  // signOut resolves after a delay
+  vi.mocked(signOut).mockImplementation(() => new Promise((resolve) => setTimeout(resolve, 500)));
+
+  render(<AppHeader />);
+
+  const signOutBtn = screen.getByRole('button', { name: /sign out/i });
+  fireEvent.click(signOutBtn);
+
+  // Button should be disabled while loading
+  expect(signOutBtn).toBeDisabled();
+
+  // SoundWaveLoader should appear
+  await waitFor(() => {
+    expect(screen.getByRole('status')).toBeInTheDocument();
+  });
+});
+```
+
+**Test 4.12**: Socket connect_error Unauthorized → redirect /auth
+```typescript
+it('should redirect to /auth when socket connect_error is Unauthorized', () => {
+  const mockSocket = new EventEmitter();
+  vi.mocked(createSocketClient).mockReturnValue(mockSocket as any);
+
+  // Simulate unauthorized connect_error
+  mockSocket.emit('connect_error', new Error('Unauthorized'));
+
+  expect(window.location.href).toContain('/auth');
+});
+```
+
+**Test 4.13**: useSessionGuard — session 有效不觸發，過期觸發登出
+```typescript
+it('should sign out and redirect when session is null during guard check', async () => {
+  vi.useFakeTimers();
+
+  vi.mocked(getSession).mockResolvedValueOnce({ data: { user: { id: 'user-1' } } } as any);
+  vi.mocked(getSession).mockResolvedValueOnce({ data: null } as any);
+
+  renderHook(() => useSessionGuard());
+
+  // First interval — session valid, no signOut
+  await act(async () => {
+    vi.advanceTimersByTime(5 * 60 * 1000);
+    await Promise.resolve();
+  });
+  expect(signOut).not.toHaveBeenCalled();
+
+  // Second interval — session null, signOut called
+  await act(async () => {
+    vi.advanceTimersByTime(5 * 60 * 1000);
+    await Promise.resolve();
+  });
+  expect(signOut).toHaveBeenCalled();
+
+  vi.useRealTimers();
+});
+```
+
 ---
 
 ## 七、測試執行計畫
@@ -695,9 +805,12 @@ it('should redirect to login page after logout', async () => {
 
 4. **Stage 4 實作**（2 小時）
    - 整合 Better Auth session 管理
-   - 實作登出流程
-   - 執行 Test 4.1 - 4.8（8 個測試）
-   - ✅ 目標：8/8 測試通過
+   - 實作 AppHeader + Facehash Avatar + 登出流程
+   - 修復 Socket.io auth（withCredentials）
+   - 實作 Apollo UNAUTHENTICATED redirect
+   - 新增 useSessionGuard hook
+   - 執行 Test 4.1 - 4.13（13 個測試）
+   - ✅ 目標：13/13 測試通過
 
 ### 階段 3：REFACTOR Phase（重構與優化）
 - 檢查程式碼品質（TypeScript, Linter, Formatter）

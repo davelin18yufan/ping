@@ -586,23 +586,23 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
 
 ### Phase 1.2：UI/UX 設計改版（Week 3-4）
 
-#### 🔴 Feature 1.2.0 - UI/UX 大改版 + Session 認證整合
+#### ✅ Feature 1.2.0 - UI/UX 大改版 + Session 認證整合
 
 | 欄位 | 內容 |
 |------|------|
-| **狀態** | 🔴 進行中（Stage 1/4 - Design Tokens + 樣板確認） |
+| **狀態** | ✅ 完成（5/5 Stage 完成 - 100%） |
 | **優先級** | P0（UI/UX 改版優先，Session 認證整合其次） |
 | **負責** | Full-Stack Frontend |
 | **SDD 參考** | frontend.md、design-philosophy.md、design-system.md |
 | **依賴** | Feature 1.0.4 ✅（Design System 基礎）、Feature 1.1.1 ✅（OAuth 登入） |
-| **預期完成日期** | 2026-02-10 |
+| **預期完成日期** | 2026-02-21 |
 | **測試規格** | `/docs/architecture/Feature-1.2.0-TDD-Tests.md` |
-| **分支** | `feature/1.2.0-ui-ux-redesign` |
+| **主分支** | `feature/1.2.0-ui-ux-redesign` |
 
 **階段分解**（4 個 Stage）：
 
-**Stage 1 - Design Tokens + 樣板確認**（🔴 進行中 - 2 小時）
-- 🔴 更新 `/shared/design-tokens/colors.ts`
+**Stage 1 - Design Tokens + 樣板確認**（✅ 完成）
+- ✅ 更新 `/shared/design-tokens/colors.ts`
   - Dark Mode: Noctis Obscuro（深沉神秘）
     - Background: #0B0E13（深黑藍）
     - Surface: #141821（深灰藍）
@@ -611,57 +611,107 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
     - Background: #F5F4F0（米白色）
     - Surface: #FDFCFA（柔和白）
     - Text: #2C2C2E（深灰黑）
-- 🔴 建立樣板 HTML（`/frontend/design-preview.html`）
-  - 展示 Dark/Light 雙模式
-  - 包含主要元件預覽（Button, Card, Input）
-  - 展示配色系統
-- ⏳ 等待使用者確認配色與樣式
+- ✅ 確認配色與樣式方向
 
-**Stage 2 - CSS 架構重組 + 動畫系統**（待開始 - 3 小時）
-- 建立 `/frontend/src/styles/themes/dark.css`
-  - 定義 Dark Mode CSS Variables
-  - 整合新配色系統
-- 建立 `/frontend/src/styles/themes/light.css`
-  - 定義 Light Mode CSS Variables
-  - 整合新配色系統
-- 建立 `/frontend/src/styles/animations.css`
-  - View Transition API 配置
-  - Framer Motion 基礎動畫
-  - Reduced Motion 支援
-- 更新 `/frontend/src/styles.css`
-  - 匯入 themes 與 animations
-  - 重組 CSS 架構
+**Stage 2 - CSS 架構重組 + Design Tokens CSS 擴展**（✅ 完成 - 2026-02-14）
 
-**Stage 3 - 雙模式系統 + 元件升級**（待開始 - 4 小時）
-- 建立雙模式切換系統
+> **注意**：此 Stage 的實際實作內容對應到 branch `feature/1.2.0-stage-4-css-architecture`，PR #27 已建立。
+
+**實作產出（33 個檔案，+2444/-1312 行）**：
+
+Shared Design Tokens CSS 擴展：
+- ✅ `shared/design-tokens/css/colors.css` — CSS variable exports
+- ✅ `shared/design-tokens/css/animations.css` — CSS 動畫變數
+- ✅ `shared/design-tokens/css/effects.css` — 特效 CSS 變數
+- ✅ `shared/design-tokens/css/spacing.css` — 間距 CSS 變數
+- ✅ `shared/design-tokens/animations.ts` — 動畫 Token TypeScript
+- ✅ `shared/design-tokens/borders.ts` — 邊框 Token TypeScript
+- ✅ `shared/design-tokens/effects.ts` — 特效 Token TypeScript
+- ✅ `shared/design-tokens/z-index.ts` — Z-index Token TypeScript
+
+Frontend CSS 架構重組：
+- ✅ `frontend/src/styles/themes/aesthetic-modes.css` — 雙模式主題 CSS
+- ✅ `frontend/src/styles/themes/index.css` — 主題入口
+- ✅ `frontend/src/styles/animations/` — 動畫定義
+- ✅ `frontend/src/styles/base/typography.css` — 字型基礎樣式
+- ✅ `frontend/src/styles/base/overrides.css` — 全域覆蓋樣式
+- ✅ `frontend/src/styles/utilities/glass-effects.css` — 玻璃特效工具
+- ✅ `frontend/src/styles/utilities/interactions.css` — 互動工具
+- ✅ `frontend/src/styles/components/glass-button.css` — 按鈕元件
+- ✅ `frontend/src/styles/components/glass-card.css` — 卡片元件
+- ✅ `frontend/src/styles/components/glass-input.css` — 輸入元件
+- ✅ `frontend/src/styles/components/bubble-card.css` — 對話氣泡元件
+
+測試套件（Feature 1.2.0）：
+- ✅ `frontend/tests/integration/aesthetic-mode-toggle.spec.tsx` — 339 行
+- ✅ `frontend/tests/unit/contexts/aesthetic-mode-context.spec.tsx` — 336 行
+
+CI / Dependencies 更新：
+- ✅ pnpm 10.28.2 → 10.29.3
+- ✅ frontend 依賴更新（含 @types/node 固定版本）
+- ✅ 修復測試中的 Invalid hook call 問題
+
+**Git 記錄**：
+- Branch: `feature/1.2.0-stage-4-css-architecture`
+- Base branch: `feature/1.2.0-ui-ux-redesign`
+- PR #27: https://github.com/davelin18yufan/ping/pull/27 (OPEN，等待 review)
+- Commits:
+  - `1b9864a` - [refactor] extend Design Tokens with CSS format for Tailwind CSS v4
+  - `6a38486` - [refactor] reorganize Frontend CSS architecture with Tailwind CSS v4
+  - `390af03` - [fix] fix Invalid hook call in tests and add Feature 1.2.0 test suite
+  - `f673da6` - [chore] update frontend dependencies to latest and pin @types/node
+  - `f3e0fb6` - [chore] bump pnpm from 10.28.2 to 10.29.3
+
+**Stage 3 - 雙模式系統 + 元件升級**（✅ 完成 - 2026-02-14）
+- ✅ 建立雙模式切換系統
   - 華麗模式（Glamorous）：完整動畫、特效
   - 簡潔模式（Minimal）：簡化動畫、高效能
-- 升級 UI 元件
+- ✅ 升級 UI 元件
   - Button, Input, Card, Avatar 使用新配色
   - 整合 View Transition API
   - 整合 Framer Motion
-- 升級 SoundWaveLoader
+- ✅ 升級 SoundWaveLoader
   - 保留核心功能
   - 增強視覺效果
   - 支援雙模式切換
 
-**Stage 4 - Session 認證整合**（待開始 - 2 小時）
-- 整合 Better Auth session 管理
+**Stage 4 - Session 認證整合**（✅ 完成 - 2026-02-16）
+- ✅ 整合 Better Auth session 管理
   - Session 驗證與更新
   - Session 延長邏輯
-- 實作登出流程
+- ✅ 實作登出流程
   - 登出 mutation
   - 清除 session cookie
-  - 導向登入頁
-- 測試與優化
+  - 導向登入頁（useNavigate 取代 window.location.href）
+- ✅ 測試與優化
   - 測試 session 流程
   - 測試登出流程
-  - 優化效能
+
+**Stage 5 - Capsule Morphing AppHeader**（✅ 完成 - 2026-02-16）
+- ✅ AppHeader 完整實作（三態：minimal / default / expanded）
+- ✅ uiStore（@tanstack/store）管理 headerExpanded + isViewTransitioning
+- ✅ View Transition 期間的 expanded 狀態保護（isViewTransitioning guard + cursorInHeaderRef）
+- ✅ useNavigate 取代 window.location.href 進行 sign-out 導航
+- ✅ 完整測試套件：app-header.spec.tsx（12 tests）、uiStore.spec.ts（6 tests）
+- ✅ 測試整理：移除 3 個重複測試，清理跨層測試責任
 
 **當前狀況**：
-- ✅ Branch 已建立：`feature/1.2.0-ui-ux-redesign`
-- 🔴 Stage 1 進行中：Design Tokens 更新 + 樣板建立
-- ⏳ 等待使用者確認配色與樣式後繼續 Stage 2-4
+- ✅ Stage 1 完成：Design Tokens 更新（新配色系統）
+- ✅ Stage 2 完成：CSS 架構重組（2026-02-14）
+  - shared/design-tokens CSS 格式擴展
+  - frontend/src/styles/ 完整重組
+  - Feature 1.2.0 測試套件新增（675 行）
+- ✅ Stage 3 完成：雙模式系統 + 元件升級（2026-02-14）
+  - 雙模式切換系統（Glamorous / Minimal）
+  - Button, Input, Card, Avatar 元件升級（新配色與動畫）
+  - SoundWaveLoader 升級（支援雙模式切換）
+- ✅ Stage 4 完成：Session 認證整合（2026-02-16）
+  - Better Auth session 管理整合
+  - 登出流程實作（useNavigate 導航）
+- ✅ Stage 5 完成：Capsule Morphing AppHeader（2026-02-16）
+  - AppHeader 三態實作（minimal / default / expanded）
+  - uiStore（headerExpanded + isViewTransitioning）
+  - View Transition 狀態保護機制
 
 **核心變更**：
 1. **配色系統改革**（Dark Mode 跳脫 Discord 風格）
@@ -695,16 +745,22 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
 
 **產出**：
 - ✅ 新配色系統（28+ tokens，Dark/Light）
-- ⏳ 新字型系統（Noto Sans TC / Serif TC）
-- ⏳ 動畫系統（View Transition API + Framer Motion）
-- ⏳ 雙模式切換系統
-- ⏳ CSS 架構重組（themes/, animations/）
-- ⏳ SoundWaveLoader 升級版
-- ⏳ Session 認證整合（登出、session 更新）
+- ✅ 新字型系統（Noto Sans TC / Serif TC）
+- ✅ 動畫系統（View Transition API + Framer Motion）
+- ✅ 雙模式切換系統（Glamorous / Minimal）
+- ✅ CSS 架構重組（themes/, animations/）
+- ✅ SoundWaveLoader 升級版
+- ✅ Session 認證整合（登出、session 更新）
+- ✅ Capsule Morphing AppHeader（三態、uiStore、View Transition 保護）
 
 **測試規格**：
 - 測試規格文件：`/docs/architecture/Feature-1.2.0-TDD-Tests.md`
-- 預計測試案例：30+ 個（Design Tokens: 10, UI Components: 12, Animations: 5, Session: 8）
+- 實際測試通過：175/175 tests（100%）
+  - aesthetic-mode-toggle.spec.tsx
+  - aesthetic-mode-context.spec.tsx
+  - app-header.spec.tsx（12 tests）
+  - uiStore.spec.ts（6 tests）
+- 實際完成日期：2026-02-16
 
 ---
 
@@ -779,7 +835,7 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
 ### 衝刺目標
 **Sprint 1 (已完成)**: Phase 1.0 基礎設施完整初始化（100% 完成）
 **Sprint 2 (已完成)**: Feature 1.1.1 OAuth 登入（Web 端完成，79/79 測試通過）
-**Sprint 3 (進行中)**: Feature 1.2.0 UI/UX 大改版 + Session 認證整合（Stage 1/4）
+**Sprint 3 (已完成)**: Feature 1.2.0 UI/UX 大改版 + Session 認證整合（5/5 Stage 完成，175/175 測試通過）
 
 ### 開發分工（3 Agents 配置）
 
@@ -839,26 +895,27 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
 
 ---
 
-#### 🔴 Sprint 3: Feature 1.2.0 UI/UX 大改版（進行中）
+#### ✅ Sprint 3: Feature 1.2.0 UI/UX 大改版（已完成）
 
-| Agent | 分配任務 | 預計時間 | 狀態 |
+| Agent | 分配任務 | 實際時間 | 狀態 |
 |-------|---------|---------|------|
-| **Architect** | 1. ✅ 建立測試規格文件（Feature-1.2.0-TDD-Tests.md）<br>2. 🔴 審查 Stage 1 樣板設計<br>3. ⏳ Code review Stage 2-4 實作 | 3 小時 | 🔴 33% |
-| **Full-Stack Frontend** | **Stage 1** (🔴 進行中 - 2h):<br>1. 🔴 更新 Design Tokens（colors.ts）<br>2. 🔴 建立樣板 HTML（design-preview.html）<br>3. ⏳ 等待使用者確認<br>**Stage 2** (⏳ 待開始 - 3h):<br>1. 建立 themes/dark.css, themes/light.css<br>2. 建立 animations.css<br>3. 更新 styles.css<br>**Stage 3** (⏳ 待開始 - 4h):<br>1. 建立雙模式切換系統<br>2. 升級 UI 元件<br>3. 升級 SoundWaveLoader<br>**Stage 4** (⏳ 待開始 - 2h):<br>1. 整合 Better Auth session 管理<br>2. 實作登出流程<br>3. 測試與優化 | 11 小時 | 🔴 18% (Stage 1) |
+| **Architect** | 1. ✅ 建立測試規格文件（Feature-1.2.0-TDD-Tests.md）<br>2. ✅ 審查 Stage 1 樣板設計<br>3. ✅ Code review Stage 2-5 實作<br>4. ✅ 更新文件（MULTI_AGENT_PLAN.md, task-board.md） | 3 小時 | ✅ 100% |
+| **Full-Stack Frontend** | **Stage 1** (✅ 完成):<br>1. ✅ 更新 Design Tokens（colors.ts）<br>2. ✅ 確認配色方向<br>**Stage 2** (✅ 完成 - 2026-02-14):<br>1. ✅ 擴展 shared/design-tokens CSS 格式（4 個 CSS 檔 + 4 個 TS 檔）<br>2. ✅ 重組 frontend/src/styles/ 架構（themes, animations, base, utilities, components）<br>3. ✅ 新增 Feature 1.2.0 測試套件（675 行）<br>**Stage 3** (✅ 完成 - 2026-02-14):<br>1. ✅ 建立雙模式切換系統（Glamorous / Minimal）<br>2. ✅ 升級 UI 元件（Button, Input, Card, Avatar）<br>3. ✅ 升級 SoundWaveLoader（支援雙模式切換）<br>**Stage 4** (✅ 完成 - 2026-02-16):<br>1. ✅ 整合 Better Auth session 管理<br>2. ✅ 實作登出流程（useNavigate 導航）<br>3. ✅ 測試與優化<br>**Stage 5** (✅ 完成 - 2026-02-16):<br>1. ✅ AppHeader 三態實作（minimal / default / expanded）<br>2. ✅ uiStore（headerExpanded + isViewTransitioning）<br>3. ✅ View Transition 狀態保護機制<br>4. ✅ app-header.spec.tsx（12 tests）+ uiStore.spec.ts（6 tests） | 14 小時 | ✅ 100% |
 
 **總計**：約 14 小時（約 2-3 個工作日）
 
 **完成標準**：
-- 🔴 Design Tokens 更新完成（新配色系統）
-- 🔴 樣板 HTML 建立完成（展示 Dark/Light 雙模式）
-- ⏳ 使用者確認配色與樣式
-- ⏳ CSS 架構重組完成（themes/, animations/）
-- ⏳ 雙模式系統實作完成
-- ⏳ UI 元件升級完成（使用新配色）
-- ⏳ SoundWaveLoader 升級完成
-- ⏳ Session 認證整合完成（登出、session 更新）
-- ⏳ 30+ 測試全部通過
-- ⏳ TypeScript 0 errors, Linter 0 warnings, Formatter 100%
+- ✅ Design Tokens 更新完成（新配色系統）
+- ✅ CSS 架構重組完成（themes/, animations/, base/, utilities/, components/）
+- ✅ shared/design-tokens CSS 格式擴展（4 CSS + 4 TS 新增）
+- ✅ Feature 1.2.0 測試套件新增（aesthetic-mode-toggle + aesthetic-mode-context）
+- ✅ 雙模式系統實作完成（Stage 3 - 2026-02-14）
+- ✅ UI 元件升級完成（使用新配色）（Stage 3 - 2026-02-14）
+- ✅ SoundWaveLoader 升級完成（Stage 3 - 2026-02-14）
+- ✅ Session 認證整合完成（登出、session 更新）（Stage 4 - 2026-02-16）
+- ✅ AppHeader Capsule Morphing 完成（Stage 5 - 2026-02-16）
+- ✅ 175/175 測試全部通過（100%）
+- ✅ TypeScript 0 errors, Linter 0 warnings, Formatter 100%
 
 ---
 
@@ -949,43 +1006,20 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
 
 ---
 
-**最後更新**：2026-02-03 18:00
-**下次計畫更新**：2026-02-04 09:00
-**當前 Sprint**：Sprint 3 - Feature 1.2.0 UI/UX 大改版（Stage 1/4 進行中 🔴）
-**最新進展**：Feature 1.2.0 (UI/UX 大改版) Stage 1 開始 🔴
-  - Branch: feature/1.1.1-oauth-google-login
-  - PR #23: https://github.com/davelin18yufan/ping/pull/23（OPEN，等待 review）
-  - 完成進度：Web 端 100%（Mobile 端後續階段）
-  - Commits: 8 個（+1728/-619 行）
-    1. `3cdd878` - [style] fix import order in LoginForm
-    2. `e97123a` - [fix] restore SoundWaveLoader and Header to shared components
-    3. `a0a8108` - [chore] add trace directory to gitignore
-    4. `ef361c2` - [chore] update dependencies for TanStack ecosystem
-    5. `5d4baf3` - [refactor] update routes to use Server-Side auth middleware
-    6. `7e8c0a2` - [test] add comprehensive tests for auth middleware and oauth flow
-    7. `4f9d1b5` - [feat] implement Server-Side auth middleware (requireAuthServer, requireGuestServer, optionalAuthServer)
-    8. `2a3c4d6` - [feat] implement OAuth login page with Google and GitHub support
-  - 測試結果：
-    - OAuth Login Flow: 13/13 tests ✅
-    - Auth Middleware Server: 16/16 tests ✅
-    - Better Auth Integration: 5/5 tests ✅
-    - Web Infrastructure: 46/46 tests ✅
-    - **總計：79/79 tests passing（100%）**
-  - 程式碼品質：
-    - TypeScript check：0 errors ✅
-    - Linter (Oxlint)：0 warnings ✅
-    - Formatter (Oxfmt)：100% formatted ✅
-  - 關鍵實作：
-    1. ✅ Server-Side Auth Middleware（`auth.middleware.server.ts`）
-    2. ✅ OAuth 登入頁面（`routes/auth/index.tsx`）
-    3. ✅ 首頁路由保護（`routes/index.tsx`）
-    4. ✅ SoundWaveLoader 路由切換動畫（`__root.tsx`）
-    5. ✅ Type-safe session context 傳遞
-  - 產出：
-    - ✅ Server-Side Auth Middleware（3 個 middleware functions）
-    - ✅ OAuth 登入流程（Google, GitHub）
-    - ✅ 路由保護機制（需登入、訪客專用、可選登入）
-    - ✅ 完整測試覆蓋（79/79 tests）
+**最後更新**：2026-02-16
+**下次計畫更新**：Feature 1.2.1 設計完成後
+**當前 Sprint**：Sprint 3 完成 - 準備 Sprint 4（Feature 1.2.1 搜尋與加好友）
+**最新進展**：Feature 1.2.0（UI/UX 大改版）全部完成（2026-02-16）
+  - Branch: feature/1.2.0-stage-5-capsule-header
+  - 完成進度：Stage 5/5（100%），175/175 tests 通過
+  - Stage 5 完成內容：
+    - ✅ AppHeader 三態實作（minimal / default / expanded）
+    - ✅ uiStore（@tanstack/store）：headerExpanded + isViewTransitioning
+    - ✅ View Transition 期間 expanded 狀態保護（cursorInHeaderRef guard）
+    - ✅ useNavigate 取代 window.location.href 進行 sign-out 導航
+    - ✅ app-header.spec.tsx（12 tests）+ uiStore.spec.ts（6 tests）
+    - ✅ 移除 3 個重複測試，清理跨層測試責任
+  - 下一步：Feature 1.2.1 搜尋與加好友（Architect 設計階段）
 
 **Phase 1.0 + 1.1 + 1.2 總結**：
 - ✅ Feature 1.0.1 - Backend 基礎設施（100% 完成）
@@ -993,38 +1027,40 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
 - ✅ Feature 1.0.3 - Mobile 基礎設施（100% 完成）
 - ✅ Feature 1.0.4 - Design System 設定（100% 完成）
 - ✅ Feature 1.1.1 - OAuth Google 登入（Web 端 100% 完成）
-- 🔴 Feature 1.2.0 - UI/UX 大改版（Stage 1/4 進行中）
+- ✅ Feature 1.2.0 - UI/UX 大改版（5/5 Stage 完成，175/175 測試通過 - 2026-02-16）
 - **Sprint 1 完成度：4/4 features（100%）**
 - **Sprint 2 完成度：1/1 features（100%）**
-- **Sprint 3 完成度：0/1 features（18% - Stage 1 進行中）**
-- **總測試通過數：249/249 tests（100% - Feature 1.2.0 測試規格已完成，待實作）**
+- **Sprint 3 完成度：1/1 features（100%）**
+- **總測試通過數：175/175 tests（Feature 1.2.0 前端測試全通過）**
   - Backend: 27 tests
   - Frontend (Web Infrastructure): 46 tests
   - Frontend (OAuth + Middleware): 29 tests
   - Mobile: 97 tests
-  - Design System: 50 tests（預估）
-- **下一步：等待 PR #23 review 與 merge**
+  - Feature 1.2.0 (UI/UX Redesign): 175 tests
+- **下一步：Feature 1.2.1 搜尋與加好友**
 
-**Feature 1.2.0 最新進展**：
-  - Branch: feature/1.2.0-ui-ux-redesign
-  - Status: 🔴 Stage 1/4 進行中（Design Tokens + 樣板確認）
-  - 測試規格：`/docs/architecture/Feature-1.2.0-TDD-Tests.md` ✅（已完成，40 個測試案例）
+**Feature 1.2.0 完成總結**：
+  - 主分支: feature/1.2.0-ui-ux-redesign
+  - Status: ✅ 全部完成（5/5 Stage，175/175 tests）
+  - 測試規格：`/docs/architecture/Feature-1.2.0-TDD-Tests.md` ✅
   - **階段分解**：
-    - 🔴 Stage 1: Design Tokens + 樣板確認（2h）- 進行中
-    - ⏳ Stage 2: CSS 架構重組 + 動畫系統（3h）- 待開始
-    - ⏳ Stage 3: 雙模式系統 + 元件升級（4h）- 待開始
-    - ⏳ Stage 4: Session 認證整合（2h）- 待開始
-  - **當前任務**：
-    - 🔴 更新 `/shared/design-tokens/colors.ts`（新配色系統）
-    - 🔴 建立 `/frontend/design-preview.html`（樣板 HTML）
-    - ⏳ 等待使用者確認配色與樣式
-  - **核心變更預覽**：
-    - Dark Mode: Noctis Obscuro（#0B0E13 深沉神秘）
-    - Light Mode: Kyoto Whisper（#F5F4F0 日式簡樸）
-    - 字型：Noto Sans TC / Noto Serif TC
-    - 動畫：View Transition API + Framer Motion
-    - 雙模式：華麗（Glamorous）/ 簡潔（Minimal）
-  - **預期完成**：2026-02-10（約 7 天）
+    - ✅ Stage 1: Design Tokens + 配色確認 - 完成
+    - ✅ Stage 2: CSS 架構重組 + Design Tokens CSS 擴展 - 完成（2026-02-14）
+      - Branch: `feature/1.2.0-stage-4-css-architecture`
+      - 33 個檔案變更（+2444/-1312 行）
+    - ✅ Stage 3: 雙模式系統 + 元件升級 - 完成（2026-02-14）
+      - 雙模式切換系統（Glamorous / Minimal）
+      - Button, Input, Card, Avatar 元件升級（新配色與動畫）
+      - SoundWaveLoader 升級（支援雙模式切換）
+    - ✅ Stage 4: Session 認證整合 - 完成（2026-02-16）
+      - Better Auth session 管理整合
+      - 登出流程（useNavigate 導航）
+    - ✅ Stage 5: Capsule Morphing AppHeader - 完成（2026-02-16）
+      - AppHeader 三態（minimal / default / expanded）
+      - uiStore（@tanstack/store）：headerExpanded + isViewTransitioning
+      - View Transition 狀態保護機制
+      - app-header.spec.tsx（12 tests）+ uiStore.spec.ts（6 tests）
+  - **實際完成**：2026-02-16
 
 ---
 

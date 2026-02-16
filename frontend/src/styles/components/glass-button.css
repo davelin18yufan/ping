@@ -47,9 +47,8 @@
 
         /* Smooth animation */
         transition: all var(--duration-fast) var(--ease-out);
-    }
 
-    .glass-button {
+        /* Positioning for ripple pseudo-element */
         position: relative;
         overflow: visible;
     }
@@ -246,6 +245,35 @@
         height: 2.5rem;
         padding: 0;
         border-radius: 50%;
+    }
+
+    /* Variant: Destructive (Sign Out) — red tint on hover */
+    .glass-button--destructive {
+        transition: all var(--duration-fast) var(--ease-out);
+    }
+
+    .glass-button--destructive:hover:not(:disabled) {
+        background: oklch(from var(--destructive) l c h / 0.12);
+        color: var(--destructive-foreground);
+        box-shadow:
+            0 4px 12px oklch(from var(--destructive) l c h / 0.2),
+            0 8px 24px oklch(from var(--destructive) l c h / 0.1);
+    }
+
+    :root.dark .glass-button--destructive:hover:not(:disabled) {
+        background: oklch(from var(--destructive-foreground) l c h / 0.12);
+        color: var(--destructive-foreground);
+        box-shadow:
+            0 4px 12px oklch(from var(--destructive-foreground) l c h / 0.25),
+            0 8px 24px oklch(from var(--destructive-foreground) l c h / 0.12);
+    }
+
+    .glass-button--destructive::after {
+        border-color: var(--destructive);
+    }
+
+    .glass-button--destructive:hover:not(:disabled)::after {
+        animation: border-ripple-expand var(--duration-slower) var(--ease-out);
     }
 }
 

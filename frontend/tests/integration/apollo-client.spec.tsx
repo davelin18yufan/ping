@@ -8,6 +8,16 @@ import { describe, test, expect, vi, beforeEach } from "vitest"
 import { ME_QUERY } from "@/graphql/queries/user"
 import { createApolloClient, errorLink } from "@/lib/apollo"
 
+// Mock Better Auth client to prevent real network calls in UNAUTHENTICATED handler
+vi.mock("@/lib/auth-client", () => ({
+    signOut: vi.fn().mockResolvedValue(undefined),
+    signIn: vi.fn(),
+    useSession: vi.fn(),
+    getSession: vi.fn(),
+    authClient: {},
+    createAuthClient: vi.fn(),
+}))
+
 // Reset singleton between tests
 let apolloClientModule: typeof import("@/lib/apollo")
 

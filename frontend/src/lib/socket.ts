@@ -14,17 +14,8 @@ export function createSocketClient(): Socket {
 
     const socketUrl = import.meta.env.VITE_SOCKET_URL || "http://localhost:3000"
 
-    // Get authentication token from session storage or cookies
-    // For now, we'll use a placeholder. Better Auth integration will be added later.
-    const getAuthToken = (): string | undefined => {
-        // TODO: Replace with Better Auth session token retrieval
-        return undefined
-    }
-
     socketInstance = io(socketUrl, {
-        auth: {
-            token: getAuthToken(),
-        },
+        withCredentials: true, // Better Auth session cookie is included automatically
         transports: ["websocket", "polling"],
         reconnection: true,
         reconnectionDelay: 1000,
@@ -54,6 +45,13 @@ export function createSocketClient(): Socket {
             isConnected: false,
             connectionError: error.message,
         }))
+
+        // Redirect to auth page on Unauthorized errors
+        if (error.message.includes("Unauthorized")) {
+            if (typeof window !== "undefined") {
+                window.location.href = "/auth"
+            }
+        }
     })
 
     socketInstance.on("reconnect", () => {

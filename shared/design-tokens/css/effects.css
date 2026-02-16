@@ -33,4 +33,28 @@
     --glow-opacity-primary: 0.6;
     --glow-opacity-accent: 0.5;
     --glow-opacity-secondary: 0.4;
+
+    /* Presence status pulse (sound wave rings) */
+    --status-pulse-opacity-start: 0.55;
+    --status-pulse-opacity-end: 0;
+    --status-pulse-scale-end: 2.2;
+    --status-pulse-duration: 1800ms;
+}
+
+/* Shadow overlay color tokens
+ * Used for box-shadow color values — kept in :root (not @theme) to avoid
+ * Tailwind generating unwanted utility classes from these raw color values.
+ * Values are mode-independent (pure black/white with alpha).
+ */
+:root {
+    --shadow-overlay-xs:  oklch(0 0 0 / 0.07);
+    --shadow-overlay-sm:  oklch(0 0 0 / 0.08);
+    --shadow-overlay-md:  oklch(0 0 0 / 0.12);
+    --shadow-overlay-lg:  oklch(0 0 0 / 0.18);
+    --shadow-overlay-xl:  oklch(0 0 0 / 0.22);
+    --shadow-overlay-2xl: oklch(0 0 0 / 0.28);
+    --shadow-highlight-xs: oklch(1 0 0 / 0.07);
+    --shadow-highlight-sm: oklch(1 0 0 / 0.08);
+    --shadow-highlight-md: oklch(1 0 0 / 0.10);
+    --shadow-highlight-lg: oklch(1 0 0 / 0.12);
 }

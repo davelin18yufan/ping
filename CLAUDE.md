@@ -375,6 +375,33 @@ try {
    - `/frontend/src/styles/components/glass-input.css` - 輸入框樣式
    - 所有 UI 元件**必須使用**這些設計系統定義的 classes，不得自行撰寫重複樣式
 
+4. **🔴 修改任何樣式前必須先檢查 Shared 樣式架構（MANDATORY）**
+
+   **平台消費方式不同，但 Source of Truth 相同**：
+
+   | 平台 | 讀取來源 | 格式 |
+   |------|----------|------|
+   | **Web (Frontend)** | `@shared/design-tokens/css/*.css` | CSS custom properties (`var(--token)`) |
+   | **Mobile (React Native)** | `@shared/design-tokens/*.ts` | TypeScript exports（`colors.ts`、`effects.ts` 等） |
+
+   **⚠️ 新增或修改任何 Token 時，兩邊都必須同步更新**：
+   - CSS 檔案（Web 用）：`@shared/design-tokens/css/`
+   - TS 檔案（Mobile 用）：`@shared/design-tokens/*.ts`
+
+   **在撰寫任何新 CSS 變數或樣式值之前，必須依序檢查**：
+   ```
+   Web 側: @shared/design-tokens/css/colors.css → effects.css → animations.css → spacing.css
+   Mobile 側: @shared/design-tokens/colors.ts  → effects.ts  → animations.ts  → spacing.ts
+   ```
+
+   **決策流程**：
+   - ✅ Token 已存在 → Web 用 `var(--token-name)`，Mobile 用 TS import
+   - ✅ Token 需新增 → **同時**更新對應的 `.css` 和 `.ts` 兩個檔案
+   - ❌ 禁止在元件 CSS 中硬編碼數值（例如 `oklch(0.72 0.18 145)`），必須提取為 shared token
+   - ❌ 禁止只更新 CSS 忘記同步 TS（或反之）
+   - ❌ 禁止直接跳到元件 CSS 撰寫樣式，必須先完成上方檢查
+
+
 #### 🔴 強制執行 Skills（BLOCKING REQUIREMENT）
 **在開始任何 UI 工作前，必須先執行以下 Skills，不得跳過**：
 

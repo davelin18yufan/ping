@@ -29,6 +29,8 @@
 
 import { useCallback } from "react"
 
+import { uiStore } from "@/stores/uiStore"
+
 // ============================================================================
 // TYPES
 // ============================================================================
@@ -71,11 +73,16 @@ export function useViewTransition() {
             }
 
             // Start View Transition (CSS handles all animations globally)
-            ;(
+            uiStore.setState((s) => ({ ...s, isViewTransitioning: true }))
+            const transition = (
                 document as Document & {
                     startViewTransition: (callback: UpdateCallback) => ViewTransition
                 }
             ).startViewTransition(callback)
+
+            void transition.finished.finally(() => {
+                uiStore.setState((s) => ({ ...s, isViewTransitioning: false }))
+            })
         },
         [isSupported]
     )
@@ -117,6 +124,7 @@ export function useViewTransition() {
             document.documentElement.style.setProperty("--ripple-y", `${rippleY}%`)
 
             // Start View Transition
+            uiStore.setState((s) => ({ ...s, isViewTransitioning: true }))
             const transition = (
                 document as Document & {
                     startViewTransition: (callback: UpdateCallback) => ViewTransition
@@ -127,6 +135,7 @@ export function useViewTransition() {
             void transition.finished.finally(() => {
                 document.documentElement.style.removeProperty("--ripple-x")
                 document.documentElement.style.removeProperty("--ripple-y")
+                uiStore.setState((s) => ({ ...s, isViewTransitioning: false }))
             })
         },
         [isSupported]

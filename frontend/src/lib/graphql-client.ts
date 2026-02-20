@@ -70,10 +70,7 @@ export async function graphqlFetch<TData = unknown, TVariables = Record<string, 
     const json = (await response.json()) as GraphQLResponse<TData>
 
     if (json.errors && json.errors.length > 0) {
-        throw new GraphQLClientError(
-            json.errors.map((e) => e.message).join(", "),
-            json.errors
-        )
+        throw new GraphQLClientError(json.errors.map((e) => e.message).join(", "), json.errors)
     }
 
     if (!json.data) {

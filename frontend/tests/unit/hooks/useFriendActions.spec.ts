@@ -12,11 +12,10 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { renderHook, act, waitFor } from "@testing-library/react"
+import { graphql, HttpResponse } from "msw"
 import React from "react"
 import { describe, it, expect, beforeEach } from "vitest"
-import { graphql, HttpResponse } from "msw"
 
-import { mswServer } from "../../mocks/server"
 import {
     mockUserAlice,
     mockUserBob,
@@ -24,6 +23,7 @@ import {
     mockPendingRequest,
     conflictSendRequestHandler,
 } from "../../mocks/graphql-handlers"
+import { mswServer } from "../../mocks/server"
 
 function makeClient() {
     return new QueryClient({

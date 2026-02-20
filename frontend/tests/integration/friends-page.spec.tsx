@@ -70,8 +70,10 @@ vi.mock("@/hooks/useScrollDirection", () => ({
 }))
 
 vi.mock("@tanstack/react-store", () => ({
-    useStore: (_store: unknown, selector: (s: { headerExpanded: boolean; isViewTransitioning: boolean }) => unknown) =>
-        selector({ headerExpanded: false, isViewTransitioning: false }),
+    useStore: (
+        _store: unknown,
+        selector: (s: { headerExpanded: boolean; isViewTransitioning: boolean }) => unknown
+    ) => selector({ headerExpanded: false, isViewTransitioning: false }),
 }))
 
 vi.mock("@/stores/uiStore", () => ({
@@ -272,7 +274,11 @@ describe("TC-F-06: Pending request card UI", () => {
         )
 
         // Use findBy which automatically waits
-        const pendingSection = await screen.findByTestId("pending-requests-section", {}, { timeout: 3000 })
+        const pendingSection = await screen.findByTestId(
+            "pending-requests-section",
+            {},
+            { timeout: 3000 }
+        )
         expect(pendingSection).toBeInTheDocument()
 
         expect(screen.getAllByRole("button", { name: /accept/i })).toHaveLength(2)
@@ -349,10 +355,13 @@ describe("TC-F-09: Friends list renders accepted friends", () => {
             </QueryClientProvider>
         )
 
-        await waitFor(() => {
-            expect(screen.getByText("Bob Wang")).toBeInTheDocument()
-            expect(screen.getByText("Carol Lin")).toBeInTheDocument()
-        }, { timeout: 2000 })
+        await waitFor(
+            () => {
+                expect(screen.getByText("Bob Wang")).toBeInTheDocument()
+                expect(screen.getByText("Carol Lin")).toBeInTheDocument()
+            },
+            { timeout: 2000 }
+        )
 
         expect(screen.queryByText(/no friends yet/i)).not.toBeInTheDocument()
     })

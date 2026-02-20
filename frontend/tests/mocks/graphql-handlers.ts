@@ -81,9 +81,7 @@ export const graphqlHandlers = [
     graphql.query("SearchUsers", ({ variables }) => {
         const query = (variables.query as string)?.toLowerCase() ?? ""
         const results = [mockUserBob, mockUserCarol].filter(
-            (u) =>
-                u.name.toLowerCase().includes(query) ||
-                u.email.toLowerCase().includes(query)
+            (u) => u.name.toLowerCase().includes(query) || u.email.toLowerCase().includes(query)
         )
         return HttpResponse.json({ data: { searchUsers: results } })
     }),

@@ -66,10 +66,7 @@ export function PendingRequestCard({ request, onAccepted, onRejected }: PendingR
                         className="pending-request-card__avatar-img"
                     />
                 ) : (
-                    <div
-                        className="pending-request-card__avatar-fallback"
-                        aria-hidden="true"
-                    >
+                    <div className="pending-request-card__avatar-fallback" aria-hidden="true">
                         {(request.sender.name ?? "?").charAt(0).toUpperCase()}
                     </div>
                 )}

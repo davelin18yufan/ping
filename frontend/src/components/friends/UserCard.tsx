@@ -77,11 +77,7 @@ export function UserCard({
             {/* Avatar */}
             <div className="user-card__avatar">
                 {user.image ? (
-                    <img
-                        src={user.image}
-                        alt={user.name}
-                        className="user-card__avatar-img"
-                    />
+                    <img src={user.image} alt={user.name} className="user-card__avatar-img" />
                 ) : (
                     <div className="user-card__avatar-fallback" aria-hidden="true">
                         {(user.name ?? user.email ?? "?").charAt(0).toUpperCase()}

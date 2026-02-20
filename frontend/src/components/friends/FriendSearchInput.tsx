@@ -37,11 +37,7 @@ export function FriendSearchInput({ onResultSelect }: FriendSearchInputProps) {
         <div className="friend-search">
             {/* Input wrapper */}
             <div className="friend-search__input-wrapper">
-                <Search
-                    size={16}
-                    className="friend-search__icon"
-                    aria-hidden="true"
-                />
+                <Search size={16} className="friend-search__icon" aria-hidden="true" />
                 <input
                     type="search"
                     className="glass-input glass-input--search friend-search__input"

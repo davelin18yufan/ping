@@ -11,12 +11,12 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { renderHook, act, waitFor } from "@testing-library/react"
+import { graphql, HttpResponse } from "msw"
 import React from "react"
 import { describe, it, expect, vi, beforeEach } from "vitest"
-import { graphql, HttpResponse } from "msw"
 
-import { mswServer } from "../../mocks/server"
 import { mockUserBob, mockUserCarol } from "../../mocks/graphql-handlers"
+import { mswServer } from "../../mocks/server"
 
 function makeClient() {
     return new QueryClient({
@@ -201,14 +201,20 @@ describe("useSearchUsers loading state", () => {
         })
 
         // Wait for debounce (300ms) + query execution
-        await waitFor(() => {
-            expect(searchSpy).toHaveBeenCalled()
-        }, { timeout: 1000 })
+        await waitFor(
+            () => {
+                expect(searchSpy).toHaveBeenCalled()
+            },
+            { timeout: 1000 }
+        )
 
         // Wait for results to arrive
-        await waitFor(() => {
-            expect(result.current.results.length).toBe(2)
-        }, { timeout: 1000 })
+        await waitFor(
+            () => {
+                expect(result.current.results.length).toBe(2)
+            },
+            { timeout: 1000 }
+        )
     })
 })
 

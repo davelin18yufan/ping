@@ -1007,9 +1007,9 @@ CI / Dependencies 更新：
 ---
 
 **最後更新**：2026-02-16
-**下次計畫更新**：Feature 1.2.1 設計完成後
-**當前 Sprint**：Sprint 3 完成 - 準備 Sprint 4（Feature 1.2.1 搜尋與加好友）
-**最新進展**：Feature 1.2.0（UI/UX 大改版）全部完成（2026-02-16）
+**下次計畫更新**：Feature 1.2.1 實作完成後
+**當前 Sprint**：Sprint 4 進行中（Feature 1.2.1 搜尋與加好友 — TDD Red Phase 完成）
+**最新進展**：Feature 1.2.1 TDD 測試規格完成（2026-02-16），等待 Backend + Frontend 實作
   - Branch: feature/1.2.0-stage-5-capsule-header
   - 完成進度：Stage 5/5（100%），175/175 tests 通過
   - Stage 5 完成內容：
@@ -1037,7 +1037,7 @@ CI / Dependencies 更新：
   - Frontend (OAuth + Middleware): 29 tests
   - Mobile: 97 tests
   - Feature 1.2.0 (UI/UX Redesign): 175 tests
-- **下一步：Feature 1.2.1 搜尋與加好友**
+- **下一步：Feature 1.2.1 搜尋與加好友（TDD 規格已完成，等待實作）**
 
 **Feature 1.2.0 完成總結**：
   - 主分支: feature/1.2.0-ui-ux-redesign
@@ -1061,6 +1061,94 @@ CI / Dependencies 更新：
       - View Transition 狀態保護機制
       - app-header.spec.tsx（12 tests）+ uiStore.spec.ts（6 tests）
   - **實際完成**：2026-02-16
+
+---
+
+#### ⏳ Feature 1.2.1 - 搜尋與加好友
+
+| 欄位 | 內容 |
+|------|------|
+| **狀態** | ⏳ 進行中（TDD Red Phase 完成，等待實作） |
+| **優先級** | P1 |
+| **負責** | Backend + Full-Stack Frontend |
+| **SDD 參考** | backend.md §Friend Management、frontend.md §Friends Page |
+| **依賴** | Feature 1.0.1 ✅、Feature 1.0.2 ✅、Feature 1.2.0 ✅ |
+| **分支** | `feature/1.2.1-friend-search` |
+| **TDD 文件** | `/docs/Feature-1.2.1-TDD-Tests.md` ✅ |
+| **目標完成日期** | 2026-02-23 |
+
+**測試規格狀態**：
+- ✅ TDD 測試規格文件已完成：`/docs/Feature-1.2.1-TDD-Tests.md`
+- 🔴 Backend 測試：14 個測試案例（TC-B-01 至 TC-B-14）— 等待實作
+- 🔴 Frontend Web 測試：9 個測試案例（TC-F-01 至 TC-F-09）— 等待實作
+- 🔴 Shared Hooks 測試：5 個測試案例 — 等待實作
+
+**子任務分解**：
+
+1. **Backend — GraphQL Schema 擴充**（Backend Agent，2 小時）
+   - [ ] 新增 `FriendRequest`、`Friendship` GraphQL types
+   - [ ] 新增 `FriendshipStatus` enum
+   - [ ] 擴充 `Query`: `searchUsers`, `friends`, `pendingFriendRequests`, `sentFriendRequests`
+   - [ ] 擴充 `Mutation`: `sendFriendRequest`, `acceptFriendRequest`, `rejectFriendRequest`, `cancelFriendRequest`
+
+2. **Backend — Resolvers 實作**（Backend Agent，4 小時）
+   - [ ] 建立 `/backend/src/graphql/resolvers/friends.ts`
+   - [ ] `searchUsers`: 搜尋邏輯（ILIKE、排除自己、最多 20 筆、需認證）
+   - [ ] `sendFriendRequest`: 防重複（409）、防自送（400）、userId1/userId2 排序慣例
+   - [ ] `acceptFriendRequest`: 驗證接收方身份（403）、更新狀態為 ACCEPTED
+   - [ ] `rejectFriendRequest`: 驗證接收方身份（403）、更新狀態為 REJECTED
+   - [ ] `cancelFriendRequest`: 驗證發送方身份（403）、刪除記錄
+   - [ ] `friends`: 回傳 ACCEPTED 好友（雙向）
+   - [ ] `pendingFriendRequests` / `sentFriendRequests`: 分開回傳收到/發出的 PENDING
+
+3. **Backend — 測試實作**（Backend Agent，2 小時）
+   - [ ] 建立 `/backend/tests/integration/friends.spec.ts`
+   - [ ] 實作 14 個測試案例全部通過（TC-B-01 至 TC-B-14）
+   - [ ] 測試覆蓋率 >80%
+
+4. **Frontend Web — /friends 路由與頁面**（Full-Stack Frontend Agent，3 小時）
+   - [ ] 建立 `/frontend/src/routes/friends.tsx`（TanStack Start route）
+   - [ ] 建立 `/frontend/src/components/friends/FriendsPage.tsx`
+   - [ ] 建立 `/frontend/src/components/friends/UserCard.tsx`（含好友請求狀態按鈕）
+   - [ ] 建立 `/frontend/src/components/friends/PendingRequestCard.tsx`
+   - [ ] 整合 AppHeader 通知徽章（pendingFriendRequests count）
+
+5. **Shared — Hooks 與 GraphQL Fragments**（Full-Stack Frontend Agent，2 小時）
+   - [ ] 建立 `useSearchUsers` hook（防抖 300ms + Apollo useLazyQuery）
+   - [ ] 建立 `useFriendActions` hook（sendRequest, accept, reject, cancel）
+   - [ ] 建立 GraphQL fragments（UserBasicFields, FriendRequestFields, FriendshipFields）
+   - [ ] GraphQL queries/mutations（SearchUsers, SendFriendRequest, etc.）
+
+6. **Frontend — 測試實作**（Full-Stack Frontend Agent，2 小時）
+   - [ ] 建立 `/frontend/tests/integration/friends-page.spec.tsx`
+   - [ ] 建立 `/frontend/tests/unit/hooks/useSearchUsers.spec.ts`
+   - [ ] 建立 `/frontend/tests/unit/hooks/useFriendActions.spec.ts`
+   - [ ] 實作 9 個測試案例全部通過（TC-F-01 至 TC-F-09）
+
+**API Contract（GraphQL）**：
+
+```graphql
+# Queries
+searchUsers(query: String!): [User!]!
+friends: [User!]!
+pendingFriendRequests: [FriendRequest!]!
+sentFriendRequests: [FriendRequest!]!
+
+# Mutations
+sendFriendRequest(userId: ID!): FriendRequest!
+acceptFriendRequest(requestId: ID!): Friendship!
+rejectFriendRequest(requestId: ID!): Boolean!
+cancelFriendRequest(requestId: ID!): Boolean!
+```
+
+**驗收標準**：
+- [ ] 14 個 Backend 測試全部通過（friends.spec.ts）
+- [ ] 9 個 Frontend 測試全部通過（friends-page.spec.tsx + hooks）
+- [ ] TypeScript 類型完整（0 errors）
+- [ ] Linter/Formatter 通過
+- [ ] AppHeader 徽章顯示正確的待確認邀請數
+- [ ] 搜尋防抖 300ms，少於 2 字元不觸發 API
+- [ ] 所有 mutations 需要認證（401）
 
 ---
 

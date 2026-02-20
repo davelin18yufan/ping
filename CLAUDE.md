@@ -148,6 +148,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **共享**: TypeScript 類型、GraphQL 操作、TanStack Store、自訂 hooks
 - **測試**: 單元 / 整合 / E2E 測試實作
 
+**架構技術規範**
+- React 須遵照 `/vercel-react-best-practices`來時做
+- 框架架構則須遵照 `tanstack-start` , `tanstack-router` 的規範
+- 請求主體用 `tanstack-query` 規範
+
 **UI/UX 設計規範**：
 - ✅ 必須執行 `/ui-ux-pro-max` 和 `/frontend-design` Skills
 - ✅ 使用 oklch 顏色系統

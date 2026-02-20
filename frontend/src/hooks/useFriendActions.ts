@@ -10,14 +10,15 @@
 
 import { useMutation, useMutationState, useQueryClient } from "@tanstack/react-query"
 
-import { graphqlFetch } from "@/lib/graphql-client"
-import {
-    SEND_FRIEND_REQUEST_MUTATION,
-    ACCEPT_FRIEND_REQUEST_MUTATION,
-    REJECT_FRIEND_REQUEST_MUTATION,
-    CANCEL_FRIEND_REQUEST_MUTATION,
-} from "@/queries/friends"
 import type { FriendRequest, Friendship } from "@/types/friends"
+
+import {
+    ACCEPT_FRIEND_REQUEST_MUTATION,
+    CANCEL_FRIEND_REQUEST_MUTATION,
+    REJECT_FRIEND_REQUEST_MUTATION,
+    SEND_FRIEND_REQUEST_MUTATION,
+} from "@/graphql/options/friends"
+import { graphqlFetch } from "@/lib/graphql-client"
 
 interface UseFriendActionsReturn {
     sendRequest: (userId: string) => Promise<FriendRequest>
@@ -69,10 +70,9 @@ export function useFriendActions(): UseFriendActionsReturn {
     const rejectMutation = useMutation({
         mutationKey: ["friends", "rejectRequest"] as const,
         mutationFn: async (requestId: string) => {
-            await graphqlFetch<{ rejectFriendRequest: boolean }>(
-                REJECT_FRIEND_REQUEST_MUTATION,
-                { requestId }
-            )
+            await graphqlFetch<{ rejectFriendRequest: boolean }>(REJECT_FRIEND_REQUEST_MUTATION, {
+                requestId,
+            })
             return true
         },
         onSuccess: () => {
@@ -85,10 +85,9 @@ export function useFriendActions(): UseFriendActionsReturn {
     const cancelMutation = useMutation({
         mutationKey: ["friends", "cancelRequest"] as const,
         mutationFn: async (requestId: string) => {
-            await graphqlFetch<{ cancelFriendRequest: boolean }>(
-                CANCEL_FRIEND_REQUEST_MUTATION,
-                { requestId }
-            )
+            await graphqlFetch<{ cancelFriendRequest: boolean }>(CANCEL_FRIEND_REQUEST_MUTATION, {
+                requestId,
+            })
             return true
         },
         onSuccess: () => {

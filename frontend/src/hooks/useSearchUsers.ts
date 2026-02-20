@@ -3,16 +3,18 @@
  *
  * TanStack Query v5 pattern with debouncing:
  * - Uses useQuery with enabled condition (>= 2 chars)
- * - Manual debouncing via useState + useEffect
+ * - Debouncing via useDebouncedValue hook (300ms)
  * - Query key includes debounced value for auto-caching
  * - No need for useLazyQuery - enabled does the job
  */
 
-import { useState, useEffect } from "react"
 import { useQuery } from "@tanstack/react-query"
+import { useState } from "react"
 
-import { searchUsersQueryOptions } from "@/queries/friends"
 import type { User } from "@/types/friends"
+
+import { searchUsersQueryOptions } from "@/graphql/options/friends"
+import { useDebouncedValue } from "@/hooks/useDebounce"
 
 interface UseSearchUsersReturn {
     query: string
@@ -24,16 +26,9 @@ interface UseSearchUsersReturn {
 
 export function useSearchUsers(): UseSearchUsersReturn {
     const [query, setQuery] = useState("")
-    const [debouncedQuery, setDebouncedQuery] = useState("")
 
-    // Debounce query input (300ms delay)
-    useEffect(() => {
-        const timeoutId = setTimeout(() => {
-            setDebouncedQuery(query)
-        }, 300)
-
-        return () => clearTimeout(timeoutId)
-    }, [query])
+    // ✅ Use reusable debounce hook (300ms delay)
+    const debouncedQuery = useDebouncedValue(query, 300)
 
     // TanStack Query automatically fetches when:
     // 1. debouncedQuery changes

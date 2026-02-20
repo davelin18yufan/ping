@@ -16,9 +16,9 @@ import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { UserCheck, Users } from "lucide-react"
 
-import { PendingRequestCard } from "@/components/friends/PendingRequestCard"
 import { FriendSearchInput } from "@/components/friends/FriendSearchInput"
-import { friendsListQueryOptions, pendingRequestsQueryOptions } from "@/queries/friends"
+import { PendingRequestCard } from "@/components/friends/PendingRequestCard"
+import { friendsListQueryOptions, pendingRequestsQueryOptions } from "@/graphql/options/friends"
 import "@/styles/components/friends.css"
 
 export const Route = createFileRoute("/friends/")({
@@ -84,10 +84,7 @@ export default function FriendsPage() {
                 </h2>
                 <div className="friends-page__list">
                     {friends.map((friend) => (
-                        <div
-                            key={friend.id}
-                            className="glass-card glass-card--compact user-card"
-                        >
+                        <div key={friend.id} className="glass-card glass-card--compact user-card">
                             <div className="user-card__avatar">
                                 {friend.image ? (
                                     <img
@@ -97,7 +94,9 @@ export default function FriendsPage() {
                                     />
                                 ) : (
                                     <div className="user-card__avatar-fallback" aria-hidden="true">
-                                        {(friend.name ?? friend.email ?? "?").charAt(0).toUpperCase()}
+                                        {(friend.name ?? friend.email ?? "?")
+                                            .charAt(0)
+                                            .toUpperCase()}
                                     </div>
                                 )}
                             </div>

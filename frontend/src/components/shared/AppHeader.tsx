@@ -25,15 +25,13 @@ import { useStore } from "@tanstack/react-store"
 import { LogOut } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 
-import { pendingRequestsQueryOptions } from "@/queries/friends"
-
 import { AestheticModeToggle } from "@/components/shared/AestheticModeToggle"
 import { SoundWaveLoader } from "@/components/shared/SoundWaveLoader"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import { UserStatusAvatar } from "@/components/shared/UserStatusAvatar"
+import { pendingRequestsQueryOptions } from "@/graphql/options/friends"
 import { useScrollDirection } from "@/hooks/useScrollDirection"
 import { signOut, useSession } from "@/lib/auth-client"
-
 import "@/styles/components/capsule-header.css"
 import "@/styles/components/glass-button.css"
 import "@/styles/components/friends.css"
@@ -63,7 +61,6 @@ export default function AppHeader() {
     const user = sessionData?.user ?? null
     const isAuthenticated = !isPending && !!user
 
-
     // Nudge animation when auth state changes
     useEffect(() => {
         if (prevIsAuthenticated.current === null) {
@@ -78,12 +75,9 @@ export default function AppHeader() {
         }
     }, [isAuthenticated])
 
-    useEffect(
-        () => {
-            if (nudgeTimeout.current) clearTimeout(nudgeTimeout.current)
-        },
-        []
-    )
+    useEffect(() => {
+        if (nudgeTimeout.current) clearTimeout(nudgeTimeout.current)
+    }, [])
 
     // When a View Transition ends, check whether the cursor actually left the
     // header during the animation (the mouseleave was suppressed by the guard).

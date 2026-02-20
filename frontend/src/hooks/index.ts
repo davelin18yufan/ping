@@ -1,3 +1,5 @@
 export * from "./use-view-transition"
 export * from "./useScrollDirection"
 export * from "./useSessionGuard"
+export * from "./useFriendActions"
+export * from "./useSearchUsers"

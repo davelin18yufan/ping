@@ -19,10 +19,13 @@
  *   scroll down             → minimal (overrides expanded)
  */
 
+import { useQuery } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { useStore } from "@tanstack/react-store"
 import { LogOut } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
+
+import { pendingRequestsQueryOptions } from "@/queries/friends"
 
 import { AestheticModeToggle } from "@/components/shared/AestheticModeToggle"
 import { SoundWaveLoader } from "@/components/shared/SoundWaveLoader"
@@ -30,8 +33,10 @@ import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import { UserStatusAvatar } from "@/components/shared/UserStatusAvatar"
 import { useScrollDirection } from "@/hooks/useScrollDirection"
 import { signOut, useSession } from "@/lib/auth-client"
+
 import "@/styles/components/capsule-header.css"
 import "@/styles/components/glass-button.css"
+import "@/styles/components/friends.css"
 import { uiStore } from "@/stores/uiStore"
 
 type CapsuleState = "minimal" | "default" | "expanded"
@@ -58,6 +63,7 @@ export default function AppHeader() {
     const user = sessionData?.user ?? null
     const isAuthenticated = !isPending && !!user
 
+
     // Nudge animation when auth state changes
     useEffect(() => {
         if (prevIsAuthenticated.current === null) {
@@ -73,7 +79,7 @@ export default function AppHeader() {
     }, [isAuthenticated])
 
     useEffect(
-        () => () => {
+        () => {
             if (nudgeTimeout.current) clearTimeout(nudgeTimeout.current)
         },
         []
@@ -172,13 +178,14 @@ export default function AppHeader() {
 
                 {/* ── Avatar with status (always visible, right) ── */}
                 {isAuthenticated && user && (
-                    <div className="capsule-header__avatar">
+                    <div className="capsule-header__avatar" style={{ position: "relative" }}>
                         <UserStatusAvatar
                             userId={user.id}
                             userName={user.name ?? user.email}
                             size={26}
                             isInteractive={effectiveState === "expanded"}
                         />
+                        <PendingFriendRequestBadge />
                     </div>
                 )}
 
@@ -224,5 +231,28 @@ export default function AppHeader() {
                 </div>
             </div>
         </header>
+    )
+}
+
+// ---------------------------------------------------------------------------
+// PendingFriendRequestBadge — TanStack Query pattern
+// Fetches pending friend requests and displays count badge
+// Hidden when count = 0 (no empty state)
+// ---------------------------------------------------------------------------
+
+function PendingFriendRequestBadge() {
+    const { data } = useQuery(pendingRequestsQueryOptions)
+
+    const count = data?.length ?? 0
+    if (count === 0) return null
+
+    return (
+        <span
+            className="friend-request-badge"
+            data-testid="friend-request-badge"
+            aria-label={`${count} pending friend request${count !== 1 ? "s" : ""}`}
+        >
+            {count > 99 ? "99+" : count}
+        </span>
     )
 }

@@ -1,4 +1,3 @@
-import type { ApolloClientIntegration } from "@apollo/client-integration-tanstack-start"
 import type { QueryClient } from "@tanstack/react-query"
 
 import { TanStackDevtools } from "@tanstack/react-devtools"
@@ -16,7 +15,7 @@ import TanStackQueryDevtools from "../integrations/tanstack-query/devtools"
 import StoreDevtools from "../lib/demo-store-devtools"
 import appCss from "../styles.css?url"
 
-interface PingContext extends ApolloClientIntegration.RouterContext {
+interface PingContext {
     queryClient: QueryClient
     session?: AuthSession | null
 }

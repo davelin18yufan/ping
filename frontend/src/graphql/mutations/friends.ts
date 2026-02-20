@@ -1,33 +1,10 @@
-import { gql } from "@apollo/client"
-
-import { FRIEND_REQUEST_FIELDS, FRIENDSHIP_FIELDS } from "@/graphql/fragments/friends"
-
-export const SEND_FRIEND_REQUEST = gql`
-    mutation SendFriendRequest($userId: ID!) {
-        sendFriendRequest(userId: $userId) {
-            ...FriendRequestFields
-        }
-    }
-    ${FRIEND_REQUEST_FIELDS}
-`
-
-export const ACCEPT_FRIEND_REQUEST = gql`
-    mutation AcceptFriendRequest($requestId: ID!) {
-        acceptFriendRequest(requestId: $requestId) {
-            ...FriendshipFields
-        }
-    }
-    ${FRIENDSHIP_FIELDS}
-`
-
-export const REJECT_FRIEND_REQUEST = gql`
-    mutation RejectFriendRequest($requestId: ID!) {
-        rejectFriendRequest(requestId: $requestId)
-    }
-`
-
-export const CANCEL_FRIEND_REQUEST = gql`
-    mutation CancelFriendRequest($requestId: ID!) {
-        cancelFriendRequest(requestId: $requestId)
-    }
-`
+/**
+ * @deprecated Import from @/graphql/operations/friends instead.
+ * This file re-exports for backward compatibility during migration.
+ */
+export {
+    ACCEPT_FRIEND_REQUEST_MUTATION,
+    CANCEL_FRIEND_REQUEST_MUTATION,
+    REJECT_FRIEND_REQUEST_MUTATION,
+    SEND_FRIEND_REQUEST_MUTATION,
+} from "../operations/friends"

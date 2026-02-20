@@ -40,11 +40,7 @@ const Query = {
      * Excludes the current user. Returns at most 20 results.
      * Returns an empty array if query is shorter than 2 characters.
      */
-    searchUsers: async (
-        _parent: unknown,
-        args: { query: string },
-        context: GraphQLContext
-    ) => {
+    searchUsers: async (_parent: unknown, args: { query: string }, context: GraphQLContext) => {
         if (!context.isAuthenticated || !context.userId) {
             throw new GraphQLError("Not authenticated", {
                 extensions: { code: "UNAUTHENTICATED", status: 401 },
@@ -279,7 +275,8 @@ const Mutation = {
         })
 
         const sender = friendship.requester
-        const receiver = friendship.userId1 === friendship.requestedBy ? friendship.user2 : friendship.user1
+        const receiver =
+            friendship.userId1 === friendship.requestedBy ? friendship.user2 : friendship.user1
 
         return {
             id: friendship.id,

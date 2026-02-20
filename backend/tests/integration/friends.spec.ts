@@ -86,8 +86,7 @@ async function createAcceptedFriendship(
     userAId: string,
     userBId: string
 ): Promise<{ id: string }> {
-    const [userId1, userId2] =
-        userAId < userBId ? [userAId, userBId] : [userBId, userAId]
+    const [userId1, userId2] = userAId < userBId ? [userAId, userBId] : [userBId, userAId]
 
     return prisma.friendship.create({
         data: {
@@ -113,7 +112,11 @@ async function query(gql: string, token?: string): Promise<GQLResult> {
     return parseGraphQLResponse(res) as Promise<GQLResult>
 }
 
-async function mutation(gql: string, variables: Record<string, unknown>, token?: string): Promise<GQLResult> {
+async function mutation(
+    gql: string,
+    variables: Record<string, unknown>,
+    token?: string
+): Promise<GQLResult> {
     const res = await executeGraphQL(gql, variables, token)
     return parseGraphQLResponse(res) as Promise<GQLResult>
 }
@@ -148,17 +151,14 @@ describe("Feature 1.2.1 - Friends (Backend)", () => {
     test("TC-B-01: searchUsers returns matching users by name", async () => {
         const token = await createSession(prisma, USER_ALICE.id)
 
-        const result = await query(
-            `query { searchUsers(query: "Bob") { id name email } }`,
-            token
-        )
+        const result = await query(`query { searchUsers(query: "Bob") { id name email } }`, token)
 
         expect(result.errors).toBeUndefined()
         expect(result.data?.searchUsers).toBeDefined()
         const users = result.data?.searchUsers as Array<{ id: string; name: string }>
         expect(users).toHaveLength(1)
-        expect(users[0].name).toBe("Bob Wang")
-        expect(users[0].id).toBe(USER_BOB.id)
+        expect(users[0]?.name).toBe("Bob Wang")
+        expect(users[0]?.id).toBe(USER_BOB.id)
     })
 
     // -----------------------------------------------------------------------
@@ -175,7 +175,7 @@ describe("Feature 1.2.1 - Friends (Backend)", () => {
         expect(result.errors).toBeUndefined()
         const users = result.data?.searchUsers as Array<{ email: string }>
         expect(users).toHaveLength(1)
-        expect(users[0].email).toBe("carol@test.com")
+        expect(users[0]?.email).toBe("carol@test.com")
     })
 
     // -----------------------------------------------------------------------
@@ -184,10 +184,7 @@ describe("Feature 1.2.1 - Friends (Backend)", () => {
     test("TC-B-03: searchUsers excludes the current user from results", async () => {
         const token = await createSession(prisma, USER_ALICE.id)
 
-        const result = await query(
-            `query { searchUsers(query: "alice") { id name } }`,
-            token
-        )
+        const result = await query(`query { searchUsers(query: "alice") { id name } }`, token)
 
         expect(result.errors).toBeUndefined()
         const users = result.data?.searchUsers as unknown[]
@@ -200,10 +197,7 @@ describe("Feature 1.2.1 - Friends (Backend)", () => {
     test("TC-B-04: searchUsers returns empty array for query shorter than 2 chars", async () => {
         const token = await createSession(prisma, USER_ALICE.id)
 
-        const result = await query(
-            `query { searchUsers(query: "a") { id } }`,
-            token
-        )
+        const result = await query(`query { searchUsers(query: "a") { id } }`, token)
 
         expect(result.errors).toBeUndefined()
         const users = result.data?.searchUsers as unknown[]
@@ -260,8 +254,8 @@ describe("Feature 1.2.1 - Friends (Backend)", () => {
         )
 
         expect(result.errors).toBeDefined()
-        expect(result.errors![0].extensions?.code).toBe("CONFLICT")
-        expect(result.errors![0].extensions?.status).toBe(409)
+        expect(result.errors?.[0]?.extensions?.code).toBe("CONFLICT")
+        expect(result.errors?.[0]?.extensions?.status).toBe(409)
     })
 
     // -----------------------------------------------------------------------
@@ -277,8 +271,8 @@ describe("Feature 1.2.1 - Friends (Backend)", () => {
         )
 
         expect(result.errors).toBeDefined()
-        expect(result.errors![0].extensions?.code).toBe("BAD_REQUEST")
-        expect(result.errors![0].extensions?.status).toBe(400)
+        expect(result.errors?.[0]?.extensions?.code).toBe("BAD_REQUEST")
+        expect(result.errors?.[0]?.extensions?.status).toBe(400)
     })
 
     // -----------------------------------------------------------------------
@@ -301,7 +295,10 @@ describe("Feature 1.2.1 - Friends (Backend)", () => {
         )
 
         expect(result.errors).toBeUndefined()
-        const accepted = result.data?.acceptFriendRequest as { friend: { id: string }; since: string }
+        const accepted = result.data?.acceptFriendRequest as {
+            friend: { id: string }
+            since: string
+        }
         expect(accepted.friend.id).toBe(USER_ALICE.id)
 
         const updated = await prisma.friendship.findUnique({ where: { id: friendship.id } })
@@ -322,8 +319,8 @@ describe("Feature 1.2.1 - Friends (Backend)", () => {
         )
 
         expect(result.errors).toBeDefined()
-        expect(result.errors![0].extensions?.code).toBe("FORBIDDEN")
-        expect(result.errors![0].extensions?.status).toBe(403)
+        expect(result.errors?.[0]?.extensions?.code).toBe("FORBIDDEN")
+        expect(result.errors?.[0]?.extensions?.status).toBe(403)
     })
 
     // -----------------------------------------------------------------------
@@ -374,15 +371,12 @@ describe("Feature 1.2.1 - Friends (Backend)", () => {
         await createPendingFriendship(prisma, USER_ALICE.id, USER_CAROL.id)
         const token = await createSession(prisma, USER_ALICE.id)
 
-        const result = await query(
-            `query { friends { id name } }`,
-            token
-        )
+        const result = await query(`query { friends { id name } }`, token)
 
         expect(result.errors).toBeUndefined()
         const friends = result.data?.friends as Array<{ id: string }>
         expect(friends).toHaveLength(1)
-        expect(friends[0].id).toBe(USER_BOB.id)
+        expect(friends[0]?.id).toBe(USER_BOB.id)
     })
 
     // -----------------------------------------------------------------------
@@ -401,10 +395,7 @@ describe("Feature 1.2.1 - Friends (Backend)", () => {
         const pending = pendingResult.data?.pendingFriendRequests as unknown[]
         expect(pending).toHaveLength(2)
 
-        const sentResult = await query(
-            `query { sentFriendRequests { id receiver { id } } }`,
-            token
-        )
+        const sentResult = await query(`query { sentFriendRequests { id receiver { id } } }`, token)
         expect(sentResult.errors).toBeUndefined()
         const sent = sentResult.data?.sentFriendRequests as unknown[]
         expect(sent).toHaveLength(0)
@@ -417,7 +408,7 @@ describe("Feature 1.2.1 - Friends (Backend)", () => {
         const result = await query(`query { friends { id } }`)
 
         expect(result.errors).toBeDefined()
-        expect(result.errors![0].extensions?.code).toBe("UNAUTHENTICATED")
-        expect(result.errors![0].extensions?.status).toBe(401)
+        expect(result.errors?.[0]?.extensions?.code).toBe("UNAUTHENTICATED")
+        expect(result.errors?.[0]?.extensions?.status).toBe(401)
     })
 })

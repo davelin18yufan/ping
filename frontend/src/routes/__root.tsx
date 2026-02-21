@@ -1,7 +1,7 @@
 import type { QueryClient } from "@tanstack/react-query"
 
 import { TanStackDevtools } from "@tanstack/react-devtools"
-import { HeadContent, Scripts, createRootRouteWithContext } from "@tanstack/react-router"
+import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { useEffect } from "react"
 
@@ -10,6 +10,7 @@ import type { AuthSession } from "@/lib/auth"
 import AppHeader from "@/components/shared/AppHeader"
 import { AestheticModeProvider, useAestheticMode } from "@/contexts/aesthetic-mode-context"
 import { useSessionGuard } from "@/hooks/useSessionGuard"
+import * as TanstackQuery from "../integrations/tanstack-query/root-provider"
 
 import TanStackQueryDevtools from "../integrations/tanstack-query/devtools"
 import StoreDevtools from "../lib/demo-store-devtools"
@@ -43,6 +44,7 @@ export const Route = createRootRouteWithContext<PingContext>()({
     }),
 
     shellComponent: RootDocument,
+    component: RootComponent,
 })
 
 /**
@@ -73,6 +75,13 @@ function SessionGuardMounter() {
     return null
 }
 
+/**
+ * RootDocument — HTML shell (shellComponent)
+ *
+ * Renders the static HTML structure only: <html>, <head>, <body>.
+ * Must NOT use router context hooks (not available in shellComponent).
+ * App-level providers and components live in RootComponent below.
+ */
 function RootDocument({ children }: { children: React.ReactNode }) {
     return (
         <html lang="en">
@@ -80,27 +89,44 @@ function RootDocument({ children }: { children: React.ReactNode }) {
                 <HeadContent />
             </head>
             <body>
-                <AestheticModeProvider>
-                    <HtmlClassManager />
-                    <SessionGuardMounter />
-                    <AppHeader />
-                    {children}
-                    <TanStackDevtools
-                        config={{
-                            position: "bottom-right",
-                        }}
-                        plugins={[
-                            {
-                                name: "Tanstack Router",
-                                render: <TanStackRouterDevtoolsPanel />,
-                            },
-                            StoreDevtools,
-                            TanStackQueryDevtools,
-                        ]}
-                    />
-                </AestheticModeProvider>
+                {children}
                 <Scripts />
             </body>
         </html>
+    )
+}
+
+/**
+ * RootComponent — application shell (component)
+ *
+ * Wraps the entire route tree with QueryClientProvider and other
+ * app-level providers. Rendered inside RootDocument's {children}.
+ * Has full access to router context (queryClient, session, etc.).
+ */
+function RootComponent() {
+    const { queryClient } = Route.useRouteContext()
+
+    return (
+        <TanstackQuery.Provider queryClient={queryClient}>
+            <AestheticModeProvider>
+                <HtmlClassManager />
+                <SessionGuardMounter />
+                <AppHeader />
+                <Outlet />
+                <TanStackDevtools
+                    config={{
+                        position: "bottom-right",
+                    }}
+                    plugins={[
+                        {
+                            name: "Tanstack Router",
+                            render: <TanStackRouterDevtoolsPanel />,
+                        },
+                        StoreDevtools,
+                        TanStackQueryDevtools,
+                    ]}
+                />
+            </AestheticModeProvider>
+        </TanstackQuery.Provider>
     )
 }

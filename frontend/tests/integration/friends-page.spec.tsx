@@ -11,7 +11,7 @@
  */
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
-import { render, screen, waitFor, fireEvent } from "@testing-library/react"
+import { render, screen, waitFor, fireEvent, within } from "@testing-library/react"
 import React from "react"
 import { describe, it, expect, beforeEach, vi } from "vitest"
 
@@ -31,19 +31,24 @@ import { mswServer } from "../mocks/server"
 // Module mocks
 // ---------------------------------------------------------------------------
 
+// AppHeader uses sessionQueryOptions (TanStack Query) instead of useSession.
+// Return the processed session data (result.data shape) for Alice Chen.
 vi.mock("@/lib/auth-client", () => ({
-    useSession: () => ({
-        data: {
+    sessionQueryOptions: {
+        queryKey: ["auth", "session"],
+        queryFn: async () => ({
+            session: { id: "session-alice" },
             user: {
                 id: "user-alice",
                 name: "Alice Chen",
                 email: "alice@test.com",
                 image: null,
             },
-            session: { id: "session-alice" },
-        },
-        isPending: false,
-    }),
+        }),
+        retry: false,
+        staleTime: 0,
+        gcTime: 0,
+    },
     signOut: vi.fn(),
 }))
 
@@ -82,6 +87,9 @@ vi.mock("@/stores/uiStore", () => ({
 
 vi.mock("@tanstack/react-router", () => ({
     useNavigate: () => vi.fn(),
+    // AppHeader uses useRouterState to detect /auth pages for conditional session fetch
+    useRouterState: ({ select }: { select: (s: { location: { pathname: string } }) => string }) =>
+        select({ location: { pathname: "/friends" } }),
     createFileRoute: (_path: string) => (_options: { component?: unknown; server?: unknown }) => ({
         component: _options?.component,
     }),
@@ -221,7 +229,9 @@ describe("TC-F-04: Search results render UserCard", () => {
             { timeout: 700 }
         )
 
-        expect(screen.getByText("Bob Wang")).toBeInTheDocument()
+        // Scope to the user card to avoid matching "Bob Wang" in DUMMY_PENDING section
+        const userCard = screen.getByTestId("user-card-user-bob")
+        expect(within(userCard).getByText("Bob Wang")).toBeInTheDocument()
         expect(screen.getByRole("button", { name: /add friend/i })).toBeInTheDocument()
     })
 })

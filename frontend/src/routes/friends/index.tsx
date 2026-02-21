@@ -12,34 +12,84 @@
  * - No loading/pending states needed in component
  */
 
-import { useSuspenseQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { UserCheck, Users } from "lucide-react"
 
 import { FriendSearchInput } from "@/components/friends/FriendSearchInput"
 import { PendingRequestCard } from "@/components/friends/PendingRequestCard"
-import { friendsListQueryOptions, pendingRequestsQueryOptions } from "@/graphql/options/friends"
+// TODO: restore when backend is ready
+// import { friendsListQueryOptions, pendingRequestsQueryOptions } from "@/graphql/options/friends"
 import "@/styles/components/friends.css"
+import { FriendRequest, User } from "@/types/friends"
+import { requireAuthServer } from "@/middleware/auth.middleware.server"
+
+// ---------------------------------------------------------------------------
+// DUMMY DATA — remove and restore useSuspenseQuery + loader when backend ready
+// ---------------------------------------------------------------------------
+const DUMMY_PENDING: FriendRequest[] = [
+    {
+        id: "req-1",
+        status: "PENDING",
+        createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+        updatedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
+        sender: { id: "user-2", name: "Bob Wang", email: "bob@ping.dev", image: null },
+        receiver: { id: "user-1", name: "Alice Chen", email: "alice@ping.dev", image: null },
+    },
+    {
+        id: "req-2",
+        status: "PENDING",
+        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+        updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
+        sender: {
+            id: "user-5",
+            name: "Eve Martinez",
+            email: "eve@ping.dev",
+            image: "https://i.pravatar.cc/150?u=eve",
+        },
+        receiver: { id: "user-1", name: "Alice Chen", email: "alice@ping.dev", image: null },
+    },
+]
+
+const DUMMY_FRIENDS: User[] = [
+    {
+        id: "user-3",
+        name: "Carol Lin",
+        email: "carol@ping.dev",
+        image: "https://i.pravatar.cc/150?u=carol",
+    },
+    { id: "user-4", name: "David Kim", email: "david@ping.dev", image: null },
+    {
+        id: "user-6",
+        name: "Frank Wu",
+        email: "frank@ping.dev",
+        image: "https://i.pravatar.cc/150?u=frank",
+    },
+    { id: "user-7", name: "Grace Huang", email: "grace@ping.dev", image: null },
+]
+// ---------------------------------------------------------------------------
 
 export const Route = createFileRoute("/friends/")({
-    // Loader: Prefetch data before component renders
-    loader: ({ context: { queryClient } }) =>
-        Promise.all([
-            queryClient.ensureQueryData(pendingRequestsQueryOptions),
-            queryClient.ensureQueryData(friendsListQueryOptions),
-        ]),
+    // TODO: restore loader when backend is ready:
+    // loader: ({ context: { queryClient } }) =>
+    //     Promise.all([
+    //         queryClient.ensureQueryData(pendingRequestsQueryOptions),
+    //         queryClient.ensureQueryData(friendsListQueryOptions),
+    //     ]),
+    server: {
+        middleware: [requireAuthServer]
+    },
     component: FriendsPage,
 })
 
 export default function FriendsPage() {
-    // useSuspenseQuery: Data guaranteed by loader, no isPending needed
-    const { data: pendingRequests, refetch: refetchPending } = useSuspenseQuery(
-        pendingRequestsQueryOptions
-    )
-    const { data: friends } = useSuspenseQuery(friendsListQueryOptions)
+    // TODO: replace with useSuspenseQuery when backend is ready:
+    // const { data: pendingRequests, refetch: refetchPending } = useSuspenseQuery(pendingRequestsQueryOptions)
+    // const { data: friends } = useSuspenseQuery(friendsListQueryOptions)
+    const pendingRequests = DUMMY_PENDING
+    const friends = DUMMY_FRIENDS
 
     const handleRequestResolved = () => {
-        void refetchPending()
+        // TODO: restore when backend is ready: void refetchPending()
     }
 
     return (

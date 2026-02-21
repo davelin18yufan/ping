@@ -20,7 +20,7 @@
  */
 
 import { useQuery } from "@tanstack/react-query"
-import { useNavigate } from "@tanstack/react-router"
+import { useNavigate, useRouterState } from "@tanstack/react-router"
 import { useStore } from "@tanstack/react-store"
 import { LogOut } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
@@ -31,7 +31,7 @@ import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import { UserStatusAvatar } from "@/components/shared/UserStatusAvatar"
 import { pendingRequestsQueryOptions } from "@/graphql/options/friends"
 import { useScrollDirection } from "@/hooks/useScrollDirection"
-import { signOut, useSession } from "@/lib/auth-client"
+import { sessionQueryOptions, signOut } from "@/lib/auth-client"
 import "@/styles/components/capsule-header.css"
 import "@/styles/components/glass-button.css"
 import "@/styles/components/friends.css"
@@ -47,7 +47,19 @@ export default function AppHeader() {
     const navigate = useNavigate()
 
     const scrollDirection = useScrollDirection()
-    const { data: sessionData, isPending } = useSession()
+
+    // Skip session fetch on auth pages — no session exists there and the request
+    // would only generate unnecessary 404 noise (or trigger error boundaries).
+    const pathname = useRouterState({ select: (s) => s.location.pathname })
+    const isAuthPage = pathname.startsWith("/auth")
+
+    // useQuery instead of Better Auth's useSession: errors (404, network failure) go to
+    // isError state and never propagate to React error boundaries.
+    // enabled: false on auth pages — data stays undefined, isAuthenticated = false.
+    const { data: sessionData, isPending } = useQuery({
+        ...sessionQueryOptions,
+        enabled: !isAuthPage,
+    })
 
     // Tracks whether the physical cursor is currently inside the header.
     // Updated unconditionally in onMouseEnter/onMouseLeave (before any guard),

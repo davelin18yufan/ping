@@ -6,7 +6,9 @@
  * Following Feature-1.2.0-TDD-Tests.md Stage 4 spec
  */
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { render, screen, fireEvent, waitFor, act, renderHook } from "@testing-library/react"
+import React from "react"
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 
 import AppHeader from "@/components/shared/AppHeader"
@@ -40,6 +42,24 @@ import { useSession, signOut, getSession } from "@/lib/auth-client"
 // ---------------------------------------------------------------------------
 // Helpers
 // ---------------------------------------------------------------------------
+
+function createTestQueryClient() {
+    return new QueryClient({
+        defaultOptions: {
+            queries: {
+                retry: false,
+                gcTime: 0,
+                staleTime: 0,
+            },
+        },
+    })
+}
+
+function Wrapper({ children }: { children: React.ReactNode }) {
+    const clientRef = React.useRef<QueryClient | null>(null)
+    if (!clientRef.current) clientRef.current = createTestQueryClient()
+    return <QueryClientProvider client={clientRef.current}>{children}</QueryClientProvider>
+}
 
 const mockUnauthenticated = () => {
     vi.mocked(useSession).mockReturnValue({
@@ -106,7 +126,7 @@ describe("Stage 4: Session Management Integration Tests", () => {
          */
         it("Test 4.3: should not render authenticated UI when session data is null", () => {
             mockUnauthenticated()
-            render(<AppHeader />)
+            render(<AppHeader />, { wrapper: Wrapper })
 
             expect(screen.queryByRole("button", { name: /sign out/i })).not.toBeInTheDocument()
         })
@@ -116,7 +136,7 @@ describe("Stage 4: Session Management Integration Tests", () => {
          */
         it("Test 4.4: should reflect updated session in AppHeader user name", () => {
             mockAuthenticated({ id: "user-456", name: "Bob", email: "bob@example.com" })
-            render(<AppHeader />)
+            render(<AppHeader />, { wrapper: Wrapper })
 
             expect(screen.getByText("Bob")).toBeInTheDocument()
         })
@@ -126,7 +146,7 @@ describe("Stage 4: Session Management Integration Tests", () => {
          */
         it("Test 4.5: should maintain session state consistency across re-renders", () => {
             mockAuthenticated({ id: "user-789", name: "Carol", email: "carol@example.com" })
-            const { rerender } = render(<AppHeader />)
+            const { rerender } = render(<AppHeader />, { wrapper: Wrapper })
 
             expect(screen.getByText("Carol")).toBeInTheDocument()
 
@@ -147,7 +167,7 @@ describe("Stage 4: Session Management Integration Tests", () => {
             mockAuthenticated()
             vi.mocked(signOut).mockResolvedValue(undefined as never)
 
-            render(<AppHeader />)
+            render(<AppHeader />, { wrapper: Wrapper })
             const btn = screen.getByRole("button", { name: /sign out/i })
             fireEvent.click(btn)
 
@@ -168,7 +188,7 @@ describe("Stage 4: Session Management Integration Tests", () => {
                 href: "/",
             } as Location)
 
-            render(<AppHeader />)
+            render(<AppHeader />, { wrapper: Wrapper })
             const btn = screen.getByRole("button", { name: /sign out/i })
             fireEvent.click(btn)
 
@@ -193,7 +213,7 @@ describe("Stage 4: Session Management Integration Tests", () => {
                     })
             )
 
-            render(<AppHeader />)
+            render(<AppHeader />, { wrapper: Wrapper })
             const btn = screen.getByRole("button", { name: /sign out/i })
             fireEvent.click(btn)
 
@@ -222,7 +242,7 @@ describe("Stage 4: Session Management Integration Tests", () => {
          */
         it("Test 4.9: should not render avatar or sign-out button when unauthenticated", () => {
             mockUnauthenticated()
-            render(<AppHeader />)
+            render(<AppHeader />, { wrapper: Wrapper })
 
             expect(screen.queryByRole("button", { name: /sign out/i })).not.toBeInTheDocument()
             // No user name visible
@@ -234,7 +254,7 @@ describe("Stage 4: Session Management Integration Tests", () => {
          */
         it("Test 4.10: should render user name and sign-out button when authenticated", () => {
             mockAuthenticated({ id: "user-abc", name: "Alice", email: "alice@example.com" })
-            render(<AppHeader />)
+            render(<AppHeader />, { wrapper: Wrapper })
 
             expect(screen.getByText("Alice")).toBeInTheDocument()
             expect(screen.getByRole("button", { name: /sign out/i })).toBeInTheDocument()
@@ -253,7 +273,7 @@ describe("Stage 4: Session Management Integration Tests", () => {
                     )
             )
 
-            render(<AppHeader />)
+            render(<AppHeader />, { wrapper: Wrapper })
             const btn = screen.getByRole("button", { name: /sign out/i })
             fireEvent.click(btn)
 

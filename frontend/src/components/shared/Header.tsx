@@ -204,7 +204,7 @@ export default function Header() {
                         }}
                     >
                         <Network size={20} />
-                        <span className="font-medium">Apollo Client</span>
+                        <span className="font-medium">GraphQL Client</span>
                     </Link>
 
                     <Link

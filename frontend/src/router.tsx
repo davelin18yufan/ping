@@ -1,9 +1,3 @@
-import { HttpLink } from "@apollo/client"
-import {
-    ApolloClient,
-    InMemoryCache,
-    routerWithApolloClient,
-} from "@apollo/client-integration-tanstack-start"
 import * as Sentry from "@sentry/tanstackstart-react"
 import { createRouter } from "@tanstack/react-router"
 import { setupRouterSsrQueryIntegration } from "@tanstack/react-router-ssr-query"
@@ -18,21 +12,11 @@ import { SoundWaveLoader } from "./components/shared/SoundWaveLoader"
 
 // Create a new router instance
 export const getRouter = () => {
-    // Configure Apollo Client
-    const apolloClient = new ApolloClient({
-        cache: new InMemoryCache(),
-        link: new HttpLink({
-            uri: import.meta.env.VITE_GRAPHQL_ENDPOINT || "https://countries.trevorblades.com/",
-        }),
-    })
-
     const rqContext = TanstackQuery.getContext()
 
     const router = createRouter({
         routeTree,
         context: {
-            ...routerWithApolloClient.defaultContext,
-
             ...rqContext,
         },
 
@@ -60,5 +44,5 @@ export const getRouter = () => {
         })
     }
 
-    return routerWithApolloClient(router, apolloClient)
+    return router
 }

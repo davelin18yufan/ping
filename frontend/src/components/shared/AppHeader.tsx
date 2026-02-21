@@ -19,7 +19,8 @@
  *   scroll down             → minimal (overrides expanded)
  */
 
-import { useNavigate } from "@tanstack/react-router"
+import { useQuery } from "@tanstack/react-query"
+import { useNavigate, useRouterState } from "@tanstack/react-router"
 import { useStore } from "@tanstack/react-store"
 import { LogOut } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
@@ -28,10 +29,12 @@ import { AestheticModeToggle } from "@/components/shared/AestheticModeToggle"
 import { SoundWaveLoader } from "@/components/shared/SoundWaveLoader"
 import { ThemeToggle } from "@/components/shared/ThemeToggle"
 import { UserStatusAvatar } from "@/components/shared/UserStatusAvatar"
+import { pendingRequestsQueryOptions } from "@/graphql/options/friends"
 import { useScrollDirection } from "@/hooks/useScrollDirection"
-import { signOut, useSession } from "@/lib/auth-client"
+import { sessionQueryOptions, signOut } from "@/lib/auth-client"
 import "@/styles/components/capsule-header.css"
 import "@/styles/components/glass-button.css"
+import "@/styles/components/friends.css"
 import { uiStore } from "@/stores/uiStore"
 
 type CapsuleState = "minimal" | "default" | "expanded"
@@ -44,7 +47,19 @@ export default function AppHeader() {
     const navigate = useNavigate()
 
     const scrollDirection = useScrollDirection()
-    const { data: sessionData, isPending } = useSession()
+
+    // Skip session fetch on auth pages — no session exists there and the request
+    // would only generate unnecessary 404 noise (or trigger error boundaries).
+    const pathname = useRouterState({ select: (s) => s.location.pathname })
+    const isAuthPage = pathname.startsWith("/auth")
+
+    // useQuery instead of Better Auth's useSession: errors (404, network failure) go to
+    // isError state and never propagate to React error boundaries.
+    // enabled: false on auth pages — data stays undefined, isAuthenticated = false.
+    const { data: sessionData, isPending } = useQuery({
+        ...sessionQueryOptions,
+        enabled: !isAuthPage,
+    })
 
     // Tracks whether the physical cursor is currently inside the header.
     // Updated unconditionally in onMouseEnter/onMouseLeave (before any guard),
@@ -72,12 +87,9 @@ export default function AppHeader() {
         }
     }, [isAuthenticated])
 
-    useEffect(
-        () => () => {
-            if (nudgeTimeout.current) clearTimeout(nudgeTimeout.current)
-        },
-        []
-    )
+    useEffect(() => {
+        if (nudgeTimeout.current) clearTimeout(nudgeTimeout.current)
+    }, [])
 
     // When a View Transition ends, check whether the cursor actually left the
     // header during the animation (the mouseleave was suppressed by the guard).
@@ -172,13 +184,14 @@ export default function AppHeader() {
 
                 {/* ── Avatar with status (always visible, right) ── */}
                 {isAuthenticated && user && (
-                    <div className="capsule-header__avatar">
+                    <div className="capsule-header__avatar" style={{ position: "relative" }}>
                         <UserStatusAvatar
                             userId={user.id}
                             userName={user.name ?? user.email}
                             size={26}
                             isInteractive={effectiveState === "expanded"}
                         />
+                        <PendingFriendRequestBadge />
                     </div>
                 )}
 
@@ -224,5 +237,28 @@ export default function AppHeader() {
                 </div>
             </div>
         </header>
+    )
+}
+
+// ---------------------------------------------------------------------------
+// PendingFriendRequestBadge — TanStack Query pattern
+// Fetches pending friend requests and displays count badge
+// Hidden when count = 0 (no empty state)
+// ---------------------------------------------------------------------------
+
+function PendingFriendRequestBadge() {
+    const { data } = useQuery(pendingRequestsQueryOptions)
+
+    const count = data?.length ?? 0
+    if (count === 0) return null
+
+    return (
+        <span
+            className="friend-request-badge"
+            data-testid="friend-request-badge"
+            aria-label={`${count} pending friend request${count !== 1 ? "s" : ""}`}
+        >
+            {count > 99 ? "99+" : count}
+        </span>
     )
 }

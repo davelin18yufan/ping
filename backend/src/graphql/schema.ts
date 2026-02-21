@@ -6,7 +6,7 @@
  */
 
 import { createSchema } from "graphql-yoga"
-import { userResolvers, authResolvers } from "./resolvers"
+import { userResolvers, authResolvers, friendsResolvers } from "./resolvers"
 
 /**
  * GraphQL Schema
@@ -60,6 +60,36 @@ export const schema = createSchema({
       }
 
       """
+      Friendship status enum
+      """
+      enum FriendshipStatus {
+        PENDING
+        ACCEPTED
+        REJECTED
+      }
+
+      """
+      FriendRequest represents a pending or resolved friend request.
+      """
+      type FriendRequest {
+        id: ID!
+        sender: User!
+        receiver: User!
+        status: FriendshipStatus!
+        createdAt: String!
+        updatedAt: String!
+      }
+
+      """
+      Friendship represents an accepted friendship between two users.
+      """
+      type Friendship {
+        id: ID!
+        friend: User!
+        since: String!
+      }
+
+      """
       Root Query type - all read operations
       """
       type Query {
@@ -69,6 +99,27 @@ export const schema = createSchema({
         Returns null if not authenticated.
         """
         me: User
+
+        """
+        Search users by name or email. Returns at most 20 results.
+        Returns empty array for queries shorter than 2 characters.
+        """
+        searchUsers(query: String!): [User!]!
+
+        """
+        Get all accepted friends of the current user.
+        """
+        friends: [User!]!
+
+        """
+        Get all pending friend requests received by the current user.
+        """
+        pendingFriendRequests: [FriendRequest!]!
+
+        """
+        Get all pending friend requests sent by the current user.
+        """
+        sentFriendRequests: [FriendRequest!]!
       }
 
       """
@@ -131,6 +182,30 @@ export const schema = createSchema({
         Returns authenticated user and session cookie.
         """
         authenticateWithGoogle(code: String!): AuthResponse!
+
+        """
+        Send a friend request to another user.
+        Returns the created FriendRequest.
+        """
+        sendFriendRequest(userId: ID!): FriendRequest!
+
+        """
+        Accept a received friend request.
+        Returns the resulting Friendship.
+        """
+        acceptFriendRequest(requestId: ID!): Friendship!
+
+        """
+        Reject a received friend request.
+        Returns true on success.
+        """
+        rejectFriendRequest(requestId: ID!): Boolean!
+
+        """
+        Cancel a sent friend request.
+        Returns true on success.
+        """
+        cancelFriendRequest(requestId: ID!): Boolean!
       }
 
       """
@@ -144,9 +219,11 @@ export const schema = createSchema({
     resolvers: {
         Query: {
             ...userResolvers.Query,
+            ...friendsResolvers.Query,
         },
         Mutation: {
             ...authResolvers.Mutation,
+            ...friendsResolvers.Mutation,
         },
     },
 })

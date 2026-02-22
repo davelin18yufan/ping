@@ -12,7 +12,9 @@
  */
 
 import { Clock, UserCheck, UserPlus, X } from "lucide-react"
-import { useState } from "react"
+import { motion } from "motion/react"
+import { useRef, useState } from "react"
+import { createPortal } from "react-dom"
 
 import { useFriendActions } from "@/hooks/useFriendActions"
 import "@/styles/components/friends.css"
@@ -46,7 +48,16 @@ export function UserCard({
     const [requestId, setRequestId] = useState<string | undefined>(initialRequestId)
     const { sendRequest, cancelRequest, loading } = useFriendActions()
 
+    // Signal Broadcast portal state
+    const addButtonRef = useRef<HTMLButtonElement>(null)
+    const [signalPos, setSignalPos] = useState<{ x: number; y: number } | null>(null)
+
     const handleAddFriend = async () => {
+        // Capture button position for signal particle origin
+        const rect = addButtonRef.current?.getBoundingClientRect()
+        if (rect) {
+            setSignalPos({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
+        }
         try {
             const request = await sendRequest(user.id)
             setRequestId(request.id)
@@ -70,74 +81,100 @@ export function UserCard({
     }
 
     return (
-        <div
-            className="glass-card glass-card--compact user-card"
-            data-testid={`user-card-${user.id}`}
-        >
-            {/* Avatar */}
-            <div className="user-card__avatar">
-                {user.image ? (
-                    <img src={user.image} alt={user.name} className="user-card__avatar-img" />
-                ) : (
-                    <div className="user-card__avatar-fallback" aria-hidden="true">
-                        {(user.name ?? user.email ?? "?").charAt(0).toUpperCase()}
-                    </div>
-                )}
-            </div>
+        <>
+            <div
+                className="glass-card glass-card--compact user-card"
+                data-testid={`user-card-${user.id}`}
+            >
+                {/* Avatar */}
+                <div className="user-card__avatar">
+                    {user.image ? (
+                        <img src={user.image} alt={user.name} className="user-card__avatar-img" />
+                    ) : (
+                        <div className="user-card__avatar-fallback" aria-hidden="true">
+                            {(user.name ?? user.email ?? "?").charAt(0).toUpperCase()}
+                        </div>
+                    )}
+                </div>
 
-            {/* Info */}
-            <div className="user-card__info">
-                <span className="user-card__name">{user.name}</span>
-                <span className="user-card__email">{user.email}</span>
-            </div>
+                {/* Info */}
+                <div className="user-card__info">
+                    <span className="user-card__name">{user.name}</span>
+                    <span className="user-card__email">{user.email}</span>
+                </div>
 
-            {/* Action */}
-            <div className="user-card__action">
-                {status === "NONE" && (
-                    <button
-                        className="glass-button glass-button--sm user-card__btn user-card__btn--add"
-                        onClick={handleAddFriend}
-                        disabled={loading}
-                        aria-label="Add friend"
-                    >
-                        <UserPlus size={14} aria-hidden="true" />
-                        <span>Add Friend</span>
-                    </button>
-                )}
-
-                {status === "PENDING_SENT" && (
-                    <div className="user-card__pending-group">
-                        {/* Pending indicator — visually disabled */}
+                {/* Action */}
+                <div className="user-card__action">
+                    {status === "NONE" && (
                         <button
-                            className="glass-button glass-button--sm user-card__btn user-card__btn--pending"
-                            disabled={true}
-                            aria-label="Pending"
-                            tabIndex={-1}
-                        >
-                            <Clock size={14} aria-hidden="true" />
-                            <span>Pending</span>
-                        </button>
-
-                        {/* Cancel button — accessible and enabled */}
-                        <button
-                            className="glass-button glass-button--sm glass-button--destructive user-card__btn user-card__btn--cancel"
-                            onClick={handleCancelRequest}
+                            ref={addButtonRef}
+                            className="glass-button glass-button--sm user-card__btn user-card__btn--add"
+                            onClick={handleAddFriend}
                             disabled={loading}
-                            aria-label="Cancel request"
+                            aria-label="Add friend"
                         >
-                            <X size={14} aria-hidden="true" />
-                            <span>Cancel Request</span>
+                            <UserPlus size={14} aria-hidden="true" />
+                            <span>Add Friend</span>
                         </button>
-                    </div>
-                )}
+                    )}
 
-                {status === "ACCEPTED" && (
-                    <div className="user-card__friends-badge" aria-label="Friends">
-                        <UserCheck size={14} aria-hidden="true" />
-                        <span>Friends</span>
-                    </div>
-                )}
+                    {status === "PENDING_SENT" && (
+                        <div className="user-card__pending-group">
+                            {/* Pending indicator — visually disabled */}
+                            <button
+                                className="glass-button glass-button--sm user-card__btn user-card__btn--pending"
+                                disabled={true}
+                                aria-label="Pending"
+                                tabIndex={-1}
+                            >
+                                <Clock size={14} aria-hidden="true" />
+                                <span>Pending</span>
+                            </button>
+
+                            {/* Cancel button — accessible and enabled */}
+                            <button
+                                className="glass-button glass-button--sm glass-button--destructive user-card__btn user-card__btn--cancel"
+                                onClick={handleCancelRequest}
+                                disabled={loading}
+                                aria-label="Cancel request"
+                            >
+                                <X size={14} aria-hidden="true" />
+                                <span>Cancel Request</span>
+                            </button>
+                        </div>
+                    )}
+
+                    {status === "ACCEPTED" && (
+                        <div className="user-card__friends-badge" aria-label="Friends">
+                            <UserCheck size={14} aria-hidden="true" />
+                            <span>Friends</span>
+                        </div>
+                    )}
+                </div>
             </div>
-        </div>
+
+            {/* Signal Broadcast portal — decorative particle, aria-hidden */}
+            {signalPos &&
+                createPortal(
+                    <motion.div
+                        aria-hidden="true"
+                        className="signal-particle"
+                        style={{
+                            position: "fixed",
+                            left: signalPos.x,
+                            top: signalPos.y,
+                        }}
+                        initial={{ y: 0, opacity: 1, scale: 1 }}
+                        animate={{
+                            y: -(signalPos.y + 100),
+                            opacity: 0,
+                            scale: 0.3,
+                        }}
+                        transition={{ duration: 0.65, ease: [0.7, 0, 0.84, 0] }}
+                        onAnimationComplete={() => setSignalPos(null)}
+                    />,
+                    document.body
+                )}
+        </>
     )
 }

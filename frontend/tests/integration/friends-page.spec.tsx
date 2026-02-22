@@ -12,6 +12,7 @@
 
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { render, screen, waitFor, fireEvent, within } from "@testing-library/react"
+import { graphql, HttpResponse } from "msw"
 import React from "react"
 import { describe, it, expect, beforeEach, vi } from "vitest"
 
@@ -30,6 +31,20 @@ import { mswServer } from "../mocks/server"
 // ---------------------------------------------------------------------------
 // Module mocks
 // ---------------------------------------------------------------------------
+
+// Mock server-only modules so dynamic import("@/routes/friends/index") doesn't
+// trigger database/auth server initialization in the test environment.
+vi.mock("@/middleware/auth.middleware.server", () => ({
+    requireAuthServer: { _def: { type: "middleware" } },
+}))
+
+vi.mock("@/lib/auth", () => ({
+    auth: {
+        api: {
+            getSession: vi.fn().mockResolvedValue(null),
+        },
+    },
+}))
 
 // AppHeader uses sessionQueryOptions (TanStack Query) instead of useSession.
 // Return the processed session data (result.data shape) for Alice Chen.
@@ -374,5 +389,166 @@ describe("TC-F-09: Friends list renders accepted friends", () => {
         )
 
         expect(screen.queryByText(/no friends yet/i)).not.toBeInTheDocument()
+    })
+})
+
+// ---------------------------------------------------------------------------
+// TC-F-NEW-01: Search shows ACCEPTED status for known friends
+// ---------------------------------------------------------------------------
+
+describe("TC-F-NEW-01: Search results show ACCEPTED status for friends", () => {
+    it("shows Friends badge (not Add Friend) when search result is already a friend", async () => {
+        // Return Carol Lin (id: "user-3") who is in DUMMY_FRIENDS → ACCEPTED
+        mswServer.use(
+            graphql.query("SearchUsers", () => {
+                return HttpResponse.json({
+                    data: {
+                        searchUsers: [
+                            {
+                                id: "user-3",
+                                name: "Carol Lin",
+                                email: "carol@ping.dev",
+                                image: null,
+                            },
+                        ],
+                    },
+                })
+            })
+        )
+
+        const queryClient = createTestQueryClient()
+        render(
+            <QueryClientProvider client={queryClient}>
+                <FriendsPage />
+            </QueryClientProvider>
+        )
+
+        const searchInput = await screen.findByPlaceholderText(/search users/i)
+        fireEvent.change(searchInput, { target: { value: "Carol" } })
+
+        // Should show Friends badge, not Add Friend button
+        await waitFor(
+            () => {
+                expect(screen.getByTestId("user-card-user-3")).toBeInTheDocument()
+            },
+            { timeout: 700 }
+        )
+
+        const card = screen.getByTestId("user-card-user-3")
+        expect(within(card).getByText("Friends")).toBeInTheDocument()
+        expect(within(card).queryByRole("button", { name: /add friend/i })).not.toBeInTheDocument()
+    })
+})
+
+// ---------------------------------------------------------------------------
+// TC-F-NEW-02: Search shows PENDING_SENT status for sent requests
+// ---------------------------------------------------------------------------
+
+describe("TC-F-NEW-02: Search results show PENDING_SENT for outgoing requests", () => {
+    it("shows Pending button when search result already has a sent request", async () => {
+        // Return Henry Ho (id: "user-8") who is in DUMMY_SENT → PENDING_SENT
+        mswServer.use(
+            graphql.query("SearchUsers", () => {
+                return HttpResponse.json({
+                    data: {
+                        searchUsers: [
+                            {
+                                id: "user-8",
+                                name: "Henry Ho",
+                                email: "henry@ping.dev",
+                                image: null,
+                            },
+                        ],
+                    },
+                })
+            })
+        )
+
+        const queryClient = createTestQueryClient()
+        render(
+            <QueryClientProvider client={queryClient}>
+                <FriendsPage />
+            </QueryClientProvider>
+        )
+
+        const searchInput = await screen.findByPlaceholderText(/search users/i)
+        fireEvent.change(searchInput, { target: { value: "Henry" } })
+
+        await waitFor(
+            () => {
+                expect(screen.getByTestId("user-card-user-8")).toBeInTheDocument()
+            },
+            { timeout: 700 }
+        )
+
+        const card = screen.getByTestId("user-card-user-8")
+        // Pending button should be visible (disabled), Add Friend should be absent
+        expect(within(card).getByRole("button", { name: /pending/i })).toBeInTheDocument()
+        expect(within(card).queryByRole("button", { name: /add friend/i })).not.toBeInTheDocument()
+    })
+})
+
+// ---------------------------------------------------------------------------
+// TC-F-NEW-03: Friends section collapses to summary row during search
+// ---------------------------------------------------------------------------
+
+describe("TC-F-NEW-03: Friends section collapses to summary when searching", () => {
+    it("shows collapsed summary row with count when query is active", async () => {
+        mswServer.use(...graphqlHandlers)
+
+        const queryClient = createTestQueryClient()
+        render(
+            <QueryClientProvider client={queryClient}>
+                <FriendsPage />
+            </QueryClientProvider>
+        )
+
+        const searchInput = await screen.findByPlaceholderText(/search users/i)
+        fireEvent.change(searchInput, { target: { value: "Bo" } })
+
+        // Summary row should appear with friend count from DUMMY_FRIENDS (4)
+        await waitFor(() => {
+            expect(screen.getByText(/^Friends$/i)).toBeInTheDocument()
+        })
+
+        // The count badge showing number of friends should be present
+        const summaryCount = screen.getAllByText("4")
+        expect(summaryCount.length).toBeGreaterThanOrEqual(1)
+    })
+})
+
+// ---------------------------------------------------------------------------
+// TC-F-NEW-04: Friends section re-expands when search is cleared
+// ---------------------------------------------------------------------------
+
+describe("TC-F-NEW-04: Friends section re-expands when search cleared", () => {
+    it("shows full friends list after clearing search input", async () => {
+        mswServer.use(...graphqlHandlers)
+
+        const queryClient = createTestQueryClient()
+        render(
+            <QueryClientProvider client={queryClient}>
+                <FriendsPage />
+            </QueryClientProvider>
+        )
+
+        const searchInput = await screen.findByPlaceholderText(/search users/i)
+
+        // Start searching
+        fireEvent.change(searchInput, { target: { value: "Bo" } })
+
+        // Wait for collapsed state
+        await waitFor(() => {
+            expect(screen.getByText(/^Friends$/i)).toBeInTheDocument()
+        })
+
+        // Clear search
+        fireEvent.change(searchInput, { target: { value: "" } })
+
+        // Full friend names from DUMMY_FRIENDS should reappear
+        await waitFor(() => {
+            expect(screen.getByText("Carol Lin")).toBeInTheDocument()
+            expect(screen.getByText("David Kim")).toBeInTheDocument()
+        })
     })
 })

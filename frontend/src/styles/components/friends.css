@@ -322,21 +322,170 @@
 }
 
 /* ============================================================
-   FriendsPage
+   FriendsPage — Sonar Ping Design Language
    ============================================================ */
 
+/*
+ * Sonar design tokens scoped to .friends-page.
+ * Light mode: Kyoto Sunrise — coral warm dots, ripple rings (3 waves, organic)
+ * Dark mode:  Steel Frost   — blue radar dots, sharp single ring (precision)
+ */
 .friends-page {
+    /* Light mode defaults — Kyoto Sunrise */
+    --sonar-color: oklch(0.65 0.18 50 / 0.25);
+    --sonar-dot-color: oklch(0.65 0.18 50 / 0.07);
+    --sonar-dot-size: 32px;
+    --sonar-ring-count: 3;
+    --sonar-ring-duration: 450ms;
+    --signal-color: oklch(0.65 0.18 50);
+    --collapse-duration: 500ms;
+
     max-width: 640px;
     margin: 0 auto;
     padding: 5rem 1rem 2rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
+    position: relative;
+}
+
+/* Dark mode override — Steel Frost */
+.dark .friends-page {
+    --sonar-color: oklch(0.6 0.18 250 / 0.35);
+    --sonar-dot-color: oklch(0.6 0.18 250 / 0.05);
+    --sonar-dot-size: 28px;
+    --sonar-ring-count: 1;
+    --sonar-ring-duration: 250ms;
+    --signal-color: oklch(0.6 0.18 250);
+    --collapse-duration: 350ms;
+}
+
+/* Dot-grid background — pseudo-element so z-index stays behind content */
+.friends-page__bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image: radial-gradient(circle, var(--sonar-dot-color) 1px, transparent 1px);
+    background-size: var(--sonar-dot-size) var(--sonar-dot-size);
+    opacity: 0;
+    transition: opacity var(--duration-slow, 400ms) var(--ease-out, ease-out);
+}
+
+/* Dot-grid appears briefly during search via JS-toggled class */
+.friends-page__bg--active {
+    opacity: 1;
+}
+
+/* Reduced motion: no dot grid flash */
+@media (prefers-reduced-motion: reduce) {
+    .friends-page__bg {
+        display: none;
+    }
+}
+
+/* Search zone — wraps input + sonar ring overlay */
+.friends-page__search-zone {
+    position: relative;
+}
+
+/* Sonar ring — absolutely positioned below search input, triggered by JS */
+.friends-page__sonar-ring {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    translate: -50% 0;
+    width: 100%;
+    height: 2px;
+    border-radius: 999px;
+    background: transparent;
+    border: 1.5px solid var(--sonar-color);
+    pointer-events: none;
+    opacity: 0;
+}
+
+/* Single-fire sonar animation — JS adds/removes this class */
+.friends-page__sonar-ring--active {
+    animation: sonar-ping-ring var(--sonar-ring-duration) var(--ease-out, ease-out) forwards;
+}
+
+/* Staggered second ring for Light mode (3-ring ripple) */
+.friends-page__sonar-ring--active-2 {
+    animation: sonar-ping-ring var(--sonar-ring-duration) var(--ease-out, ease-out) 80ms forwards;
+}
+
+.friends-page__sonar-ring--active-3 {
+    animation: sonar-ping-ring var(--sonar-ring-duration) var(--ease-out, ease-out) 160ms forwards;
+}
+
+@keyframes sonar-ping-ring {
+    0% {
+        transform: scale(1);
+        opacity: 0.35;
+    }
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+/* Reduced motion: skip sonar ring animation entirely */
+@media (prefers-reduced-motion: reduce) {
+    .friends-page__sonar-ring--active,
+    .friends-page__sonar-ring--active-2,
+    .friends-page__sonar-ring--active-3 {
+        animation: none;
+        opacity: 0;
+    }
+}
+
+/* Collapsed section header — summary row shown when searching */
+.friends-page__section--collapsed {
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.friends-page__section--collapsed:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Collapsed summary title row */
+.friends-page__section-summary {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    margin-bottom: 0;
+}
+
+/* Signal particle — portal-rendered, animates from button upward */
+.signal-particle {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--signal-color, var(--primary));
+    box-shadow: 0 0 12px 4px oklch(from var(--primary) l c h / 0.5);
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+}
+
+/* Reduced motion: no signal particle */
+@media (prefers-reduced-motion: reduce) {
+    .signal-particle {
+        display: none;
+    }
 }
 
 .friends-page__section {
     /* Override glass-card hover lift — sections are static */
     transition: none;
+    position: relative;
+    z-index: 1;
 }
 
 .friends-page__section:hover {
@@ -391,4 +540,13 @@
     display: flex;
     flex-direction: column;
     gap: 0.625rem;
+}
+
+/* Search-mode UserCard — border reflects friendship status */
+.user-card--status-pending {
+    border-color: oklch(from var(--status-away, oklch(0.8 0.18 75)) l c h / 0.5);
+}
+
+.user-card--status-accepted {
+    border-color: oklch(from var(--status-online, oklch(0.68 0.18 145)) l c h / 0.5);
 }

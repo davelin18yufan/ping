@@ -10,10 +10,14 @@
  */
 
 import { Search, UserX } from "lucide-react"
+import { useEffect } from "react"
+
+import type { FriendshipStatus } from "@/types/friends"
 
 import { SoundWaveLoader } from "@/components/shared/SoundWaveLoader"
-import { useSearchUsers } from "@/hooks/useSearchUsers"
 import "@/styles/components/friends.css"
+import { useSearchUsers } from "@/hooks/useSearchUsers"
+
 import { UserCard } from "./UserCard"
 
 interface SearchUser {
@@ -25,13 +29,26 @@ interface SearchUser {
 
 interface FriendSearchInputProps {
     onResultSelect?: (user: SearchUser) => void
+    /** Notifies parent whenever the search query changes */
+    onQueryChange?: (query: string) => void
+    /** Maps userId -> FriendshipStatus so UserCard can reflect correct state */
+    friendshipStatusMap?: Map<string, FriendshipStatus>
 }
 
-export function FriendSearchInput({ onResultSelect }: FriendSearchInputProps) {
+export function FriendSearchInput({
+    onResultSelect,
+    onQueryChange,
+    friendshipStatusMap,
+}: FriendSearchInputProps) {
     const { query, setQuery, results, loading } = useSearchUsers()
 
     const showResults = query.trim().length >= 2
     const isEmpty = showResults && !loading && results.length === 0
+
+    // Notify parent of query changes so it can drive section collapse
+    useEffect(() => {
+        onQueryChange?.(query)
+    }, [query, onQueryChange])
 
     return (
         <div className="friend-search">
@@ -76,7 +93,10 @@ export function FriendSearchInput({ onResultSelect }: FriendSearchInputProps) {
                                 role="listitem"
                                 onClick={() => onResultSelect?.(user)}
                             >
-                                <UserCard user={user} friendshipStatus="NONE" />
+                                <UserCard
+                                    user={user}
+                                    friendshipStatus={friendshipStatusMap?.get(user.id) ?? "NONE"}
+                                />
                             </div>
                         ))
                     )}

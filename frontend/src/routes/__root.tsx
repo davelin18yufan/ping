@@ -7,14 +7,14 @@ import { useEffect } from "react"
 
 import type { AuthSession } from "@/lib/auth"
 
-import AppHeader from "@/components/shared/AppHeader"
+import AppHeader from "@components/shared/AppHeader"
 import { AestheticModeProvider, useAestheticMode } from "@/contexts/aesthetic-mode-context"
 import { useSessionGuard } from "@/hooks/useSessionGuard"
-import * as TanstackQuery from "../integrations/tanstack-query/root-provider"
 
-import TanStackQueryDevtools from "../integrations/tanstack-query/devtools"
-import StoreDevtools from "../lib/demo-store-devtools"
-import appCss from "../styles.css?url"
+import TanStackQueryDevtools from "@/integrations/tanstack-query/devtools"
+import * as TanstackQuery from "@/integrations/tanstack-query/root-provider"
+import StoreDevtools from "@/lib/demo-store-devtools"
+import appCss from "@css/styles.css?url"
 
 interface PingContext {
     queryClient: QueryClient

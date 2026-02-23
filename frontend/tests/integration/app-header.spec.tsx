@@ -12,6 +12,7 @@
  *   scroll-down  >  headerExpanded  >  default
  */
 
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { render, fireEvent, act, waitFor } from "@testing-library/react"
 import { describe, it, expect, beforeEach, vi } from "vitest"
 
@@ -25,8 +26,29 @@ import { uiStore } from "@/stores/uiStore"
 
 const mockScrollDirection = vi.fn(() => "up")
 
+// AppHeader uses useRouterState to detect /auth pages and useNavigate for sign-out redirect
+vi.mock("@tanstack/react-router", async () => {
+    const actual = await vi.importActual("@tanstack/react-router")
+    return {
+        ...actual,
+        useRouterState: ({
+            select,
+        }: {
+            select: (s: { location: { pathname: string } }) => string
+        }) => select({ location: { pathname: "/" } }),
+        useNavigate: () => vi.fn(),
+    }
+})
+
+// AppHeader now uses sessionQueryOptions (TanStack Query) instead of useSession
 vi.mock("@/lib/auth-client", () => ({
-    useSession: () => ({ data: null, isPending: false }),
+    sessionQueryOptions: {
+        queryKey: ["auth", "session"],
+        queryFn: async () => null, // always unauthenticated in header tests
+        retry: false,
+        staleTime: 0,
+        gcTime: 0,
+    },
     signOut: vi.fn(),
 }))
 
@@ -55,10 +77,13 @@ vi.mock("@/components/shared/SoundWaveLoader", () => ({
 // ---------------------------------------------------------------------------
 
 function renderHeader() {
+    const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
     return render(
-        <AestheticModeProvider>
-            <AppHeader />
-        </AestheticModeProvider>
+        <QueryClientProvider client={queryClient}>
+            <AestheticModeProvider>
+                <AppHeader />
+            </AestheticModeProvider>
+        </QueryClientProvider>
     )
 }
 
@@ -260,10 +285,13 @@ describe("AppHeader – capsule state binding", () => {
      * T-09: Scroll DOWN applies minimal class — overrides expanded state
      */
     it("should show minimal class on scroll-down, overriding expanded state", async () => {
+        const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
         const { container, rerender } = render(
-            <AestheticModeProvider>
-                <AppHeader />
-            </AestheticModeProvider>
+            <QueryClientProvider client={queryClient}>
+                <AestheticModeProvider>
+                    <AppHeader />
+                </AestheticModeProvider>
+            </QueryClientProvider>
         )
 
         const header = getHeader(container)
@@ -275,9 +303,11 @@ describe("AppHeader – capsule state binding", () => {
 
         mockScrollDirection.mockReturnValue("down")
         rerender(
-            <AestheticModeProvider>
-                <AppHeader />
-            </AestheticModeProvider>
+            <QueryClientProvider client={queryClient}>
+                <AestheticModeProvider>
+                    <AppHeader />
+                </AestheticModeProvider>
+            </QueryClientProvider>
         )
 
         await waitFor(() => {
@@ -290,10 +320,13 @@ describe("AppHeader – capsule state binding", () => {
      * T-10: Scroll DOWN also overrides logo-click expanded state
      */
     it("should show minimal class on scroll-down even when logo-opened", async () => {
+        const queryClient = new QueryClient({ defaultOptions: { queries: { retry: false } } })
         const { container, rerender } = render(
-            <AestheticModeProvider>
-                <AppHeader />
-            </AestheticModeProvider>
+            <QueryClientProvider client={queryClient}>
+                <AestheticModeProvider>
+                    <AppHeader />
+                </AestheticModeProvider>
+            </QueryClientProvider>
         )
 
         const header = getHeader(container)
@@ -306,9 +339,11 @@ describe("AppHeader – capsule state binding", () => {
 
         mockScrollDirection.mockReturnValue("down")
         rerender(
-            <AestheticModeProvider>
-                <AppHeader />
-            </AestheticModeProvider>
+            <QueryClientProvider client={queryClient}>
+                <AestheticModeProvider>
+                    <AppHeader />
+                </AestheticModeProvider>
+            </QueryClientProvider>
         )
 
         await waitFor(() => {

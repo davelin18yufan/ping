@@ -34,6 +34,8 @@ interface UserStatusAvatarProps {
     userName?: string
     size?: number
     isInteractive?: boolean
+    /** Set to false to suppress status wave rings (e.g., inside compact list cards) */
+    showWaveRings?: boolean
 }
 
 export function UserStatusAvatar({
@@ -41,6 +43,7 @@ export function UserStatusAvatar({
     userName,
     size = 26,
     isInteractive = false,
+    showWaveRings = true,
 }: UserStatusAvatarProps) {
     const [status, setStatus] = useState<UserPresenceStatus>("online")
     const [isPickerOpen, setIsPickerOpen] = useState(false)
@@ -70,6 +73,7 @@ export function UserStatusAvatar({
 
     const displayName = userName ?? userId
     const isOnline = status === "online"
+    const shouldShowWaveRings = isOnline && showWaveRings
 
     return (
         <div
@@ -102,8 +106,8 @@ export function UserStatusAvatar({
                     cursor: isInteractive ? "pointer" : "default",
                 }}
             >
-                {/* Sound wave rings — only when online */}
-                {isOnline && (
+                {/* Sound wave rings — only when online and showWaveRings is true */}
+                {shouldShowWaveRings && (
                     <span className="user-status-wave" aria-hidden="true">
                         <span className="user-status-wave__ring" />
                         <span className="user-status-wave__ring" />

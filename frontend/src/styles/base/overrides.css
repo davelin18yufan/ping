@@ -14,6 +14,8 @@ html {
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     text-rendering: optimizeLegibility;
+    /* Reserve scrollbar space — prevents layout shift when results appear/disappear */
+    scrollbar-gutter: stable;
 }
 
 /* ============================================
@@ -62,4 +64,41 @@ h6 {
 
 button {
     cursor: pointer;
+}
+
+/* ============================================
+   Custom Scrollbar — Ping Design System
+   Light: Kyoto Sunrise (warm muted thumb)
+   Dark:  Steel Frost (cool steel thumb)
+   Both modes adapt automatically via CSS tokens
+   ============================================ */
+
+/* Firefox standard scrollbar */
+* {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(from var(--muted-foreground) l c h / 0.25) transparent;
+}
+
+/* Webkit (Chrome, Safari, Edge) */
+::-webkit-scrollbar {
+    width: 5px;
+    height: 5px;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+    background: oklch(from var(--muted-foreground) l c h / 0.25);
+    border-radius: 999px;
+    transition: background 200ms var(--ease-out, ease-out);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: oklch(from var(--primary) l c h / 0.55);
+}
+
+::-webkit-scrollbar-corner {
+    background: transparent;
 }

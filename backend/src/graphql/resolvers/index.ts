@@ -7,11 +7,4 @@
 
 export { userResolvers } from "./user"
 export { authResolvers } from "./auth"
-
-/**
- * TODO:
- * Future resolver exports:
- * export { friendResolvers } from './friend';
- * export { conversationResolvers } from './conversation';
- * export { messageResolvers } from './message';
- */
+export { friendsResolvers } from "./friends"

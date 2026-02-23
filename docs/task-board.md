@@ -443,12 +443,22 @@
   - 優先度: P0
   - 依賴: 對話列表頁面
 
-- [ ] **好友管理頁面**
-  - Agent: Architect → Fullstack Frontend Developer → Architect (Review)
-  - 任務: 好友列表、邀請管理、搜尋
-  - 狀態: 待規格化
+- [x] **好友管理頁面 / 搜尋與加好友（Feature 1.2.1 — Frontend Web）** ✅
+  - Agent: Full-Stack Frontend Developer
+  - 任務: 好友列表、邀請管理、搜尋頁面視覺重設計、接入真實 GraphQL query options
+  - 狀態: ✅ 完成（2026-02-23，175/175 tests 通過）
   - 優先度: P0
-  - 依賴: 登入頁面
+  - 依賴: Feature 1.2.0 ✅
+  - Branch: `feature/1.2.1-friend-search`
+  - TDD 文件: `/docs/Feature-1.2.1-TDD-Tests.md`
+  - **關鍵實作**:
+    - `frontend/src/routes/friends/index.tsx` — 移除 dummy data，接入 TanStack Query options，啟用 `requireAuthServer` + loader，Sonar Ping 動畫
+    - `frontend/src/components/friends/UserCard.tsx` — 整合 `useAestheticMode`，`UserStatusAvatar` 取代 avatar letter fallback
+    - `frontend/src/components/shared/UserStatusAvatar.tsx` — 新增 `showWaveRings` prop
+    - `frontend/src/styles/components/friends.css` — Sonar ring 改為圓形（160px），Light/Dark 雙模式配色
+    - `frontend/src/styles/base/overrides.css` — `scrollbar-gutter: stable` + 自訂捲軸
+    - `frontend/tests/integration/friends-page.spec.tsx` — 11 tests（per-test query cache seeding）
+  - Commits: `d5290e7`, `58e915a`
 
 - [ ] **個人資料頁面**
   - Agent: Architect → Fullstack Frontend Developer → Architect (Review)
@@ -561,14 +571,15 @@
 ### 整體進度
 ```
 總功能數: 50
-已完成: 13 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis、Web 前端基礎設施、Mobile 前端基礎設施、Design System、OAuth 登入流程、UI/UX 大改版)
+已完成: 14 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis、Web 前端基礎設施、Mobile 前端基礎設施、Design System、OAuth 登入流程、UI/UX 大改版、好友管理頁面 Frontend Web)
 進行中: 0
-待開始: 37
-完成率: 26.00%
+待開始: 36
+完成率: 28.00%
 
 🎉 Phase 1.0 基礎設施初始化完整完成！(4/4 features - 100%)
 🎉 Phase 1.1 認證系統（Web）完成！(Feature 1.1.1 - OAuth Google Login)
 🎉 Phase 1.2 UI/UX 改版完成！(Feature 1.2.0 - 5/5 Stage，175/175 tests - 2026-02-16)
+🎉 Feature 1.2.1 Frontend Web 完成！(搜尋與加好友視覺重設計，175/175 tests - 2026-02-23)
 ```
 
 ### 階段進度
@@ -624,17 +635,17 @@ Phase 1.0 成就解鎖 🏆:
 階段 3 (好友系統):  0/8   (0%)    - 依賴階段 2 完成
 階段 4 (一對一聊天): 0/8   (0%)    - 依賴階段 3 完成
 階段 5 (即時功能):  0/7   (0%)    - 依賴階段 4 完成
-階段 6 (前端開發):  6/10 (60%) ✅ - Web 基礎設施 + Design System + OAuth 登入完成
+階段 6 (前端開發):  7/10 (70%) ✅ - Web 基礎設施 + Design System + OAuth 登入 + 好友頁面完成
   ✅ Web 架構設定
   ✅ Web 前端基礎設施（Feature 1.0.2）
   ✅ Mobile 架構設定
   ✅ Mobile 基礎設施（Feature 1.0.3）
   ✅ Design System 設定（Feature 1.0.4 - 2026-01-26 完成）
   ✅ 登入頁面（Web）（Feature 1.1.1 - 2026-02-03 完成）
+  ✅ 好友管理頁面（Web）（Feature 1.2.1 - 2026-02-23 完成）
   🔲 登入畫面（Mobile）（後續階段）
   🔲 對話列表頁面/畫面
   🔲 聊天室頁面/畫面
-  🔲 好友管理頁面/畫面
 ```
 
 ### 當前 Sprint 狀態
@@ -965,27 +976,26 @@ E2E Tests: 目標涵蓋主要流程
 
 **更新頻率**: 每日更新
 **維護者**: All Agents
-**最後更新**: 2026-02-16
+**最後更新**: 2026-02-23
 **最新變更**:
-  - ✅ **Feature 1.2.0（UI/UX 大改版）全部完成！（2026-02-16）**
-    - ✅ Stage 1: Design Tokens 配色確認（完成）
-    - ✅ Stage 2: CSS 架構重組 + Design Tokens CSS 擴展（完成 - 2026-02-14）
-    - ✅ Stage 3: 雙模式系統 + 元件升級（完成 - 2026-02-14）
-    - ✅ Stage 4: Session 認證整合（完成 - 2026-02-16）
-      - Better Auth session 管理整合
-      - 登出流程（useNavigate 導航）
-    - ✅ Stage 5: Capsule Morphing AppHeader（完成 - 2026-02-16）
-      - AppHeader 三態（minimal / default / expanded）
-      - uiStore（@tanstack/store）：headerExpanded + isViewTransitioning
-      - View Transition 狀態保護機制
-      - app-header.spec.tsx（12 tests）+ uiStore.spec.ts（6 tests）
-      - 移除 3 個重複測試，清理跨層測試責任
+  - ✅ **Feature 1.2.1（搜尋與加好友）Frontend Web 完成！（2026-02-23）**
+    - ✅ 移除所有 dummy data，接入真實 TanStack Query GraphQL options
+    - ✅ 啟用 `requireAuthServer` middleware + route loader（`/friends` 路由）
+    - ✅ Sonar Ping 動畫重設計（圓形 sonar ring，160px × 160px）
+      - Light Mode「Kyoto Sunrise」：珊瑚色三重漣漪
+      - Dark Mode「Steel Frost」：藍色單掃
+    - ✅ `useAestheticMode` 整合（minimal 模式下裝飾性動畫靜止）
+    - ✅ `UserCard` 整合 Signal Broadcast particle
+    - ✅ `UserStatusAvatar` 新增 `showWaveRings` prop（compact list 可關閉波紋）
+    - ✅ `overrides.css` 新增 scrollbar-gutter + 自訂捲軸（OKLCH adaptive colors）
+    - ✅ `friends-page.spec.tsx` 11 tests（per-test query cache seeding）
+    - ✅ Commits: `d5290e7` + `58e915a`
     - 測試：175/175 tests 全部通過（100%）
   - 📊 **進度更新**：
     - 階段 1 (基礎設施)：100% 完成 ✅
     - 階段 2 (認證用戶)：14.29% 完成（1/7 - OAuth 登入）
     - 階段 2.5 (UI/UX 改版)：100% 完成 ✅
-    - 階段 6 (前端開發)：60% 完成（6/10）
-    - 整體完成率：26.00%（13/50 features 完成）
+    - 階段 6 (前端開發)：70% 完成（7/10）
+    - 整體完成率：28.00%（14/50 features 完成）
   - 🚀 **下一步**：
-    - Feature 1.2.1 搜尋與加好友（Architect 設計階段）
+    - Feature 1.2.1 Backend 實作（GraphQL resolvers + 14 backend tests）

@@ -1,0 +1,543 @@
+/**
+ * Friends Components — UserCard, PendingRequestCard, FriendSearchInput, FriendsPage
+ *
+ * Design tokens used:
+ *   Colors:   var(--primary), var(--destructive), var(--status-online/away)
+ *   Spacing:  var(--spacing-*)
+ *   Radius:   var(--radius), var(--radius-full)
+ *   Duration: var(--duration-fast), var(--duration-normal)
+ *   Ease:     var(--ease-out)
+ */
+
+/* ============================================================
+   Notification Badge (AppHeader overlay on UserStatusAvatar)
+   ============================================================ */
+
+.friend-request-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(40%, -40%);
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--destructive);
+    color: oklch(1 0 0);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 16px;
+    text-align: center;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10;
+    animation: badge-bounce 250ms var(--ease-out, cubic-bezier(0.22, 1, 0.36, 1));
+}
+
+@keyframes badge-bounce {
+    0% {
+        transform: translate(40%, -40%) scale(1.4);
+    }
+    100% {
+        transform: translate(40%, -40%) scale(1);
+    }
+}
+
+/* ============================================================
+   UserCard
+   ============================================================ */
+
+.user-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    /* Override glass-card hover lift for inline list items */
+    transition: background var(--duration-fast, 150ms) var(--ease-out, ease-out);
+}
+
+.user-card:hover {
+    transform: none;
+}
+
+.user-card__avatar {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.user-card__avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.user-card__avatar-fallback {
+    width: 100%;
+    height: 100%;
+    background: oklch(from var(--primary) l c h / 0.2);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+    border-radius: 9999px;
+}
+
+.user-card__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.user-card__name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-card__email {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.user-card__action {
+    flex-shrink: 0;
+}
+
+.user-card__btn {
+    transition: all var(--duration-fast, 150ms) var(--ease-out, ease-out);
+}
+
+/* Add Friend button — primary blue tint */
+.user-card__btn--add {
+    background: oklch(from var(--primary) l c h / 0.12);
+    color: var(--primary);
+}
+
+.user-card__btn--add:hover:not(:disabled) {
+    background: oklch(from var(--primary) l c h / 0.22);
+}
+
+/* Pending button — amber tint */
+.user-card__btn--pending {
+    background: oklch(from var(--status-away, oklch(0.8 0.18 75)) l c h / 0.12);
+    color: var(--status-away, oklch(0.7 0.2 75));
+    opacity: 0.7;
+}
+
+/* Pending group — stacks pending + cancel */
+.user-card__pending-group {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+/* Friends badge — no button, just an icon + text */
+.user-card__friends-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--status-online, oklch(0.68 0.18 145));
+    padding: 0.5rem 1rem;
+}
+
+/* ============================================================
+   PendingRequestCard
+   ============================================================ */
+
+.pending-request-card {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.75rem;
+    transition:
+        transform 250ms var(--ease-out, ease-out),
+        opacity 250ms var(--ease-out, ease-out);
+}
+
+.pending-request-card:hover {
+    transform: none;
+}
+
+.pending-request-card--exiting {
+    transform: scale(0.96);
+    opacity: 0;
+    pointer-events: none;
+}
+
+.pending-request-card__avatar {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.pending-request-card__avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.pending-request-card__avatar-fallback {
+    width: 100%;
+    height: 100%;
+    background: oklch(from var(--primary) l c h / 0.2);
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    border-radius: 9999px;
+}
+
+.pending-request-card__info {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.pending-request-card__name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+.pending-request-card__subtitle {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+}
+
+.pending-request-card__actions {
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.375rem;
+}
+
+/* Accept button — accent green tint */
+.pending-request-card__btn--accept {
+    background: oklch(from var(--status-online, oklch(0.68 0.18 145)) l c h / 0.12);
+    color: var(--status-online, oklch(0.68 0.18 145));
+}
+
+.pending-request-card__btn--accept:hover:not(:disabled) {
+    background: oklch(from var(--status-online, oklch(0.68 0.18 145)) l c h / 0.22);
+}
+
+/* ============================================================
+   FriendSearchInput
+   ============================================================ */
+
+.friend-search {
+    position: relative;
+    width: 100%;
+}
+
+.friend-search__input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.friend-search__icon {
+    position: absolute;
+    left: 0.75rem;
+    color: var(--muted-foreground);
+    pointer-events: none;
+    z-index: 1;
+}
+
+.friend-search__input {
+    /* padding-left is handled by .glass-input--search (2.5rem) */
+    padding-right: 2.5rem; /* space for loader */
+}
+
+.friend-search__loader {
+    position: absolute;
+    right: 0.75rem;
+    display: flex;
+    align-items: center;
+}
+
+.friend-search__results {
+    margin-top: 0.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.friend-search__result-item {
+    animation: search-result-enter 250ms var(--ease-out, ease-out) both;
+}
+
+@keyframes search-result-enter {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.friend-search__empty {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    color: var(--muted-foreground);
+    font-size: 0.875rem;
+}
+
+/* Override glass-card hover lift inside search results */
+.friend-search__result-card {
+    cursor: pointer;
+}
+
+.friend-search__result-card:hover {
+    transform: none;
+    background: oklch(from var(--card) calc(l + 0.02) c h / 0.7);
+}
+
+/* ============================================================
+   FriendsPage — Sonar Ping Design Language
+   ============================================================ */
+
+/*
+ * Sonar design tokens scoped to .friends-page.
+ * Light mode: Kyoto Sunrise — coral warm dots, ripple rings (3 waves, organic)
+ * Dark mode:  Steel Frost   — blue radar dots, sharp single ring (precision)
+ */
+.friends-page {
+    /* Light mode defaults — Kyoto Sunrise */
+    --sonar-color: oklch(0.65 0.18 50 / 0.25);
+    --sonar-dot-color: oklch(0.65 0.18 50 / 0.07);
+    --sonar-dot-size: 32px;
+    --sonar-ring-count: 3;
+    --sonar-ring-duration: 450ms;
+    --signal-color: oklch(0.65 0.18 50);
+    --collapse-duration: 500ms;
+
+    max-width: 640px;
+    margin: 0 auto;
+    /*
+     * padding-top calculation for floating capsule header:
+     *   top-offset(16px) + header-height(48px) + gap(8px) = 72px = 4.5rem
+     * Do NOT use 5rem+: the extra blank zone serves no purpose because the
+     * capsule is not full-width and content is visible around it at the top.
+     */
+    padding: 4.5rem 1rem 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    position: relative;
+}
+
+/* Dark mode override — Steel Frost */
+.dark .friends-page {
+    --sonar-color: oklch(0.6 0.18 250 / 0.35);
+    --sonar-dot-color: oklch(0.6 0.18 250 / 0.05);
+    --sonar-dot-size: 28px;
+    --sonar-ring-count: 1;
+    --sonar-ring-duration: 250ms;
+    --signal-color: oklch(0.6 0.18 250);
+    --collapse-duration: 350ms;
+}
+
+/* Dot-grid background — pseudo-element so z-index stays behind content */
+.friends-page__bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image: radial-gradient(circle, var(--sonar-dot-color) 1px, transparent 1px);
+    background-size: var(--sonar-dot-size) var(--sonar-dot-size);
+    opacity: 0;
+    transition: opacity var(--duration-slow, 400ms) var(--ease-out, ease-out);
+}
+
+/* Dot-grid appears briefly during search via JS-toggled class */
+.friends-page__bg--active {
+    opacity: 1;
+}
+
+/* Reduced motion: no dot grid flash */
+@media (prefers-reduced-motion: reduce) {
+    .friends-page__bg {
+        display: none;
+    }
+}
+
+/* Search zone — wraps input + sonar ring overlay */
+.friends-page__search-zone {
+    position: relative;
+}
+
+/*
+ * Sonar rings container — centered in search zone, allows decorative overflow.
+ * Motion.js drives the animation via scale + opacity; no CSS keyframes needed.
+ * Key-based remount (sonarKey counter) restarts animations on each query change.
+ */
+.friends-page__sonar-rings {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Single sonar ring — circle, driven by Motion.js animate prop */
+.friends-page__sonar-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 2px solid var(--sonar-color);
+    box-shadow: 0 0 18px 4px var(--sonar-color);
+    pointer-events: none;
+}
+
+/* Reduced motion: hide sonar rings entirely (Motion respects this via transform) */
+@media (prefers-reduced-motion: reduce) {
+    .friends-page__sonar-rings {
+        display: none;
+    }
+}
+
+/* Collapsed section header — summary row shown when searching */
+.friends-page__section--collapsed {
+    cursor: pointer;
+    overflow: hidden;
+}
+
+.friends-page__section--collapsed:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+/* Collapsed summary title row */
+.friends-page__section-summary {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--muted-foreground);
+    margin-bottom: 0;
+}
+
+/* Signal particle — portal-rendered, animates from button upward */
+.signal-particle {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--signal-color, var(--primary));
+    box-shadow: 0 0 12px 4px oklch(from var(--primary) l c h / 0.5);
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+}
+
+/* Reduced motion: no signal particle */
+@media (prefers-reduced-motion: reduce) {
+    .signal-particle {
+        display: none;
+    }
+}
+
+.friends-page__section {
+    /* Override glass-card hover lift — sections are static */
+    transition: none;
+    position: relative;
+    z-index: 1;
+}
+
+.friends-page__section:hover {
+    transform: none;
+    box-shadow:
+        0 8px 32px oklch(0 0 0 / 0.08),
+        0 16px 64px oklch(0 0 0 / 0.12),
+        0 24px 96px oklch(0 0 0 / 0.15);
+    background: oklch(from var(--card) l c h / 0.5);
+}
+
+.friends-page__section-title {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--foreground);
+    margin-bottom: 1rem;
+}
+
+.friends-page__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: var(--destructive);
+    color: oklch(1 0 0);
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.friends-page__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 999px;
+    background: oklch(from var(--primary) l c h / 0.15);
+    color: var(--primary);
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.friends-page__list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+}
+
+/* Search-mode UserCard — border reflects friendship status */
+.user-card--status-pending {
+    border-color: oklch(from var(--status-away, oklch(0.8 0.18 75)) l c h / 0.5);
+}
+
+.user-card--status-accepted {
+    border-color: oklch(from var(--status-online, oklch(0.68 0.18 145)) l c h / 0.5);
+}

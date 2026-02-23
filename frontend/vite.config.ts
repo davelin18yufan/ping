@@ -8,6 +8,9 @@ import { defineConfig } from "vite"
 import viteTsConfigPaths from "vite-tsconfig-paths"
 
 const config = defineConfig({
+    server: {
+        port: 3001,
+    },
     plugins: [
         devtools(),
         cloudflare({ viteEnvironment: { name: "ssr" } }),

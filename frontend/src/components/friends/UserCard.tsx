@@ -16,6 +16,8 @@ import { motion } from "motion/react"
 import { useRef, useState } from "react"
 import { createPortal } from "react-dom"
 
+import { UserStatusAvatar } from "@/components/shared/UserStatusAvatar"
+import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
 import { useFriendActions } from "@/hooks/useFriendActions"
 import "@/styles/components/friends.css"
 
@@ -47,16 +49,19 @@ export function UserCard({
     )
     const [requestId, setRequestId] = useState<string | undefined>(initialRequestId)
     const { sendRequest, cancelRequest, loading } = useFriendActions()
+    const { isMinimal } = useAestheticMode()
 
     // Signal Broadcast portal state
     const addButtonRef = useRef<HTMLButtonElement>(null)
     const [signalPos, setSignalPos] = useState<{ x: number; y: number } | null>(null)
 
     const handleAddFriend = async () => {
-        // Capture button position for signal particle origin
-        const rect = addButtonRef.current?.getBoundingClientRect()
-        if (rect) {
-            setSignalPos({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
+        // Capture button position for signal particle origin — skipped in minimal mode
+        if (!isMinimal) {
+            const rect = addButtonRef.current?.getBoundingClientRect()
+            if (rect) {
+                setSignalPos({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 })
+            }
         }
         try {
             const request = await sendRequest(user.id)
@@ -86,16 +91,19 @@ export function UserCard({
                 className="glass-card glass-card--compact user-card"
                 data-testid={`user-card-${user.id}`}
             >
-                {/* Avatar */}
-                <div className="user-card__avatar">
-                    {user.image ? (
+                {/* Avatar — image or UserStatusAvatar Facehash fallback */}
+                {user.image ? (
+                    <div className="user-card__avatar">
                         <img src={user.image} alt={user.name} className="user-card__avatar-img" />
-                    ) : (
-                        <div className="user-card__avatar-fallback" aria-hidden="true">
-                            {(user.name ?? user.email ?? "?").charAt(0).toUpperCase()}
-                        </div>
-                    )}
-                </div>
+                    </div>
+                ) : (
+                    <UserStatusAvatar
+                        userId={user.id}
+                        userName={user.name}
+                        size={32}
+                        showWaveRings={false}
+                    />
+                )}
 
                 {/* Info */}
                 <div className="user-card__info">

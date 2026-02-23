@@ -16,6 +16,8 @@ import { graphql, HttpResponse } from "msw"
 import React from "react"
 import { describe, it, expect, beforeEach, vi } from "vitest"
 
+import { AestheticModeProvider } from "@/contexts/aesthetic-mode-context"
+
 import {
     mockUserBob,
     mockUserCarol,
@@ -69,6 +71,18 @@ vi.mock("@/lib/auth-client", () => ({
 
 vi.mock("@/components/shared/AestheticModeToggle", () => ({
     AestheticModeToggle: () => <button data-testid="aesthetic-toggle">Aesthetic</button>,
+}))
+
+// Mock aesthetic mode context — useAestheticMode returns static "ornate" so no Provider is needed.
+// This allows tests that wrap with bare QueryClientProvider to render FriendsPage without error.
+vi.mock("@/contexts/aesthetic-mode-context", () => ({
+    useAestheticMode: () => ({
+        mode: "ornate",
+        isOrnate: true,
+        isMinimal: false,
+        setMode: vi.fn(),
+    }),
+    AestheticModeProvider: ({ children }: { children: React.ReactNode }) => <>{children}</>,
 }))
 
 vi.mock("@/components/shared/ThemeToggle", () => ({
@@ -134,7 +148,11 @@ function AppProviders({ children }: { children: React.ReactNode }) {
     // Client must be stable across re-renders — create once per component instance
     const clientRef = React.useRef<ReturnType<typeof createTestQueryClient> | null>(null)
     if (!clientRef.current) clientRef.current = createTestQueryClient()
-    return <QueryClientProvider client={clientRef.current}>{children}</QueryClientProvider>
+    return (
+        <QueryClientProvider client={clientRef.current}>
+            <AestheticModeProvider>{children}</AestheticModeProvider>
+        </QueryClientProvider>
+    )
 }
 
 // ---------------------------------------------------------------------------
@@ -224,9 +242,12 @@ describe("TC-F-04: Search results render UserCard", () => {
     it("shows user card with name and add-friend button after typing", async () => {
         const queryClient = createTestQueryClient()
 
-        // Set initial data directly in cache for Suspense
+        // Set initial data directly in cache — all three keys must be seeded so
+        // sentRequestsQueryOptions doesn't fall through to the MSW handler (which
+        // returns mockSentRequest with receiver=Bob, making Bob appear as PENDING_SENT)
         queryClient.setQueryData(["friends", "pending"], [])
         queryClient.setQueryData(["friends", "list"], [])
+        queryClient.setQueryData(["friends", "sent"], [])
 
         render(
             <QueryClientProvider client={queryClient}>
@@ -398,7 +419,7 @@ describe("TC-F-09: Friends list renders accepted friends", () => {
 
 describe("TC-F-NEW-01: Search results show ACCEPTED status for friends", () => {
     it("shows Friends badge (not Add Friend) when search result is already a friend", async () => {
-        // Return Carol Lin (id: "user-3") who is in DUMMY_FRIENDS → ACCEPTED
+        // Return Carol Lin (id: "user-3") via SearchUsers mock
         mswServer.use(
             graphql.query("SearchUsers", () => {
                 return HttpResponse.json({
@@ -417,6 +438,13 @@ describe("TC-F-NEW-01: Search results show ACCEPTED status for friends", () => {
         )
 
         const queryClient = createTestQueryClient()
+        // Seed cache: user-3 is an accepted friend → friendshipStatusMap maps her as ACCEPTED
+        queryClient.setQueryData(
+            ["friends", "list"],
+            [{ id: "user-3", name: "Carol Lin", email: "carol@ping.dev", image: null }]
+        )
+        queryClient.setQueryData(["friends", "pending"], [])
+        queryClient.setQueryData(["friends", "sent"], [])
         render(
             <QueryClientProvider client={queryClient}>
                 <FriendsPage />
@@ -446,7 +474,7 @@ describe("TC-F-NEW-01: Search results show ACCEPTED status for friends", () => {
 
 describe("TC-F-NEW-02: Search results show PENDING_SENT for outgoing requests", () => {
     it("shows Pending button when search result already has a sent request", async () => {
-        // Return Henry Ho (id: "user-8") who is in DUMMY_SENT → PENDING_SENT
+        // Return Henry Ho (id: "user-8") via SearchUsers mock
         mswServer.use(
             graphql.query("SearchUsers", () => {
                 return HttpResponse.json({
@@ -465,6 +493,32 @@ describe("TC-F-NEW-02: Search results show PENDING_SENT for outgoing requests", 
         )
 
         const queryClient = createTestQueryClient()
+        // Seed cache: user-8 is the receiver of a sent request → PENDING_SENT
+        queryClient.setQueryData(["friends", "list"], [])
+        queryClient.setQueryData(["friends", "pending"], [])
+        queryClient.setQueryData(
+            ["friends", "sent"],
+            [
+                {
+                    id: "req-sent-henry",
+                    status: "PENDING",
+                    createdAt: "2026-02-16T00:00:00.000Z",
+                    updatedAt: "2026-02-16T00:00:00.000Z",
+                    sender: {
+                        id: "user-alice",
+                        name: "Alice Chen",
+                        email: "alice@ping.dev",
+                        image: null,
+                    },
+                    receiver: {
+                        id: "user-8",
+                        name: "Henry Ho",
+                        email: "henry@ping.dev",
+                        image: null,
+                    },
+                },
+            ]
+        )
         render(
             <QueryClientProvider client={queryClient}>
                 <FriendsPage />
@@ -497,6 +551,10 @@ describe("TC-F-NEW-03: Friends section collapses to summary when searching", () 
         mswServer.use(...graphqlHandlers)
 
         const queryClient = createTestQueryClient()
+        // Seed cache with 2 friends so the summary badge reflects real count
+        queryClient.setQueryData(["friends", "list"], [mockUserBob, mockUserCarol])
+        queryClient.setQueryData(["friends", "pending"], [])
+        queryClient.setQueryData(["friends", "sent"], [])
         render(
             <QueryClientProvider client={queryClient}>
                 <FriendsPage />
@@ -506,13 +564,13 @@ describe("TC-F-NEW-03: Friends section collapses to summary when searching", () 
         const searchInput = await screen.findByPlaceholderText(/search users/i)
         fireEvent.change(searchInput, { target: { value: "Bo" } })
 
-        // Summary row should appear with friend count from DUMMY_FRIENDS (4)
+        // Summary row should appear with friends label
         await waitFor(() => {
             expect(screen.getByText(/^Friends$/i)).toBeInTheDocument()
         })
 
-        // The count badge showing number of friends should be present
-        const summaryCount = screen.getAllByText("4")
+        // Count badge shows 2 (matching the seeded cache)
+        const summaryCount = screen.getAllByText("2")
         expect(summaryCount.length).toBeGreaterThanOrEqual(1)
     })
 })
@@ -526,6 +584,10 @@ describe("TC-F-NEW-04: Friends section re-expands when search cleared", () => {
         mswServer.use(...graphqlHandlers)
 
         const queryClient = createTestQueryClient()
+        // Seed cache so the friends section has data to expand back to
+        queryClient.setQueryData(["friends", "list"], [mockUserBob, mockUserCarol])
+        queryClient.setQueryData(["friends", "pending"], [])
+        queryClient.setQueryData(["friends", "sent"], [])
         render(
             <QueryClientProvider client={queryClient}>
                 <FriendsPage />
@@ -545,10 +607,10 @@ describe("TC-F-NEW-04: Friends section re-expands when search cleared", () => {
         // Clear search
         fireEvent.change(searchInput, { target: { value: "" } })
 
-        // Full friend names from DUMMY_FRIENDS should reappear
+        // Full friend names from cache should reappear
         await waitFor(() => {
+            expect(screen.getByText("Bob Wang")).toBeInTheDocument()
             expect(screen.getByText("Carol Lin")).toBeInTheDocument()
-            expect(screen.getByText("David Kim")).toBeInTheDocument()
         })
     })
 })

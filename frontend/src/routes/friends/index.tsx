@@ -4,7 +4,7 @@
  * Sonar Ping Design Language:
  * - Unified sonar view: searching collapses pending/friends sections to summary rows
  * - Dot-grid background briefly activates on keystroke
- * - Sonar ring pulses from search zone on each query change
+ * - Sonar ring pulses from search zone on each query change (Motion key re-trigger)
  * - Signal Broadcast: light particle rises from Add Friend button on send
  *
  * Three sections:
@@ -13,6 +13,7 @@
  * 3. Friends List — collapses to summary row during search
  */
 
+import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 import { UserCheck, Users } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
@@ -20,79 +21,27 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
 import { FriendSearchInput } from "@/components/friends/FriendSearchInput"
 import { PendingRequestCard } from "@/components/friends/PendingRequestCard"
-// TODO: restore when backend is ready
-// import { friendsListQueryOptions, pendingRequestsQueryOptions } from "@/graphql/options/friends"
-import "@/styles/components/friends.css"
+import { UserStatusAvatar } from "@/components/shared/UserStatusAvatar"
+import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
+import {
+    friendsListQueryOptions,
+    pendingRequestsQueryOptions,
+    sentRequestsQueryOptions,
+} from "@/graphql/options/friends"
 import { requireAuthServer } from "@/middleware/auth.middleware.server"
-import { FriendRequest, FriendshipStatus, User } from "@/types/friends"
-
-// ---------------------------------------------------------------------------
-// DUMMY DATA — remove and restore useSuspenseQuery + loader when backend ready
-// ---------------------------------------------------------------------------
-const DUMMY_PENDING: FriendRequest[] = [
-    {
-        id: "req-1",
-        status: "PENDING",
-        createdAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-        updatedAt: new Date(Date.now() - 1000 * 60 * 30).toISOString(),
-        sender: { id: "user-2", name: "Bob Wang", email: "bob@ping.dev", image: null },
-        receiver: { id: "user-1", name: "Alice Chen", email: "alice@ping.dev", image: null },
-    },
-    {
-        id: "req-2",
-        status: "PENDING",
-        createdAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-        updatedAt: new Date(Date.now() - 1000 * 60 * 60 * 2).toISOString(),
-        sender: {
-            id: "user-5",
-            name: "Eve Martinez",
-            email: "eve@ping.dev",
-            image: "https://i.pravatar.cc/150?u=eve",
-        },
-        receiver: { id: "user-1", name: "Alice Chen", email: "alice@ping.dev", image: null },
-    },
-]
-
-/** Outgoing friend requests (we sent, awaiting response) */
-const DUMMY_SENT: FriendRequest[] = [
-    {
-        id: "req-sent-1",
-        status: "PENDING",
-        createdAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-        updatedAt: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
-        sender: { id: "user-1", name: "Alice Chen", email: "alice@ping.dev", image: null },
-        receiver: { id: "user-8", name: "Henry Ho", email: "henry@ping.dev", image: null },
-    },
-]
-
-const DUMMY_FRIENDS: User[] = [
-    {
-        id: "user-3",
-        name: "Carol Lin",
-        email: "carol@ping.dev",
-        image: "https://i.pravatar.cc/150?u=carol",
-    },
-    { id: "user-4", name: "David Kim", email: "david@ping.dev", image: null },
-    {
-        id: "user-6",
-        name: "Frank Wu",
-        email: "frank@ping.dev",
-        image: "https://i.pravatar.cc/150?u=frank",
-    },
-    { id: "user-7", name: "Grace Huang", email: "grace@ping.dev", image: null },
-]
-// ---------------------------------------------------------------------------
+import type { FriendshipStatus } from "@/types/friends"
+import "@styles/components/friends.css"
 
 // Default export for test imports (import("@/routes/friends/index").default)
 export default FriendsPage
 
 export const Route = createFileRoute("/friends/")({
-    // TODO: restore loader when backend is ready:
-    // loader: ({ context: { queryClient } }) =>
-    //     Promise.all([
-    //         queryClient.ensureQueryData(pendingRequestsQueryOptions),
-    //         queryClient.ensureQueryData(friendsListQueryOptions),
-    //     ]),
+    loader: ({ context: { queryClient } }) =>
+        Promise.all([
+            queryClient.ensureQueryData(pendingRequestsQueryOptions),
+            queryClient.ensureQueryData(friendsListQueryOptions),
+            queryClient.ensureQueryData(sentRequestsQueryOptions),
+        ]),
     server: {
         middleware: [requireAuthServer],
     },
@@ -117,56 +66,60 @@ const sectionVariants = {
     },
 }
 
-// Duration of sonar ring CSS animation (must match --sonar-ring-duration tokens)
-const SONAR_RING_DURATION_LIGHT = 450
-const SONAR_RING_DURATION_DARK = 250
+// Stagger variants for initial list entry animation (fires once on mount)
+const listContainerVariants = {
+    hidden: {},
+    show: {
+        transition: { staggerChildren: 0.06 },
+    },
+}
+
+const listItemVariants = {
+    hidden: { opacity: 0, y: -6 },
+    show: {
+        opacity: 1,
+        y: 0,
+        transition: { duration: 0.3, ease: EASE_IN_OUT },
+    },
+}
 
 function FriendsPage() {
-    // TODO: replace with useSuspenseQuery when backend is ready:
-    // const { data: pendingRequests, refetch: refetchPending } = useSuspenseQuery(pendingRequestsQueryOptions)
-    // const { data: friends } = useSuspenseQuery(friendsListQueryOptions)
-    const pendingRequests = DUMMY_PENDING
-    const friends = DUMMY_FRIENDS
+    const { data: pendingRequests = [] } = useQuery(pendingRequestsQueryOptions)
+    const { data: friends = [] } = useQuery(friendsListQueryOptions)
+    const { data: sentRequests = [] } = useQuery(sentRequestsQueryOptions)
+
+    const { isMinimal } = useAestheticMode()
 
     const [searchQuery, setSearchQuery] = useState("")
     const isSearching = searchQuery.trim().length >= 2
 
-    // Sonar ring animation state
-    const [sonarActive, setSonarActive] = useState(false)
-    const sonarTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    // Sonar ring — key counter triggers Motion remount, restarting animations from initial
+    const [sonarKey, setSonarKey] = useState(0)
 
     // Dot-grid background state
     const [bgActive, setBgActive] = useState(false)
     const bgTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
-    // Detect dark mode for ring duration
+    // Detect dark mode for ring count (single ring in dark, triple ripple in light)
     const isDark =
         typeof document !== "undefined" && document.documentElement.classList.contains("dark")
-    const ringDuration = isDark ? SONAR_RING_DURATION_DARK : SONAR_RING_DURATION_LIGHT
 
     // Trigger sonar ring and background flash on each search query change
     useEffect(() => {
-        if (!isSearching) return
+        if (!isSearching || isMinimal) return
 
         // Flash background dot-grid
         setBgActive(true)
         if (bgTimerRef.current) clearTimeout(bgTimerRef.current)
         bgTimerRef.current = setTimeout(() => setBgActive(false), 800)
 
-        // Pulse sonar ring
-        setSonarActive(false)
-        // Allow re-trigger via RAF
-        const rafId = requestAnimationFrame(() => {
-            setSonarActive(true)
-            sonarTimerRef.current = setTimeout(() => setSonarActive(false), ringDuration + 200)
-        })
+        // Increment key — Motion remounts ring divs and restarts from initial
+        setSonarKey((k) => k + 1)
 
         return () => {
-            cancelAnimationFrame(rafId)
-            if (sonarTimerRef.current) clearTimeout(sonarTimerRef.current)
             if (bgTimerRef.current) clearTimeout(bgTimerRef.current)
         }
-    }, [searchQuery, isSearching, ringDuration])
+    }, [searchQuery, isSearching, isMinimal])
 
     const handleQueryChange = useCallback((q: string) => {
         setSearchQuery(q)
@@ -177,8 +130,8 @@ function FriendsPage() {
     }
 
     /**
-     * Build friendshipStatusMap from dummy data so search results can reflect
-     * real friendship states (accepted friends, pending senders, sent requests).
+     * Build friendshipStatusMap from cached query data so search results reflect
+     * real friendship states (accepted friends, incoming pending, sent requests).
      */
     const friendshipStatusMap = useMemo<Map<string, FriendshipStatus>>(() => {
         const map = new Map<string, FriendshipStatus>()
@@ -191,15 +144,15 @@ function FriendsPage() {
             map.set(req.sender.id, "PENDING_RECEIVED")
         }
         // Outgoing sent requests (we sent, awaiting response) = PENDING_SENT
-        for (const req of DUMMY_SENT) {
+        for (const req of sentRequests) {
             map.set(req.receiver.id, "PENDING_SENT")
         }
         return map
-    }, [friends, pendingRequests])
+    }, [friends, pendingRequests, sentRequests])
 
     return (
         <div className="friends-page">
-            {/* Subtle dot-grid background — activates on keystroke */}
+            {/* Subtle dot-grid background — activates on keystroke, suppressed in minimal mode */}
             <div
                 className={`friends-page__bg${bgActive ? " friends-page__bg--active" : ""}`}
                 aria-hidden="true"
@@ -213,19 +166,53 @@ function FriendsPage() {
                         onQueryChange={handleQueryChange}
                         friendshipStatusMap={friendshipStatusMap}
                     />
-                    {/* Sonar rings — Dark: single ring, Light: 3 staggered rings */}
-                    <div
-                        aria-hidden="true"
-                        className={`friends-page__sonar-ring${sonarActive ? " friends-page__sonar-ring--active" : ""}`}
-                    />
-                    <div
-                        aria-hidden="true"
-                        className={`friends-page__sonar-ring${sonarActive ? " friends-page__sonar-ring--active-2" : ""}`}
-                    />
-                    <div
-                        aria-hidden="true"
-                        className={`friends-page__sonar-ring${sonarActive ? " friends-page__sonar-ring--active-3" : ""}`}
-                    />
+                    {/*
+                     * Sonar rings — Motion-driven circular rings expanding from search center.
+                     * key={sonarKey}: React remounts on each increment → Motion restarts from initial.
+                     * Suppressed in minimal aesthetic mode and prefers-reduced-motion (via CSS).
+                     */}
+                    {isSearching && sonarKey > 0 && !isMinimal && (
+                        <div
+                            key={sonarKey}
+                            aria-hidden="true"
+                            className="friends-page__sonar-rings"
+                        >
+                            <motion.div
+                                className="friends-page__sonar-ring"
+                                initial={{ scale: 0.8, opacity: 0.75 }}
+                                animate={{ scale: 2.5, opacity: 0 }}
+                                transition={{
+                                    duration: isDark ? 0.25 : 0.45,
+                                    ease: "easeOut",
+                                }}
+                            />
+                            {/* Light mode only: two additional staggered rings (Kyoto Sunrise ripple) */}
+                            {!isDark && (
+                                <>
+                                    <motion.div
+                                        className="friends-page__sonar-ring"
+                                        initial={{ scale: 0.8, opacity: 0.55 }}
+                                        animate={{ scale: 2.5, opacity: 0 }}
+                                        transition={{
+                                            duration: 0.45,
+                                            ease: "easeOut",
+                                            delay: 0.08,
+                                        }}
+                                    />
+                                    <motion.div
+                                        className="friends-page__sonar-ring"
+                                        initial={{ scale: 0.8, opacity: 0.35 }}
+                                        animate={{ scale: 2.5, opacity: 0 }}
+                                        transition={{
+                                            duration: 0.45,
+                                            ease: "easeOut",
+                                            delay: 0.16,
+                                        }}
+                                    />
+                                </>
+                            )}
+                        </div>
+                    )}
                 </div>
             </section>
 
@@ -263,16 +250,22 @@ function FriendsPage() {
                                         {pendingRequests.length}
                                     </span>
                                 </h2>
-                                <div className="friends-page__list">
+                                <motion.div
+                                    className="friends-page__list"
+                                    variants={listContainerVariants}
+                                    initial="hidden"
+                                    animate="show"
+                                >
                                     {pendingRequests.map((request) => (
-                                        <PendingRequestCard
-                                            key={request.id}
-                                            request={request}
-                                            onAccepted={handleRequestResolved}
-                                            onRejected={handleRequestResolved}
-                                        />
+                                        <motion.div key={request.id} variants={listItemVariants}>
+                                            <PendingRequestCard
+                                                request={request}
+                                                onAccepted={handleRequestResolved}
+                                                onRejected={handleRequestResolved}
+                                            />
+                                        </motion.div>
                                     ))}
-                                </div>
+                                </motion.div>
                             </>
                         )}
                     </motion.section>
@@ -310,46 +303,49 @@ function FriendsPage() {
                                 <span className="friends-page__count">{friends.length}</span>
                             )}
                         </h2>
-                        <div className="friends-page__list">
+                        <motion.div
+                            className="friends-page__list"
+                            variants={listContainerVariants}
+                            initial="hidden"
+                            animate="show"
+                        >
                             {friends.map((friend) => (
-                                <div
-                                    key={friend.id}
-                                    className="glass-card glass-card--compact user-card"
-                                >
-                                    <div className="user-card__avatar">
+                                <motion.div key={friend.id} variants={listItemVariants}>
+                                    <div className="glass-card glass-card--compact user-card">
+                                        {/* Avatar — image or UserStatusAvatar Facehash fallback */}
                                         {friend.image ? (
-                                            <img
-                                                src={friend.image}
-                                                alt={friend.name}
-                                                className="user-card__avatar-img"
-                                            />
-                                        ) : (
-                                            <div
-                                                className="user-card__avatar-fallback"
-                                                aria-hidden="true"
-                                            >
-                                                {(friend.name ?? friend.email ?? "?")
-                                                    .charAt(0)
-                                                    .toUpperCase()}
+                                            <div className="user-card__avatar">
+                                                <img
+                                                    src={friend.image}
+                                                    alt={friend.name}
+                                                    className="user-card__avatar-img"
+                                                />
                                             </div>
+                                        ) : (
+                                            <UserStatusAvatar
+                                                userId={friend.id}
+                                                userName={friend.name}
+                                                size={32}
+                                                showWaveRings={false}
+                                            />
                                         )}
-                                    </div>
-                                    <div className="user-card__info">
-                                        <span className="user-card__name">{friend.name}</span>
-                                        <span className="user-card__email">{friend.email}</span>
-                                    </div>
-                                    <div className="user-card__action">
-                                        <div
-                                            className="user-card__friends-badge"
-                                            aria-label="Friends"
-                                        >
-                                            <UserCheck size={14} aria-hidden="true" />
-                                            <span>Friends</span>
+                                        <div className="user-card__info">
+                                            <span className="user-card__name">{friend.name}</span>
+                                            <span className="user-card__email">{friend.email}</span>
+                                        </div>
+                                        <div className="user-card__action">
+                                            <div
+                                                className="user-card__friends-badge"
+                                                aria-label="Friends"
+                                            >
+                                                <UserCheck size={14} aria-hidden="true" />
+                                                <span>Friends</span>
+                                            </div>
                                         </div>
                                     </div>
-                                </div>
+                                </motion.div>
                             ))}
-                        </div>
+                        </motion.div>
                     </>
                 )}
             </motion.section>

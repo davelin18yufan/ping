@@ -342,7 +342,13 @@
 
     max-width: 640px;
     margin: 0 auto;
-    padding: 5rem 1rem 2rem;
+    /*
+     * padding-top calculation for floating capsule header:
+     *   top-offset(16px) + header-height(48px) + gap(8px) = 72px = 4.5rem
+     * Do NOT use 5rem+: the extra blank zone serves no purpose because the
+     * capsule is not full-width and content is visible around it at the top.
+     */
+    padding: 4.5rem 1rem 2rem;
     display: flex;
     flex-direction: column;
     gap: 1.5rem;
@@ -389,53 +395,38 @@
     position: relative;
 }
 
-/* Sonar ring — absolutely positioned below search input, triggered by JS */
+/*
+ * Sonar rings container — centered in search zone, allows decorative overflow.
+ * Motion.js drives the animation via scale + opacity; no CSS keyframes needed.
+ * Key-based remount (sonarKey counter) restarts animations on each query change.
+ */
+.friends-page__sonar-rings {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* Single sonar ring — circle, driven by Motion.js animate prop */
 .friends-page__sonar-ring {
     position: absolute;
-    bottom: -8px;
+    top: 50%;
     left: 50%;
-    translate: -50% 0;
-    width: 100%;
-    height: 2px;
-    border-radius: 999px;
-    background: transparent;
-    border: 1.5px solid var(--sonar-color);
+    translate: -50% -50%;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 2px solid var(--sonar-color);
+    box-shadow: 0 0 18px 4px var(--sonar-color);
     pointer-events: none;
-    opacity: 0;
 }
 
-/* Single-fire sonar animation — JS adds/removes this class */
-.friends-page__sonar-ring--active {
-    animation: sonar-ping-ring var(--sonar-ring-duration) var(--ease-out, ease-out) forwards;
-}
-
-/* Staggered second ring for Light mode (3-ring ripple) */
-.friends-page__sonar-ring--active-2 {
-    animation: sonar-ping-ring var(--sonar-ring-duration) var(--ease-out, ease-out) 80ms forwards;
-}
-
-.friends-page__sonar-ring--active-3 {
-    animation: sonar-ping-ring var(--sonar-ring-duration) var(--ease-out, ease-out) 160ms forwards;
-}
-
-@keyframes sonar-ping-ring {
-    0% {
-        transform: scale(1);
-        opacity: 0.35;
-    }
-    100% {
-        transform: scale(2.5);
-        opacity: 0;
-    }
-}
-
-/* Reduced motion: skip sonar ring animation entirely */
+/* Reduced motion: hide sonar rings entirely (Motion respects this via transform) */
 @media (prefers-reduced-motion: reduce) {
-    .friends-page__sonar-ring--active,
-    .friends-page__sonar-ring--active-2,
-    .friends-page__sonar-ring--active-3 {
-        animation: none;
-        opacity: 0;
+    .friends-page__sonar-rings {
+        display: none;
     }
 }
 

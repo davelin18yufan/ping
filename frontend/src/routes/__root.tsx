@@ -1,5 +1,6 @@
 import type { QueryClient } from "@tanstack/react-query"
 
+import AppHeader from "@components/shared/AppHeader"
 import { TanStackDevtools } from "@tanstack/react-devtools"
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
@@ -7,14 +8,13 @@ import { useEffect } from "react"
 
 import type { AuthSession } from "@/lib/auth"
 
-import AppHeader from "@components/shared/AppHeader"
 import { AestheticModeProvider, useAestheticMode } from "@/contexts/aesthetic-mode-context"
 import { useSessionGuard } from "@/hooks/useSessionGuard"
-
 import TanStackQueryDevtools from "@/integrations/tanstack-query/devtools"
 import * as TanstackQuery from "@/integrations/tanstack-query/root-provider"
 import StoreDevtools from "@/lib/demo-store-devtools"
-import appCss from "@css/styles.css?url"
+
+import appCss from "../styles.css?url"
 
 interface PingContext {
     queryClient: QueryClient

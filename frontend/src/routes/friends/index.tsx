@@ -19,6 +19,8 @@ import { UserCheck, Users } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
+import type { FriendshipStatus } from "@/types/friends"
+
 import { FriendSearchInput } from "@/components/friends/FriendSearchInput"
 import { PendingRequestCard } from "@/components/friends/PendingRequestCard"
 import { UserStatusAvatar } from "@/components/shared/UserStatusAvatar"
@@ -29,7 +31,7 @@ import {
     sentRequestsQueryOptions,
 } from "@/graphql/options/friends"
 import { requireAuthServer } from "@/middleware/auth.middleware.server"
-import type { FriendshipStatus } from "@/types/friends"
+
 import "@styles/components/friends.css"
 
 // Default export for test imports (import("@/routes/friends/index").default)

@@ -11,6 +11,11 @@
  * - friends: list all ACCEPTED friendships for current user
  * - pendingFriendRequests: list PENDING requests received by current user
  * - sentFriendRequests: list PENDING requests sent by current user
+ *
+ * DataLoader pattern:
+ *   Parent resolvers return raw IDs (senderId, receiverId, friendId).
+ *   FriendRequest and Friendship type resolvers use context.loaders.user
+ *   to batch-load User objects, preventing N+1 queries.
  */
 
 import { GraphQLError } from "graphql"
@@ -29,6 +34,25 @@ function normalizeFriendshipIds(idA: string, idB: string): { userId1: string; us
  */
 function toISO(date: Date | null | undefined): string | null {
     return date ? date.toISOString() : null
+}
+
+// ---------------------------------------------------------------------------
+// Internal shape returned by parent resolvers (before field resolution)
+// ---------------------------------------------------------------------------
+
+type FriendRequestParent = {
+    id: string
+    status: string
+    createdAt: string
+    updatedAt: string
+    senderId: string
+    receiverId: string
+}
+
+type FriendshipParent = {
+    id: string
+    since: string
+    friendId: string
 }
 
 /**
@@ -100,21 +124,21 @@ const Query = {
                 status: "ACCEPTED",
                 OR: [{ userId1: context.userId }, { userId2: context.userId }],
             },
-            include: {
-                user1: true,
-                user2: true,
+            select: {
+                userId1: true,
+                userId2: true,
             },
         })
 
-        return friendships.map((f) => {
-            const friend = f.userId1 === context.userId ? f.user2 : f.user1
-            return {
-                ...friend,
-                emailVerified: toISO(friend.emailVerified),
-                createdAt: friend.createdAt.toISOString(),
-                updatedAt: friend.updatedAt.toISOString(),
-            }
-        })
+        // Collect the IDs of the other party in each friendship
+        const friendIds = friendships.map((f) =>
+            f.userId1 === context.userId ? f.userId2 : f.userId1
+        )
+
+        // Batch-load all friend User records in a single query via DataLoader
+        const users = await Promise.all(friendIds.map((id) => context.loaders.user.load(id)))
+
+        return users.filter(Boolean)
     },
 
     /**
@@ -125,7 +149,7 @@ const Query = {
         _parent: unknown,
         _args: Record<string, never>,
         context: GraphQLContext
-    ) => {
+    ): Promise<FriendRequestParent[]> => {
         if (!context.isAuthenticated || !context.userId) {
             throw new GraphQLError("Not authenticated", {
                 extensions: { code: "UNAUTHENTICATED", status: 401 },
@@ -138,35 +162,25 @@ const Query = {
                 requestedBy: { not: context.userId },
                 OR: [{ userId1: context.userId }, { userId2: context.userId }],
             },
-            include: {
-                user1: true,
-                user2: true,
-                requester: true,
+            select: {
+                id: true,
+                status: true,
+                requestedBy: true,
+                userId1: true,
+                userId2: true,
+                createdAt: true,
+                updatedAt: true,
             },
         })
 
-        return friendships.map((f) => {
-            const sender = f.requester
-            const receiver = f.userId1 === f.requestedBy ? f.user2 : f.user1
-            return {
-                id: f.id,
-                status: f.status,
-                createdAt: f.createdAt.toISOString(),
-                updatedAt: f.updatedAt.toISOString(),
-                sender: {
-                    ...sender,
-                    emailVerified: toISO(sender.emailVerified),
-                    createdAt: sender.createdAt.toISOString(),
-                    updatedAt: sender.updatedAt.toISOString(),
-                },
-                receiver: {
-                    ...receiver,
-                    emailVerified: toISO(receiver.emailVerified),
-                    createdAt: receiver.createdAt.toISOString(),
-                    updatedAt: receiver.updatedAt.toISOString(),
-                },
-            }
-        })
+        return friendships.map((f) => ({
+            id: f.id,
+            status: f.status,
+            createdAt: f.createdAt.toISOString(),
+            updatedAt: f.updatedAt.toISOString(),
+            senderId: f.requestedBy,
+            receiverId: f.userId1 === f.requestedBy ? f.userId2 : f.userId1,
+        }))
     },
 
     /**
@@ -177,7 +191,7 @@ const Query = {
         _parent: unknown,
         _args: Record<string, never>,
         context: GraphQLContext
-    ) => {
+    ): Promise<FriendRequestParent[]> => {
         if (!context.isAuthenticated || !context.userId) {
             throw new GraphQLError("Not authenticated", {
                 extensions: { code: "UNAUTHENTICATED", status: 401 },
@@ -189,35 +203,25 @@ const Query = {
                 status: "PENDING",
                 requestedBy: context.userId,
             },
-            include: {
-                user1: true,
-                user2: true,
-                requester: true,
+            select: {
+                id: true,
+                status: true,
+                requestedBy: true,
+                userId1: true,
+                userId2: true,
+                createdAt: true,
+                updatedAt: true,
             },
         })
 
-        return friendships.map((f) => {
-            const sender = f.requester
-            const receiver = f.userId1 === f.requestedBy ? f.user2 : f.user1
-            return {
-                id: f.id,
-                status: f.status,
-                createdAt: f.createdAt.toISOString(),
-                updatedAt: f.updatedAt.toISOString(),
-                sender: {
-                    ...sender,
-                    emailVerified: toISO(sender.emailVerified),
-                    createdAt: sender.createdAt.toISOString(),
-                    updatedAt: sender.updatedAt.toISOString(),
-                },
-                receiver: {
-                    ...receiver,
-                    emailVerified: toISO(receiver.emailVerified),
-                    createdAt: receiver.createdAt.toISOString(),
-                    updatedAt: receiver.updatedAt.toISOString(),
-                },
-            }
-        })
+        return friendships.map((f) => ({
+            id: f.id,
+            status: f.status,
+            createdAt: f.createdAt.toISOString(),
+            updatedAt: f.updatedAt.toISOString(),
+            senderId: f.requestedBy,
+            receiverId: f.userId1 === f.requestedBy ? f.userId2 : f.userId1,
+        }))
     },
 }
 
@@ -233,7 +237,7 @@ const Mutation = {
         _parent: unknown,
         args: { userId: string },
         context: GraphQLContext
-    ) => {
+    ): Promise<FriendRequestParent> => {
         if (!context.isAuthenticated || !context.userId) {
             throw new GraphQLError("Not authenticated", {
                 extensions: { code: "UNAUTHENTICATED", status: 401 },
@@ -267,34 +271,27 @@ const Mutation = {
                 status: "PENDING",
                 requestedBy: context.userId,
             },
-            include: {
-                user1: true,
-                user2: true,
-                requester: true,
+            select: {
+                id: true,
+                status: true,
+                requestedBy: true,
+                userId1: true,
+                userId2: true,
+                createdAt: true,
+                updatedAt: true,
             },
         })
-
-        const sender = friendship.requester
-        const receiver =
-            friendship.userId1 === friendship.requestedBy ? friendship.user2 : friendship.user1
 
         return {
             id: friendship.id,
             status: friendship.status,
             createdAt: friendship.createdAt.toISOString(),
             updatedAt: friendship.updatedAt.toISOString(),
-            sender: {
-                ...sender,
-                emailVerified: toISO(sender.emailVerified),
-                createdAt: sender.createdAt.toISOString(),
-                updatedAt: sender.updatedAt.toISOString(),
-            },
-            receiver: {
-                ...receiver,
-                emailVerified: toISO(receiver.emailVerified),
-                createdAt: receiver.createdAt.toISOString(),
-                updatedAt: receiver.updatedAt.toISOString(),
-            },
+            senderId: friendship.requestedBy,
+            receiverId:
+                friendship.userId1 === friendship.requestedBy
+                    ? friendship.userId2
+                    : friendship.userId1,
         }
     },
 
@@ -307,7 +304,7 @@ const Mutation = {
         _parent: unknown,
         args: { requestId: string },
         context: GraphQLContext
-    ) => {
+    ): Promise<FriendshipParent> => {
         if (!context.isAuthenticated || !context.userId) {
             throw new GraphQLError("Not authenticated", {
                 extensions: { code: "UNAUTHENTICATED", status: 401 },
@@ -316,7 +313,7 @@ const Mutation = {
 
         const friendship = await context.prisma.friendship.findUnique({
             where: { id: args.requestId },
-            include: { user1: true, user2: true },
+            select: { id: true, requestedBy: true, userId1: true, userId2: true },
         })
 
         if (!friendship) {
@@ -334,20 +331,13 @@ const Mutation = {
         const updated = await context.prisma.friendship.update({
             where: { id: args.requestId },
             data: { status: "ACCEPTED" },
-            include: { user1: true, user2: true },
+            select: { id: true, userId1: true, userId2: true, updatedAt: true },
         })
-
-        const friend = updated.userId1 === context.userId ? updated.user2 : updated.user1
 
         return {
             id: updated.id,
             since: updated.updatedAt.toISOString(),
-            friend: {
-                ...friend,
-                emailVerified: toISO(friend.emailVerified),
-                createdAt: friend.createdAt.toISOString(),
-                updatedAt: friend.updatedAt.toISOString(),
-            },
+            friendId: updated.userId1 === context.userId ? updated.userId2 : updated.userId1,
         }
     },
 
@@ -369,6 +359,7 @@ const Mutation = {
 
         const friendship = await context.prisma.friendship.findUnique({
             where: { id: args.requestId },
+            select: { requestedBy: true },
         })
 
         if (!friendship) {
@@ -409,6 +400,7 @@ const Mutation = {
 
         const friendship = await context.prisma.friendship.findUnique({
             where: { id: args.requestId },
+            select: { requestedBy: true },
         })
 
         if (!friendship) {
@@ -432,9 +424,35 @@ const Mutation = {
 }
 
 /**
+ * Type Resolvers for FriendRequest
+ *
+ * These field resolvers use DataLoader to batch-load User objects.
+ * Without DataLoader, resolving N FriendRequests would fire N separate
+ * user queries. DataLoader coalesces all load() calls in one event loop
+ * tick into a single SELECT ... WHERE id IN (...).
+ */
+const FriendRequest = {
+    sender: (parent: FriendRequestParent, _args: unknown, context: GraphQLContext) =>
+        context.loaders.user.load(parent.senderId),
+
+    receiver: (parent: FriendRequestParent, _args: unknown, context: GraphQLContext) =>
+        context.loaders.user.load(parent.receiverId),
+}
+
+/**
+ * Type Resolvers for Friendship
+ */
+const Friendship = {
+    friend: (parent: FriendshipParent, _args: unknown, context: GraphQLContext) =>
+        context.loaders.user.load(parent.friendId),
+}
+
+/**
  * Export all friends resolvers
  */
 export const friendsResolvers = {
     Query,
     Mutation,
+    FriendRequest,
+    Friendship,
 }

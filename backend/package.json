@@ -20,24 +20,27 @@
         "prisma:migrate:deploy": "bunx --bun prisma migrate deploy"
     },
     "dependencies": {
-        "@prisma/adapter-pg": "^7.3.0",
-        "@prisma/client": "^7.3.0",
+        "@escape.tech/graphql-armor-max-depth": "^2.4.2",
+        "@graphql-yoga/plugin-disable-introspection": "^2.19.0",
+        "@prisma/adapter-pg": "^7.4.1",
+        "@prisma/client": "^7.4.1",
         "@socket.io/bun-engine": "^0.1.0",
-        "better-auth": "^1.4.18",
+        "better-auth": "^1.4.19",
+        "dataloader": "^2.2.3",
         "graphql": "^16.12.0",
         "graphql-yoga": "^5.18.0",
-        "hono": "^4.11.7",
-        "ioredis": "^5.9.2",
-        "pg": "^8.17.2",
-        "prisma": "^7.3.0",
+        "hono": "^4.12.2",
+        "ioredis": "^5.9.3",
+        "pg": "^8.18.0",
+        "prisma": "^7.4.1",
         "socket.io": "^4.8.3"
     },
     "devDependencies": {
         "@types/bun": "latest",
-        "@types/node": "^25.1.0",
+        "@types/node": "^25.3.0",
         "@types/pg": "^8.16.0",
-        "oxfmt": "^0.27.0",
-        "oxlint": "^1.42.0",
+        "oxfmt": "^0.35.0",
+        "oxlint": "^1.50.0",
         "socket.io-client": "^4.8.3"
     },
     "prisma": {

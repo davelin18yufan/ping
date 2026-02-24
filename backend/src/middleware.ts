@@ -26,11 +26,12 @@ import { prisma } from "./lib/prisma"
 export async function sessionMiddleware(c: Context, next: Next) {
     try {
         // Verify session from request cookies
-        const userId = await verifySession(c.req.raw)
+        const sessionIdentity = await verifySession(c.req.raw)
 
         // Inject auth context into Hono context
-        c.set("userId", userId)
-        c.set("isAuthenticated", userId !== null)
+        c.set("userId", sessionIdentity?.userId ?? null)
+        c.set("sessionId", sessionIdentity?.sessionId ?? null)
+        c.set("isAuthenticated", sessionIdentity !== null)
 
         await next()
     } catch (error) {
@@ -38,6 +39,7 @@ export async function sessionMiddleware(c: Context, next: Next) {
 
         // Set unauthenticated context on error
         c.set("userId", null)
+        c.set("sessionId", null)
         c.set("isAuthenticated", false)
 
         await next()

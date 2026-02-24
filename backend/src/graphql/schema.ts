@@ -6,7 +6,7 @@
  */
 
 import { createSchema } from "graphql-yoga"
-import { userResolvers, authResolvers, friendsResolvers } from "./resolvers"
+import { userResolvers, authResolvers, friendsResolvers, sessionsResolvers } from "./resolvers"
 
 /**
  * GraphQL Schema
@@ -90,6 +90,41 @@ export const schema = createSchema({
       }
 
       """
+      Session information for one of the current user's active login sessions.
+      """
+      type SessionInfo {
+        """
+        Unique session ID
+        """
+        id: ID!
+
+        """
+        User agent string of the browser/device (null if not captured)
+        """
+        userAgent: String
+
+        """
+        IP address of the client (null if not captured)
+        """
+        ipAddress: String
+
+        """
+        Timestamp when this session was created
+        """
+        createdAt: String!
+
+        """
+        Timestamp when this session expires
+        """
+        expiresAt: String!
+
+        """
+        True if this is the session used by the current request
+        """
+        isCurrent: Boolean!
+      }
+
+      """
       Root Query type - all read operations
       """
       type Query {
@@ -120,6 +155,12 @@ export const schema = createSchema({
         Get all pending friend requests sent by the current user.
         """
         sentFriendRequests: [FriendRequest!]!
+
+        """
+        Get all active (non-expired) sessions for the current user.
+        Requires authentication. Returns UNAUTHENTICATED if not logged in.
+        """
+        sessions: [SessionInfo!]!
       }
 
       """
@@ -206,6 +247,19 @@ export const schema = createSchema({
         Returns true on success.
         """
         cancelFriendRequest(requestId: ID!): Boolean!
+
+        """
+        Revoke a specific session by its ID.
+        Cannot revoke the currently active session (FORBIDDEN).
+        Returns true on success.
+        """
+        revokeSession(sessionId: ID!): Boolean!
+
+        """
+        Revoke all sessions except the current one.
+        Returns true on success.
+        """
+        revokeAllSessions: Boolean!
       }
 
       """
@@ -220,10 +274,16 @@ export const schema = createSchema({
         Query: {
             ...userResolvers.Query,
             ...friendsResolvers.Query,
+            ...sessionsResolvers.Query,
         },
         Mutation: {
             ...authResolvers.Mutation,
             ...friendsResolvers.Mutation,
+            ...sessionsResolvers.Mutation,
         },
+        // Type-level resolvers: use DataLoader to prevent N+1 queries
+        // when resolving FriendRequest.sender/receiver and Friendship.friend
+        FriendRequest: friendsResolvers.FriendRequest,
+        Friendship: friendsResolvers.Friendship,
     },
 })

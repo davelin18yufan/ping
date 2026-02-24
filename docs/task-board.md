@@ -129,13 +129,17 @@
     - `frontend/tests/integration/oauth-login.spec.tsx` - OAuth 測試
     - `frontend/tests/integration/auth-middleware-server.spec.ts` - Middleware 測試
 
-- [ ] **Session 管理**
-  - Agent: Architect → Backend Developer → Architect (Review)
-  - 任務: Session 建立、驗證、登出
-  - 狀態: 待規格化
+- [x] **Session 管理** ✅ 完成（2026-02-24）
+  - Agent: Backend Developer
+  - 任務: Session 列表查詢、多裝置登出、revokeSession / revokeAllSessions
+  - 狀態: ✅ 完成 — 8/8 後端整合測試通過
   - 優先度: P0
-  - 依賴: OAuth 登入流程
-  - 測試案例: 10
+  - 依賴: OAuth 登入流程 ✅
+  - 實作檔案:
+    - `backend/src/graphql/resolvers/sessions.ts`
+    - `backend/tests/integration/sessions.spec.ts`（8 tests）
+    - `docs/architecture/Feature-1.1.2-TDD-Tests.md`（TDD 規格）
+  - 測試案例: 8（TC-B-01 至 TC-B-08）
 
 - [ ] **Magic Link (可選)**
   - Agent: Architect → Backend Developer → Architect (Review)
@@ -459,6 +463,23 @@
     - `frontend/src/styles/base/overrides.css` — `scrollbar-gutter: stable` + 自訂捲軸
     - `frontend/tests/integration/friends-page.spec.tsx` — 11 tests（per-test query cache seeding）
   - Commits: `d5290e7`, `58e915a`
+
+- [x] **好友系統 GraphQL Resolvers（Feature 1.2.1 — Backend）** ✅
+  - Agent: Backend Developer
+  - 任務: searchUsers、sendFriendRequest、acceptFriendRequest、rejectFriendRequest、cancelFriendRequest、friends、pendingFriendRequests、sentFriendRequests
+  - 狀態: ✅ 完成（2026-02-24，55/55 後端測試通過）
+  - 優先度: P0
+  - 依賴: Feature 1.2.0 ✅
+  - TDD 文件: `/docs/Feature-1.2.1-TDD-Tests.md`
+  - **關鍵實作**:
+    - `backend/src/graphql/resolvers/friends.ts` — 8 個 Resolvers，DataLoader 模式（N+1 防護）
+    - `backend/src/graphql/loaders.ts` — DataLoader per-request 建立，批次 User 查詢
+    - `backend/src/graphql/schema.ts` — FriendRequest, Friendship, FriendshipStatus types
+    - `backend/tests/integration/friends.spec.ts` — 14 整合測試（TC-B-01 至 TC-B-14）
+  - **安全改善**:
+    - `@escape.tech/graphql-armor-max-depth` — Query depth 限制（MAX_DEPTH=7）
+    - `@graphql-yoga/plugin-disable-introspection` — 生產環境停用 Introspection
+  - Branch: `feature/1.2.1-friend-search`
 
 - [ ] **個人資料頁面**
   - Agent: Architect → Fullstack Frontend Developer → Architect (Review)

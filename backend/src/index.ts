@@ -11,12 +11,21 @@ import { Hono } from "hono"
 import { cors } from "hono/cors"
 import { logger } from "hono/logger"
 import { createYoga } from "graphql-yoga"
+import { useDisableIntrospection } from "@graphql-yoga/plugin-disable-introspection"
+import { maxDepthPlugin } from "@escape.tech/graphql-armor-max-depth"
 import type { PrismaClient } from "@generated/prisma/client"
 import { authHandler } from "./lib/auth"
 import { sessionMiddleware, getAuthUserId, withPrisma } from "./middleware"
 import { schema } from "./graphql/schema"
 import { buildGraphQLContext } from "./graphql/context"
 import { initializeSocketIO } from "./socket"
+
+/**
+ * Maximum allowed query depth.
+ * Prevents deeply nested queries from causing excessive database load.
+ * Depth 7 supports: query { pendingFriendRequests { sender { ... } receiver { ... } } }
+ */
+const MAX_QUERY_DEPTH = 7
 
 /**
  * App Context with Prisma and Auth
@@ -27,6 +36,7 @@ type AppContext = {
     Variables: {
         prisma: PrismaClient
         userId: string | null
+        sessionId: string | null
         isAuthenticated: boolean
     }
 }
@@ -50,10 +60,16 @@ const yoga = createYoga({
     context: buildGraphQLContext,
     // Let Hono handle CORS
     cors: false,
-    // GraphiQL enabled in development
+    // GraphiQL enabled in development only
     graphiql: process.env.NODE_ENV === "development",
     // Logging
     logging: process.env.NODE_ENV === "development" ? "debug" : "error",
+    plugins: [
+        // Prevent deeply nested queries from DoS-ing the server
+        maxDepthPlugin({ n: MAX_QUERY_DEPTH }),
+        // Disable introspection in production to avoid exposing schema structure
+        ...(process.env.NODE_ENV === "production" ? [useDisableIntrospection()] : []),
+    ],
 })
 
 // ============================================================================
@@ -173,11 +189,13 @@ app.all("/graphql", async (c) => {
     // Attach auth data to request for Yoga context builder
     const request = c.req.raw as Request & {
         _userId?: string | null
+        _sessionId?: string | null
         _isAuthenticated?: boolean
         _prisma?: PrismaClient
     }
 
     request._userId = c.get("userId")
+    request._sessionId = c.get("sessionId")
     request._isAuthenticated = c.get("isAuthenticated")
     request._prisma = c.get("prisma")
 

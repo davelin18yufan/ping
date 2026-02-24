@@ -567,20 +567,38 @@ feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
 
 ---
 
-#### 🔲 Feature 1.1.2 - Magic Link 登入（後備方案）
+#### ✅ Feature 1.1.2 - Session 管理
+
+> **⚠️ 定義變更**：本 Feature 原規劃為 Magic Link 登入（後備方案），本 Sprint 重新定義為「Session 管理」（多裝置 Session 查詢與撤銷）。Magic Link 功能移至未來 backlog。
 
 | 欄位 | 內容 |
 |------|------|
-| **狀態** | 🔲 設計中 |
-| **優先級** | P1（可後延至 Phase 1.2） |
-| **負責** | Architect + Backend + QA |
-| **SDD 參考** | backend.md §III（Magic Link 部分） |
-| **預期完成日期** | 2025-01-10 |
+| **狀態** | ✅ 完成（8/8 測試通過 - 100%） |
+| **優先級** | P1 |
+| **負責** | Architect + Backend |
+| **SDD 參考** | backend.md §Session Management |
+| **TDD 文件** | `/docs/architecture/Feature-1.1.2-TDD-Tests.md` ✅ |
+| **分支** | `feature/1.2.1-backend`（合併於此 Sprint） |
+| **實際完成日期** | 2026-02-24 |
 
-**子任務：** 待 Architect 完成設計，預期包括：
-- 發送驗證郵件 mutation
-- 郵件點擊驗證邏輯
-- Session 自動建立
+**子任務：**
+- ✅ TDD 規格文件建立（`Feature-1.1.2-TDD-Tests.md`，8 個測試案例設計）
+- ✅ Prisma migration：`add-session-created-at`（Session model 加入 `createdAt` 欄位）
+- ✅ `verifySession` 更新：回傳 `{ userId, sessionId }` 以支援 `isCurrent` 判斷
+- ✅ `GraphQLContext` 更新：加入 `sessionId` 欄位
+- ✅ 建立 `/backend/src/graphql/resolvers/sessions.ts`（`sessions`, `revokeSession`, `revokeAllSessions`）
+- ✅ `schema.ts` 新增 `SessionInfo` type + Query/Mutation 定義
+- ✅ 建立 `/backend/tests/integration/sessions.spec.ts`（8 個測試全部通過）
+
+**GraphQL API**：
+```graphql
+type SessionInfo { id, userAgent, ipAddress, createdAt, expiresAt, isCurrent }
+sessions: [SessionInfo!]!
+revokeSession(sessionId: ID!): Boolean!
+revokeAllSessions: Boolean!
+```
+
+**測試結果**：8/8 通過（TC-B-01 至 TC-B-08）
 
 ---
 
@@ -1064,7 +1082,7 @@ CI / Dependencies 更新：
 
 | 欄位 | 內容 |
 |------|------|
-| **狀態** | ✅ 完成（Frontend Web 實作完成，175/175 測試通過） |
+| **狀態** | ✅ 完成（Backend + Frontend Web 全部完成，55/55 後端測試、175/175 前端測試通過） |
 | **優先級** | P1 |
 | **負責** | Backend + Full-Stack Frontend |
 | **SDD 參考** | backend.md §Friend Management、frontend.md §Friends Page |
@@ -1075,31 +1093,35 @@ CI / Dependencies 更新：
 
 **測試規格狀態**：
 - ✅ TDD 測試規格文件已完成：`/docs/Feature-1.2.1-TDD-Tests.md`
+- ✅ Backend 測試：14 個整合測試全部通過（friends.spec.ts, TC-B-01 至 TC-B-14）
 - ✅ Frontend Web 測試：11 個整合測試全部通過（friends-page.spec.tsx）
-- ✅ 總測試通過：175/175（100%）
+- ✅ 後端總測試通過：55/55（100%），前端：175/175（100%）
 
 **子任務分解**：
 
-1. **Backend — GraphQL Schema 擴充**（Backend Agent，2 小時）
-   - [ ] 新增 `FriendRequest`、`Friendship` GraphQL types
-   - [ ] 新增 `FriendshipStatus` enum
-   - [ ] 擴充 `Query`: `searchUsers`, `friends`, `pendingFriendRequests`, `sentFriendRequests`
-   - [ ] 擴充 `Mutation`: `sendFriendRequest`, `acceptFriendRequest`, `rejectFriendRequest`, `cancelFriendRequest`
+1. **Backend — GraphQL Schema 擴充**（Backend Agent）✅
+   - ✅ 新增 `FriendRequest`、`Friendship` GraphQL types
+   - ✅ 新增 `FriendshipStatus` enum
+   - ✅ 擴充 `Query`: `searchUsers`, `friends`, `pendingFriendRequests`, `sentFriendRequests`
+   - ✅ 擴充 `Mutation`: `sendFriendRequest`, `acceptFriendRequest`, `rejectFriendRequest`, `cancelFriendRequest`
 
-2. **Backend — Resolvers 實作**（Backend Agent，4 小時）
-   - [ ] 建立 `/backend/src/graphql/resolvers/friends.ts`
-   - [ ] `searchUsers`: 搜尋邏輯（ILIKE、排除自己、最多 20 筆、需認證）
-   - [ ] `sendFriendRequest`: 防重複（409）、防自送（400）、userId1/userId2 排序慣例
-   - [ ] `acceptFriendRequest`: 驗證接收方身份（403）、更新狀態為 ACCEPTED
-   - [ ] `rejectFriendRequest`: 驗證接收方身份（403）、更新狀態為 REJECTED
-   - [ ] `cancelFriendRequest`: 驗證發送方身份（403）、刪除記錄
-   - [ ] `friends`: 回傳 ACCEPTED 好友（雙向）
-   - [ ] `pendingFriendRequests` / `sentFriendRequests`: 分開回傳收到/發出的 PENDING
+2. **Backend — Resolvers 實作**（Backend Agent）✅
+   - ✅ 建立 `/backend/src/graphql/resolvers/friends.ts`
+   - ✅ `searchUsers`: 搜尋邏輯（ILIKE、排除自己、最多 20 筆、需認證）
+   - ✅ `sendFriendRequest`: 防重複（409）、防自送（400）、userId1/userId2 排序慣例
+   - ✅ `acceptFriendRequest`: 驗證接收方身份（403）、更新狀態為 ACCEPTED
+   - ✅ `rejectFriendRequest`: 驗證接收方身份（403）、更新狀態為 REJECTED
+   - ✅ `cancelFriendRequest`: 驗證發送方身份（403）、刪除記錄
+   - ✅ `friends`: 回傳 ACCEPTED 好友（雙向）
+   - ✅ `pendingFriendRequests` / `sentFriendRequests`: 分開回傳收到/發出的 PENDING
+   - ✅ DataLoader 模式：`/backend/src/graphql/loaders.ts`，批次載入 User，防止 N+1 查詢
+   - ✅ `FriendRequest` type resolver（sender/receiver via DataLoader）
+   - ✅ `Friendship` type resolver（friend via DataLoader）
 
-3. **Backend — 測試實作**（Backend Agent，2 小時）
-   - [ ] 建立 `/backend/tests/integration/friends.spec.ts`
-   - [ ] 實作 14 個測試案例全部通過（TC-B-01 至 TC-B-14）
-   - [ ] 測試覆蓋率 >80%
+3. **Backend — 測試實作**（Backend Agent）✅
+   - ✅ 建立 `/backend/tests/integration/friends.spec.ts`
+   - ✅ 實作 14 個測試案例全部通過（TC-B-01 至 TC-B-14）
+   - ✅ 測試覆蓋率 >80%
 
 4. **Frontend Web — /friends 路由與頁面**（Full-Stack Frontend Agent，3 小時）✅
    - ✅ `/frontend/src/routes/friends/index.tsx`（TanStack Start route，`requireAuthServer` + loader）
@@ -1144,6 +1166,12 @@ rejectFriendRequest(requestId: ID!): Boolean!
 cancelFriendRequest(requestId: ID!): Boolean!
 ```
 
+**驗收標準（Backend 部分）**：
+- ✅ 14 個 Backend 整合測試全部通過（friends.spec.ts，TC-B-01 至 TC-B-14）
+- ✅ DataLoader 模式實作（N+1 防護），loaders.ts per-request 建立
+- ✅ GraphQL Schema 完整（FriendRequest, Friendship, FriendshipStatus, 4 Query, 4 Mutation）
+- ✅ 所有 Resolver 含認證保護（UNAUTHENTICATED, FORBIDDEN, CONFLICT, NOT_FOUND）
+
 **驗收標準（Frontend Web 部分）**：
 - ✅ 11 個 Frontend 整合測試全部通過（friends-page.spec.tsx）
 - ✅ TypeScript 類型完整（0 errors）
@@ -1161,100 +1189,6 @@ cancelFriendRequest(requestId: ID!): Boolean!
 - 變更統計：8 個檔案，319 insertions，216 deletions（visual redesign commit）
 
 ---
-
-## 八、下一步行動計畫
-
-### Phase 1.0 完成總結
-**恭喜！Phase 1.0 基礎設施初始化已 100% 完成。**
-
-已完成功能清單：
-1. ✅ **Feature 1.0.1** - Backend 基礎設施（Prisma, Redis, Better Auth, GraphQL Yoga, Socket.io）
-2. ✅ **Feature 1.0.2** - Frontend (Web) 基礎設施（Vitest, TanStack Store, Apollo Client, Socket.io Client, Better Auth Client）
-3. ✅ **Feature 1.0.3** - Mobile 基礎設施（NativeWind, Jest, TanStack Store, Apollo Client, Socket.io Client, Better Auth Expo）
-4. ✅ **Feature 1.0.4** - Design System 設定（Design Tokens, Primitive Components, Web/Mobile UI Components, 設計文檔）
-
-**總測試通過數**：
-- Backend: 27/27 tests ✅
-- Frontend (Web): 46/46 tests ✅
-- Mobile: 97/97 tests ✅
-- **總計：170/170 tests passing（100%）**
-
-**程式碼品質**：
-- TypeScript check: 0 errors ✅
-- Linter: 0 warnings ✅
-- Formatter: All files formatted ✅
-- Test Coverage: >80% ✅
-
-### Feature 1.1.1 後續行動
-
-#### PR #23 Review Checklist（Architect Agent）
-**建議檢查項目**：
-1. **功能完整性**：
-   - [ ] Server-Side Auth Middleware 實作正確（requireAuthServer, requireGuestServer, optionalAuthServer）
-   - [ ] OAuth 登入頁面完整（Google, GitHub）
-   - [ ] 路由保護正常運作（需登入、訪客專用）
-   - [ ] SoundWaveLoader 動畫流暢（200ms 延遲，最少 500ms 顯示）
-   - [ ] 錯誤處理完善（401, 403, 500）
-
-2. **程式碼品質**：
-   - [ ] TypeScript 類型完整（0 errors）
-   - [ ] Linter 通過（0 warnings）
-   - [ ] Formatter 通過（100% formatted）
-   - [ ] Import order 正確
-   - [ ] 無 console.log 或除錯程式碼
-
-3. **測試覆蓋**：
-   - [ ] OAuth Login Flow 測試完整（13 tests）
-   - [ ] Auth Middleware Server 測試完整（16 tests）
-   - [ ] Better Auth Integration 測試完整（5 tests）
-   - [ ] 測試覆蓋率 >80%
-
-4. **設計符合性**：
-   - [ ] 符合 SDD 規格（frontend.md）
-   - [ ] 符合測試規格（Feature-1.1.1-TDD-Tests.md）
-   - [ ] 遵循目錄邊界（只修改 `/frontend/**`）
-   - [ ] 使用 Design Tokens（無硬編碼顏色）
-
-5. **文件完整性**：
-   - [ ] PR Description 清楚描述變更
-   - [ ] Commits 訊息符合規範
-   - [ ] 相關文件已更新（task-board.md, MULTI_AGENT_PLAN.md）
-
-#### Merge 後行動
-1. **刪除 feature branch**：
-   ```bash
-   git branch -d feature/1.1.1-oauth-google-login
-   git push origin --delete feature/1.1.1-oauth-google-login
-   ```
-
-2. **更新文件**：
-   - ✅ `/docs/task-board.md` 已更新（Feature 1.1.1 標記完成）
-   - ✅ `/MULTI_AGENT_PLAN.md` 已更新（Feature 1.1.1 狀態改為 Done）
-
-3. **準備下一個 Feature**：
-   - 選項 1: Feature 1.1.2 - Session 管理
-   - 選項 2: Feature 1.2.1 - 搜尋與加好友
-   - 選項 3: 其他認證相關功能
-
-#### 下一步建議
-**優先順序 P0 功能**：
-1. **Session 管理（Feature 1.1.2）**：
-   - Session 驗證（已在 Middleware 完成）
-   - Session 更新與延長
-   - Session 登出流程
-   - 多裝置 Session 管理
-
-2. **用戶資料查詢（Feature 2.2）**：
-   - `me` query（查詢當前用戶）
-   - 用戶資料顯示
-   - 頭像與個人資料編輯
-
-3. **搜尋與加好友（Feature 1.2.1）**：
-   - `searchUsers` query
-   - 發送好友邀請 mutation
-   - 好友列表顯示
-
-**建議優先順序**：Session 管理 → 用戶資料查詢 → 搜尋與加好友
 
 #### 風險與注意事項
 - ✅ **OAuth 流程**：已完整實作並測試（Google, GitHub）

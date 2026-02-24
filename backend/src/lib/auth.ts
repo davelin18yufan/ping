@@ -142,9 +142,11 @@ export const authHandler = auth.handler
  * Helper function to verify session from request
  *
  * @param request - Hono request object
- * @returns User ID if session is valid, null otherwise
+ * @returns Session identity (userId + sessionId) if session is valid, null otherwise
  */
-export async function verifySession(request: Request): Promise<string | null> {
+export async function verifySession(
+    request: Request
+): Promise<{ userId: string; sessionId: string } | null> {
     try {
         // Get session from cookie
         const cookieHeader = request.headers.get("cookie")
@@ -175,19 +177,19 @@ export async function verifySession(request: Request): Promise<string | null> {
                 return null
             }
 
-            return session.userId
+            return { userId: session.userId, sessionId: session.id }
         }
 
         // In production/development, verify session with Better Auth
-        const session = await auth.api.getSession({
+        const sessionData = await auth.api.getSession({
             headers: request.headers,
         })
 
-        if (!session?.user?.id) {
+        if (!sessionData?.user?.id || !sessionData?.session?.id) {
             return null
         }
 
-        return session.user.id
+        return { userId: sessionData.user.id, sessionId: sessionData.session.id }
     } catch (error) {
         console.error("Session verification failed:", error)
         return null

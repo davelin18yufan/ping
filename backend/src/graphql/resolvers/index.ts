@@ -8,3 +8,4 @@
 export { userResolvers } from "./user"
 export { authResolvers } from "./auth"
 export { friendsResolvers } from "./friends"
+export { sessionsResolvers } from "./sessions"

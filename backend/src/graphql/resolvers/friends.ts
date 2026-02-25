@@ -20,40 +20,8 @@
 
 import { GraphQLError } from "graphql"
 import type { GraphQLContext } from "../context"
-
-/**
- * Normalize friendship IDs to ensure userId1 < userId2 (string sort order).
- * This enforces the @@unique([userId1, userId2]) constraint.
- */
-function normalizeFriendshipIds(idA: string, idB: string): { userId1: string; userId2: string } {
-    return idA < idB ? { userId1: idA, userId2: idB } : { userId1: idB, userId2: idA }
-}
-
-/**
- * Serialize a Date (or null/undefined) to ISO string or null.
- */
-function toISO(date: Date | null | undefined): string | null {
-    return date ? date.toISOString() : null
-}
-
-// ---------------------------------------------------------------------------
-// Internal shape returned by parent resolvers (before field resolution)
-// ---------------------------------------------------------------------------
-
-type FriendRequestParent = {
-    id: string
-    status: string
-    createdAt: string
-    updatedAt: string
-    senderId: string
-    receiverId: string
-}
-
-type FriendshipParent = {
-    id: string
-    since: string
-    friendId: string
-}
+import type { FriendRequestParent, FriendshipParent } from "../types"
+import { requireAuth, toISO, normalizeFriendshipIds } from "./utils"
 
 /**
  * Query Resolvers
@@ -65,11 +33,7 @@ const Query = {
      * Returns an empty array if query is shorter than 2 characters.
      */
     searchUsers: async (_parent: unknown, args: { query: string }, context: GraphQLContext) => {
-        if (!context.isAuthenticated || !context.userId) {
-            throw new GraphQLError("Not authenticated", {
-                extensions: { code: "UNAUTHENTICATED", status: 401 },
-            })
-        }
+        const userId = requireAuth(context)
 
         const { query } = args
         if (query.trim().length < 2) {
@@ -79,7 +43,7 @@ const Query = {
         const users = await context.prisma.user.findMany({
             where: {
                 AND: [
-                    { id: { not: context.userId } },
+                    { id: { not: userId } },
                     {
                         OR: [
                             { name: { contains: query, mode: "insensitive" } },
@@ -113,16 +77,12 @@ const Query = {
      * Returns the other party in each accepted friendship.
      */
     friends: async (_parent: unknown, _args: Record<string, never>, context: GraphQLContext) => {
-        if (!context.isAuthenticated || !context.userId) {
-            throw new GraphQLError("Not authenticated", {
-                extensions: { code: "UNAUTHENTICATED", status: 401 },
-            })
-        }
+        const userId = requireAuth(context)
 
         const friendships = await context.prisma.friendship.findMany({
             where: {
                 status: "ACCEPTED",
-                OR: [{ userId1: context.userId }, { userId2: context.userId }],
+                OR: [{ userId1: userId }, { userId2: userId }],
             },
             select: {
                 userId1: true,
@@ -131,9 +91,7 @@ const Query = {
         })
 
         // Collect the IDs of the other party in each friendship
-        const friendIds = friendships.map((f) =>
-            f.userId1 === context.userId ? f.userId2 : f.userId1
-        )
+        const friendIds = friendships.map((f) => (f.userId1 === userId ? f.userId2 : f.userId1))
 
         // Batch-load all friend User records in a single query via DataLoader
         const users = await Promise.all(friendIds.map((id) => context.loaders.user.load(id)))
@@ -150,17 +108,13 @@ const Query = {
         _args: Record<string, never>,
         context: GraphQLContext
     ): Promise<FriendRequestParent[]> => {
-        if (!context.isAuthenticated || !context.userId) {
-            throw new GraphQLError("Not authenticated", {
-                extensions: { code: "UNAUTHENTICATED", status: 401 },
-            })
-        }
+        const userId = requireAuth(context)
 
         const friendships = await context.prisma.friendship.findMany({
             where: {
                 status: "PENDING",
-                requestedBy: { not: context.userId },
-                OR: [{ userId1: context.userId }, { userId2: context.userId }],
+                requestedBy: { not: userId },
+                OR: [{ userId1: userId }, { userId2: userId }],
             },
             select: {
                 id: true,
@@ -192,16 +146,12 @@ const Query = {
         _args: Record<string, never>,
         context: GraphQLContext
     ): Promise<FriendRequestParent[]> => {
-        if (!context.isAuthenticated || !context.userId) {
-            throw new GraphQLError("Not authenticated", {
-                extensions: { code: "UNAUTHENTICATED", status: 401 },
-            })
-        }
+        const userId = requireAuth(context)
 
         const friendships = await context.prisma.friendship.findMany({
             where: {
                 status: "PENDING",
-                requestedBy: context.userId,
+                requestedBy: userId,
             },
             select: {
                 id: true,
@@ -238,21 +188,17 @@ const Mutation = {
         args: { userId: string },
         context: GraphQLContext
     ): Promise<FriendRequestParent> => {
-        if (!context.isAuthenticated || !context.userId) {
-            throw new GraphQLError("Not authenticated", {
-                extensions: { code: "UNAUTHENTICATED", status: 401 },
-            })
-        }
+        const myId = requireAuth(context)
 
         const { userId: targetUserId } = args
 
-        if (targetUserId === context.userId) {
+        if (targetUserId === myId) {
             throw new GraphQLError("Cannot send friend request to yourself", {
                 extensions: { code: "BAD_REQUEST", status: 400 },
             })
         }
 
-        const { userId1, userId2 } = normalizeFriendshipIds(context.userId, targetUserId)
+        const { userId1, userId2 } = normalizeFriendshipIds(myId, targetUserId)
 
         const existing = await context.prisma.friendship.findUnique({
             where: { userId1_userId2: { userId1, userId2 } },
@@ -269,7 +215,7 @@ const Mutation = {
                 userId1,
                 userId2,
                 status: "PENDING",
-                requestedBy: context.userId,
+                requestedBy: myId,
             },
             select: {
                 id: true,
@@ -305,11 +251,7 @@ const Mutation = {
         args: { requestId: string },
         context: GraphQLContext
     ): Promise<FriendshipParent> => {
-        if (!context.isAuthenticated || !context.userId) {
-            throw new GraphQLError("Not authenticated", {
-                extensions: { code: "UNAUTHENTICATED", status: 401 },
-            })
-        }
+        const myId = requireAuth(context)
 
         const friendship = await context.prisma.friendship.findUnique({
             where: { id: args.requestId },
@@ -322,7 +264,7 @@ const Mutation = {
             })
         }
 
-        if (friendship.requestedBy === context.userId) {
+        if (friendship.requestedBy === myId) {
             throw new GraphQLError("Cannot accept your own friend request", {
                 extensions: { code: "FORBIDDEN", status: 403 },
             })
@@ -337,7 +279,7 @@ const Mutation = {
         return {
             id: updated.id,
             since: updated.updatedAt.toISOString(),
-            friendId: updated.userId1 === context.userId ? updated.userId2 : updated.userId1,
+            friendId: updated.userId1 === myId ? updated.userId2 : updated.userId1,
         }
     },
 
@@ -351,11 +293,7 @@ const Mutation = {
         args: { requestId: string },
         context: GraphQLContext
     ) => {
-        if (!context.isAuthenticated || !context.userId) {
-            throw new GraphQLError("Not authenticated", {
-                extensions: { code: "UNAUTHENTICATED", status: 401 },
-            })
-        }
+        const myId = requireAuth(context)
 
         const friendship = await context.prisma.friendship.findUnique({
             where: { id: args.requestId },
@@ -368,7 +306,7 @@ const Mutation = {
             })
         }
 
-        if (friendship.requestedBy === context.userId) {
+        if (friendship.requestedBy === myId) {
             throw new GraphQLError("Cannot reject your own friend request", {
                 extensions: { code: "FORBIDDEN", status: 403 },
             })
@@ -392,11 +330,7 @@ const Mutation = {
         args: { requestId: string },
         context: GraphQLContext
     ) => {
-        if (!context.isAuthenticated || !context.userId) {
-            throw new GraphQLError("Not authenticated", {
-                extensions: { code: "UNAUTHENTICATED", status: 401 },
-            })
-        }
+        const myId = requireAuth(context)
 
         const friendship = await context.prisma.friendship.findUnique({
             where: { id: args.requestId },
@@ -409,7 +343,7 @@ const Mutation = {
             })
         }
 
-        if (friendship.requestedBy !== context.userId) {
+        if (friendship.requestedBy !== myId) {
             throw new GraphQLError("Only the sender can cancel a friend request", {
                 extensions: { code: "FORBIDDEN", status: 403 },
             })

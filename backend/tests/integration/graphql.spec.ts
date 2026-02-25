@@ -113,7 +113,7 @@ describe("GraphQL Integration", () => {
       }
     `)
 
-        // Assert: Should return GraphQL error with UNAUTHORIZED code
+        // Assert: Should return GraphQL error with UNAUTHENTICATED code
         expect(response.status).toBe(200) // GraphQL always returns 200
 
         const result = await parseGraphQLResponse(response)
@@ -121,8 +121,8 @@ describe("GraphQL Integration", () => {
         expect(result.errors?.length).toBeGreaterThan(0)
 
         const error = result.errors?.[0]
-        expect(error?.message).toContain("Unauthorized")
-        expect(error?.extensions?.code).toBe("UNAUTHORIZED")
+        expect(error?.message).toBe("Not authenticated")
+        expect(error?.extensions?.code).toBe("UNAUTHENTICATED")
     })
 
     /**
@@ -145,12 +145,12 @@ describe("GraphQL Integration", () => {
             invalidSessionToken
         )
 
-        // Assert: Should return unauthorized error
+        // Assert: Should return unauthenticated error (invalid session = no valid identity)
         expect(response.status).toBe(200)
 
         const result = await parseGraphQLResponse(response)
         expect(result.errors).toBeDefined()
-        expect(result.errors?.[0]?.message).toContain("Unauthorized")
+        expect(result.errors?.[0]?.message).toBe("Not authenticated")
     })
 
     /**
@@ -238,10 +238,10 @@ describe("GraphQL Integration", () => {
             sessionToken
         )
 
-        // Assert: Should return unauthorized error
+        // Assert: Should return unauthenticated error (expired session = no valid identity)
         const result = await parseGraphQLResponse(response)
         expect(result.errors).toBeDefined()
-        expect(result.errors?.[0]?.message).toContain("Unauthorized")
+        expect(result.errors?.[0]?.message).toBe("Not authenticated")
     })
 
     /**

@@ -14,42 +14,47 @@ import { createLoaders, type GraphQLLoaders } from "./loaders"
  * GraphQL Context Interface
  *
  * Available in all resolvers via the `context` parameter.
- * Provides:
- * - userId: Current authenticated user ID (null if not authenticated)
- * - sessionId: Current session ID (null if not authenticated)
- * - isAuthenticated: Boolean flag for authentication status
- * - prisma: Prisma client for database operations
- * - loaders: Per-request DataLoaders for N+1 prevention
+ *
+ * Authentication fields:
+ *  - userId:    Current user's ID. Null when unauthenticated.
+ *               Use `requireAuth(context)` (from resolvers/utils.ts) to guard
+ *               resolvers — it throws UNAUTHENTICATED if userId is null.
+ *
+ *  - sessionId: The session token from the incoming cookie.
+ *               Distinct from userId: used by the sessions resolver to mark
+ *               which session is "current" so it can warn before self-revoke.
+ *               Null when unauthenticated.
+ *
+ * Note: There is no `isAuthenticated` field — it would be redundant with
+ * `userId !== null`. Use `userId` (or `requireAuth`) directly.
  */
 export interface GraphQLContext {
     /**
-     * Current authenticated user ID
-     * Null if user is not authenticated
+     * Current authenticated user ID.
+     * Null if the request carries no valid session.
      */
     userId: string | null
 
     /**
-     * Current session ID (the session from the incoming cookie)
-     * Used by session management resolvers to determine which session is "current"
-     * Null if user is not authenticated
+     * Current session ID (the session from the incoming cookie).
+     * Used by session management resolvers to determine which session is
+     * "current" so users can identify their own active device.
+     * Null if the request carries no valid session.
      */
     sessionId: string | null
 
     /**
-     * Authentication status flag
-     * True if user has valid session
-     */
-    isAuthenticated: boolean
-
-    /**
-     * Prisma client for database operations
-     * Injected from Hono context via withPrisma middleware
+     * Prisma client for database operations.
+     * Injected from Hono context via withPrisma middleware.
      */
     prisma: PrismaClient
 
     /**
      * Per-request DataLoaders for batching and caching database lookups.
      * Prevents N+1 queries in type-level field resolvers.
+     *
+     * Note: friendshipStatus loader is viewer-dependent — it uses the current
+     * userId to check friendship status. It must not be shared across requests.
      */
     loaders: GraphQLLoaders
 }
@@ -58,7 +63,7 @@ export interface GraphQLContext {
  * Build GraphQL context from request
  *
  * Extracts authentication data attached to the request object.
- * The Hono sessionMiddleware attaches _userId and _isAuthenticated
+ * The Hono sessionMiddleware attaches _userId and _sessionId
  * to the request before passing it to GraphQL Yoga.
  *
  * @param yogaContext - GraphQL Yoga initial context (contains request)
@@ -68,17 +73,17 @@ export function buildGraphQLContext(yogaContext: YogaInitialContext): GraphQLCon
     const request = yogaContext.request as Request & {
         _userId?: string | null
         _sessionId?: string | null
-        _isAuthenticated?: boolean
         _prisma?: PrismaClient
     }
 
     const prisma = request._prisma! // oxlint-disable-line typescript/no-non-null-assertion
+    const userId = request._userId ?? null
 
     return {
-        userId: request._userId ?? null,
+        userId,
         sessionId: request._sessionId ?? null,
-        isAuthenticated: request._isAuthenticated ?? false,
         prisma,
-        loaders: createLoaders(prisma),
+        // Pass viewerUserId so friendshipStatus loader can compute isFriend correctly
+        loaders: createLoaders(prisma, userId),
     }
 }

@@ -238,8 +238,8 @@ describe("Feature 1.3.1 - Conversations (Backend)", () => {
         const first = await gqlMutation(mutation, { userId: USER_BOB.id }, token)
         const second = await gqlMutation(mutation, { userId: USER_BOB.id }, token)
 
-        const firstId = (first.data!.getOrCreateConversation as { id: string }).id
-        const secondId = (second.data!.getOrCreateConversation as { id: string }).id
+        const firstId = (first.data?.getOrCreateConversation as { id: string } | undefined)?.id
+        const secondId = (second.data?.getOrCreateConversation as { id: string } | undefined)?.id
 
         expect(firstId).toBe(secondId)
 
@@ -269,7 +269,7 @@ describe("Feature 1.3.1 - Conversations (Backend)", () => {
         )
 
         expect(result.errors).toBeDefined()
-        expect(result.errors![0]!.extensions?.code).toBe("FORBIDDEN")
+        expect(result.errors?.[0]?.extensions?.code).toBe("FORBIDDEN")
     })
 
     // -------------------------------------------------------------------------
@@ -326,7 +326,7 @@ describe("Feature 1.3.1 - Conversations (Backend)", () => {
         )
 
         expect(result.errors).toBeDefined()
-        expect(result.errors![0]!.extensions?.code).toBe("FORBIDDEN")
+        expect(result.errors?.[0]?.extensions?.code).toBe("FORBIDDEN")
     })
 
     // -------------------------------------------------------------------------
@@ -377,7 +377,7 @@ describe("Feature 1.3.1 - Conversations (Backend)", () => {
         )
 
         expect(result.errors).toBeDefined()
-        expect(result.errors![0]!.extensions?.code).toBe("FORBIDDEN")
+        expect(result.errors?.[0]?.extensions?.code).toBe("FORBIDDEN")
     })
 
     // -------------------------------------------------------------------------
@@ -413,7 +413,7 @@ describe("Feature 1.3.1 - Conversations (Backend)", () => {
         )
 
         expect(result.errors).toBeDefined()
-        expect(result.errors![0]!.extensions?.code).toBe("FORBIDDEN")
+        expect(result.errors?.[0]?.extensions?.code).toBe("FORBIDDEN")
     })
 
     // -------------------------------------------------------------------------
@@ -498,7 +498,7 @@ describe("Feature 1.3.1 - Conversations (Backend)", () => {
         )
 
         expect(result.errors).toBeDefined()
-        expect(result.errors![0]!.extensions?.code).toBe("FORBIDDEN")
+        expect(result.errors?.[0]?.extensions?.code).toBe("FORBIDDEN")
     })
 
     // -------------------------------------------------------------------------
@@ -552,7 +552,7 @@ describe("Feature 1.3.1 - Conversations (Backend)", () => {
         )
 
         expect(result.errors).toBeDefined()
-        expect(result.errors![0]!.extensions?.code).toBe("BAD_REQUEST")
+        expect(result.errors?.[0]?.extensions?.code).toBe("BAD_REQUEST")
     })
 
     // -------------------------------------------------------------------------
@@ -687,9 +687,9 @@ describe("Feature 1.3.1 - Conversations (Backend)", () => {
 
         expect(result.errors).toBeUndefined()
         const convs = result.data?.conversations as Array<{ id: string; pinnedAt: string | null }>
-        expect(convs[0]!.id).toBe(c3) // pinned first
-        expect(convs[1]!.id).toBe(c2) // newer message second
-        expect(convs[2]!.id).toBe(c1) // older message last
+        expect(convs[0]?.id).toBe(c3) // pinned first
+        expect(convs[1]?.id).toBe(c2) // newer message second
+        expect(convs[2]?.id).toBe(c1) // older message last
     })
 
     // -------------------------------------------------------------------------
@@ -881,7 +881,7 @@ describe("Feature 1.3.1 - Conversations (Backend)", () => {
         // Test conversations query
         const queryResult = await gql(`query { conversations { id } }`)
         expect(queryResult.errors).toBeDefined()
-        expect(queryResult.errors![0]!.extensions?.code).toBe("UNAUTHENTICATED")
+        expect(queryResult.errors?.[0]?.extensions?.code).toBe("UNAUTHENTICATED")
 
         // Test getOrCreateConversation mutation
         const mutResult = await gqlMutation(
@@ -889,6 +889,6 @@ describe("Feature 1.3.1 - Conversations (Backend)", () => {
             {}
         )
         expect(mutResult.errors).toBeDefined()
-        expect(mutResult.errors![0]!.extensions?.code).toBe("UNAUTHENTICATED")
+        expect(mutResult.errors?.[0]?.extensions?.code).toBe("UNAUTHENTICATED")
     })
 })

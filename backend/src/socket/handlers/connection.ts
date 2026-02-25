@@ -125,8 +125,9 @@ export async function handleDisconnect(socket: AuthenticatedSocket, reason: stri
         // If no other sockets, set user offline
         if (remainingSockets.length === 0) {
             await setUserOffline(userId)
-            ;(console.log(`✓ User ${userId} went offline (reason: ${reason})`),
-                { color: "rgb(251, 0, 0)" })
+            console.log(`✓ User ${userId} went offline (reason: ${reason})`, {
+                color: "rgb(251, 0, 0)",
+            })
         } else {
             console.log(
                 `✓ User ${userId} disconnected one socket (${remainingSockets.length} remaining)`,

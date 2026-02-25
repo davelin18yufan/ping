@@ -34,6 +34,30 @@ import { getIO } from "@/socket"
 
 type MessageParent = MessageRecord
 
+// Raw shape returned by Prisma message.findMany select in the messages resolver
+type RawMessageRow = {
+    id: string
+    conversationId: string
+    senderId: string
+    content: string | null
+    messageType: string
+    imageUrl: string | null
+    createdAt: Date
+}
+
+function toMessageParent(m: RawMessageRow): MessageParent {
+    return {
+        id: m.id,
+        conversationId: m.conversationId,
+        senderId: m.senderId,
+        content: m.content,
+        messageType: m.messageType as "TEXT" | "IMAGE",
+        imageUrl: m.imageUrl,
+        createdAt: m.createdAt.toISOString(),
+        status: "SENT",
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Query Resolvers
 // ---------------------------------------------------------------------------
@@ -219,17 +243,6 @@ const Query = {
 
         const hasMore = rawMessages.length > limit
         const messages = rawMessages.slice(0, limit)
-
-        const toMessageParent = (m: (typeof rawMessages)[number]): MessageParent => ({
-            id: m.id,
-            conversationId: m.conversationId,
-            senderId: m.senderId,
-            content: m.content,
-            messageType: m.messageType as "TEXT" | "IMAGE",
-            imageUrl: m.imageUrl,
-            createdAt: m.createdAt.toISOString(),
-            status: "SENT" as const,
-        })
 
         if (afterCursor) {
             // Results are ASC: first is oldest, last is newest

@@ -10,6 +10,7 @@
 
 import { GraphQLError } from "graphql"
 import type { GraphQLContext } from "../context"
+import { requireAuth } from "./utils"
 
 /**
  * Query Resolvers
@@ -20,17 +21,13 @@ const Query = {
      * Each session includes an isCurrent flag to identify the active session.
      */
     sessions: async (_parent: unknown, _args: Record<string, never>, context: GraphQLContext) => {
-        if (!context.isAuthenticated || !context.userId) {
-            throw new GraphQLError("Not authenticated", {
-                extensions: { code: "UNAUTHENTICATED", status: 401 },
-            })
-        }
+        const userId = requireAuth(context)
 
         const now = new Date()
 
         const sessions = await context.prisma.session.findMany({
             where: {
-                userId: context.userId,
+                userId,
                 expires: { gt: now },
             },
             orderBy: { createdAt: "desc" },
@@ -61,11 +58,7 @@ const Mutation = {
         args: { sessionId: string },
         context: GraphQLContext
     ) => {
-        if (!context.isAuthenticated || !context.userId) {
-            throw new GraphQLError("Not authenticated", {
-                extensions: { code: "UNAUTHENTICATED", status: 401 },
-            })
-        }
+        requireAuth(context)
 
         if (args.sessionId === context.sessionId) {
             throw new GraphQLError("Cannot revoke the current session", {
@@ -100,15 +93,11 @@ const Mutation = {
         _args: Record<string, never>,
         context: GraphQLContext
     ) => {
-        if (!context.isAuthenticated || !context.userId) {
-            throw new GraphQLError("Not authenticated", {
-                extensions: { code: "UNAUTHENTICATED", status: 401 },
-            })
-        }
+        const userId = requireAuth(context)
 
         await context.prisma.session.deleteMany({
             where: {
-                userId: context.userId,
+                userId,
                 id: { not: context.sessionId ?? "" },
             },
         })

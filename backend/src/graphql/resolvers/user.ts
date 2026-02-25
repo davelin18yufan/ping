@@ -6,6 +6,7 @@
 
 import { GraphQLError } from "graphql"
 import type { GraphQLContext } from "../context"
+import { requireAuth } from "./utils"
 
 /**
  * User Query Resolvers
@@ -24,20 +25,13 @@ const Query = {
      * @throws GraphQLError if database query fails
      */
     me: async (_parent: unknown, _args: Record<string, never>, context: GraphQLContext) => {
-        // Check authentication
-        if (!context.isAuthenticated || !context.userId) {
-            throw new GraphQLError("Unauthorized: You must be logged in", {
-                extensions: {
-                    code: "UNAUTHORIZED",
-                },
-            })
-        }
+        const userId = requireAuth(context)
 
         try {
             // Query user from database
             const user = await context.prisma.user.findUnique({
                 where: {
-                    id: context.userId,
+                    id: userId,
                 },
                 select: {
                     id: true,

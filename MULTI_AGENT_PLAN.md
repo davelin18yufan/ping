@@ -790,33 +790,54 @@ CI / Dependencies 更新：
 
 ### Phase 1.3：聊天系統（Week 3-4）
 
-#### 🔲 Feature 1.3.1 - 建立對話並發送訊息
+#### ⏳ Feature 1.3.1 - 對話管理、群組聊天室、黑名單
 
 | 欄位 | 內容 |
 |------|------|
-| **狀態** | 🔲 待開始 |
+| **狀態** | ⏳ Backend ✅ 完成 → Frontend 🔲 待開始 |
 | **優先級** | P0 |
-| **負責** | Backend + Frontend + Mobile + QA |
-| **依賴** | Feature 1.2.1（好友） |
-| **SDD 參考** | backend.md §IV、§V、database.md |
-| **預期完成日期** | 2025-01-19 |
+| **負責** | Backend（已完成）→ Fullstack Frontend Developer（下一步）|
+| **依賴** | Feature 1.2.1（好友系統，已合併 PR #32）|
+| **SDD 參考** | `docs/architecture/Feature-1.3.1-SDD.md`（v2.0.0）|
+| **分支** | Backend: `feature/1.3.1-backend` ✅ 待 PR |
+| **實際完成日期（Backend）** | 2026-02-25 |
 
-**待分解子任務...**
+**Backend 已完成子任務**：
+
+1. ✅ Prisma Migration：`ParticipantRole`、`pinnedAt`、群組設定、`Blacklist` model
+2. ✅ GraphQL Schema：17 個新 Mutation / Query，雙向游標 `MessagePage`
+3. ✅ DataLoaders：`participants`、`lastMessage`、`friendshipStatus`（viewer-bound）
+4. ✅ Resolvers（`conversations.ts`）：16 個 resolver，含 Socket.io 廣播
+5. ✅ Socket.io：`joinConversationRooms`、`sync:required` 重連補漏事件
+6. ✅ 整合測試：22 個測試（TC-B-01 ~ TC-B-22），77/77 全部通過
+7. ✅ 後端改善：集中型別（`types.ts`）、共享工具（`resolvers/utils.ts`）、移除冗餘 `isAuthenticated`、統一錯誤代碼 `UNAUTHENTICATED`、雙向游標分頁
+
+**Frontend 待開始子任務**：
+
+> ⚠️ 開始前必須先讀 `docs/architecture/Feature-1.3.1-SDD.md` 第八節「前端實作注意事項」
+
+1. 🔲 對話列表頁（`conversations` query + stagger 動畫）
+2. 🔲 對話室頁面（`messages` query + 雙向 `useInfiniteQuery` sliding window）
+3. 🔲 Socket.io 整合（`message:new`、`participant:changed`、`sync:required`）
+4. 🔲 群組管理 UI（邀請 / 踢除 / 離群 / 設定）
+5. 🔲 黑名單管理（封鎖 / 解除封鎖）
+6. 🔲 Mobile（React Native + NativeWind）版本
 
 ---
 
 #### 🔲 Feature 1.3.2 - 即時訊息更新（Socket.io）
 
+> ℹ️ Socket.io 即時功能已在 Feature 1.3.1 Backend 中實作（`message:new`、`participant:changed`、`sync:required`）。
+> 本 Feature 可考慮合併入 1.3.1 Frontend，或改為 **訊息狀態升級**（DELIVERED / READ 確認機制）的獨立 Sprint。
+
 | 欄位 | 內容 |
 |------|------|
-| **狀態** | 🔲 待開始 |
+| **狀態** | 🔲 待評估（部分功能已在 1.3.1 實作）|
 | **優先級** | P0 |
 | **負責** | Backend + QA |
 | **依賴** | Feature 1.3.1 |
-| **SDD 參考** | backend.md §V、database.md |
-| **預期完成日期** | 2025-01-22 |
-
-**待分解子任務...**
+| **SDD 參考** | Feature-1.3.1-SDD.md §六 |
+| **預期完成日期** | 待重新評估 |
 
 ---
 
@@ -1014,44 +1035,50 @@ CI / Dependencies 更新：
 
 ---
 
-**最後更新**：2026-02-23
-**下次計畫更新**：Feature 1.2.1 Backend 實作完成後
-**當前 Sprint**：Sprint 4 已完成（Feature 1.2.1 Frontend Web 視覺重設計，175/175 tests 通過）
-**最新進展**：Feature 1.2.1 Frontend Web 部分完成（2026-02-23）
-  - Branch: feature/1.2.1-friend-search
-  - 完成進度：Frontend Web 完成（175/175 tests），Backend 實作待辦
-  - 完成內容：
-    - ✅ 移除所有 dummy data，接入真實 TanStack Query GraphQL options
-    - ✅ 啟用 `requireAuthServer` middleware + route loader
-    - ✅ Sonar Ping 動畫重設計（圓形 sonar ring、雙模式 Light/Dark）
-    - ✅ `useAestheticMode` 整合（minimal 模式下隱藏裝飾性動畫）
-    - ✅ `UserCard` 整合 Signal Broadcast particle（minimal 模式略過）
-    - ✅ `UserStatusAvatar` 新增 `showWaveRings` prop
-    - ✅ `friends.css` sonar ring 改為圓形（160px × 160px）
-    - ✅ `overrides.css` 新增 `scrollbar-gutter: stable` + 自訂捲軸
-    - ✅ `vite.config.ts` 新增 `server: { port: 3001 }`
-    - ✅ `friends-page.spec.tsx`（11 tests）改為 per-test query cache seeding
-  - 下一步：Feature 1.2.1 Backend 實作（GraphQL resolvers + 14 tests）
+**最後更新**：2026-02-25
+**下次計畫更新**：Feature 1.3.1 Frontend 實作完成後
+**當前 Sprint**：Sprint 5 進行中（Feature 1.3.1 Backend 完成，等待 PR + Frontend 開始）
+**最新進展**：Feature 1.3.1 Backend 全部完成（2026-02-25）
+  - Branch: `feature/1.2.1-backend`（含 Feature 1.1.2 + 1.2.1 + 1.3.1 所有後端實作）
+  - 完成進度：Backend 77/77 tests，TypeScript 0 errors
+  - 完成內容（Feature 1.3.1 Backend）：
+    - ✅ Prisma Migration：`ParticipantRole`、`pinnedAt`、群組設定欄位、`Blacklist` model
+    - ✅ GraphQL Schema：17 個新 Mutation / Query，雙向游標 `MessagePage`（before/after/prevCursor）
+    - ✅ DataLoaders：`participants`、`lastMessage`、`friendshipStatus`（viewer-bound LRU 優化）
+    - ✅ Resolver `conversations.ts`：16 個 resolver，含 Socket.io `message:new` + `participant:changed` 廣播
+    - ✅ Socket.io：`joinConversationRooms` 返回 roomIds，非恢復連線時 emit `sync:required`
+    - ✅ 整合測試 22 個（TC-B-01 ~ TC-B-22），77/77 全部通過
+  - 完成內容（後端架構改善）：
+    - ✅ `types.ts`：集中所有 domain types（`UserRecord`、`MessageRecord`、`Brand<T,B>`、`MessageCursor`）
+    - ✅ `resolvers/utils.ts`：共享工具（`requireAuth`、`toISO`、`normalizeFriendshipIds`、`getParticipant`、`parseMessageCursor`、`makeMessageCursor`、`asMessageCursor`）
+    - ✅ 移除冗餘 `isAuthenticated`，統一使用 `requireAuth(context)` 拋出 `UNAUTHENTICATED`
+    - ✅ `MessageCursor` branded type：opaque cursor 型別安全，三工廠函式對應 create / cast / parse
+  - 下一步：PR 合併 → `feature/1.3.1-frontend` 分支 → Frontend 實作
 
-**Phase 1.0 + 1.1 + 1.2 總結**：
+**Phase 1.0 + 1.1 + 1.2 + 1.3 總結**：
 - ✅ Feature 1.0.1 - Backend 基礎設施（100% 完成）
 - ✅ Feature 1.0.2 - Frontend (Web) 基礎設施（100% 完成）
 - ✅ Feature 1.0.3 - Mobile 基礎設施（100% 完成）
 - ✅ Feature 1.0.4 - Design System 設定（100% 完成）
 - ✅ Feature 1.1.1 - OAuth Google 登入（Web 端 100% 完成）
+- ✅ Feature 1.1.2 - Session 管理（Backend 100% 完成，8/8 tests - 2026-02-24）
 - ✅ Feature 1.2.0 - UI/UX 大改版（5/5 Stage 完成，175/175 測試通過 - 2026-02-16）
-- ✅ Feature 1.2.1 - 搜尋與加好友（Frontend Web 完成，175/175 測試通過 - 2026-02-23）
+- ✅ Feature 1.2.1 - 搜尋與加好友（Backend + Frontend Web 完成，55+14=69 backend tests - 2026-02-24）
+- ✅ Feature 1.3.1 - 對話管理、群組、黑名單（Backend 完成，22/22 tests - 2026-02-25）
 - **Sprint 1 完成度：4/4 features（100%）**
 - **Sprint 2 完成度：1/1 features（100%）**
 - **Sprint 3 完成度：1/1 features（100%）**
-- **Sprint 4 完成度：1/1 features Frontend Web（100%）**
-- **總測試通過數：175/175 tests（Feature 1.2.1 前端測試全通過）**
-  - Backend: 27 tests
-  - Frontend (Web Infrastructure): 46 tests
-  - Frontend (OAuth + Middleware): 29 tests
-  - Mobile: 97 tests
-  - Feature 1.2.0 (UI/UX Redesign): 175 tests（測試套件延續至 Feature 1.2.1）
-- **下一步：Feature 1.2.1 Backend 實作（GraphQL resolvers + friends.spec.ts 14 tests）**
+- **Sprint 4 完成度：2/2 features Backend（Feature 1.2.1 + 1.3.1 Backend）**
+- **Sprint 5 完成度：Backend ✅ / Frontend 🔲**
+- **總測試通過數（Backend）：77/77 tests**
+  - Session Management (1.1.2): 8 tests
+  - Friends Resolvers (1.2.1): 14 tests
+  - Conversations (1.3.1): 22 tests
+  - GraphQL Infrastructure: 8 tests
+  - Socket.io: 8 tests
+  - Better Auth: 11 tests
+  - Legacy integration: 6 tests
+- **下一步：PR 合併 feature/1.2.1-backend → main，開啟 feature/1.3.1-frontend**
 
 **Feature 1.2.0 完成總結**：
   - 主分支: feature/1.2.0-ui-ux-redesign

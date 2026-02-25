@@ -592,15 +592,16 @@
 ### 整體進度
 ```
 總功能數: 50
-已完成: 14 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis、Web 前端基礎設施、Mobile 前端基礎設施、Design System、OAuth 登入流程、UI/UX 大改版、好友管理頁面 Frontend Web)
+已完成: 17 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis、Web 前端基礎設施、Mobile 前端基礎設施、Design System、OAuth 登入流程、Session 管理、UI/UX 大改版、好友管理頁面 Frontend Web、好友系統 Backend、對話管理/群組/黑名單 Backend)
 進行中: 0
-待開始: 36
-完成率: 28.00%
+待開始: 33
+完成率: 34.00%
 
 🎉 Phase 1.0 基礎設施初始化完整完成！(4/4 features - 100%)
-🎉 Phase 1.1 認證系統（Web）完成！(Feature 1.1.1 - OAuth Google Login)
+🎉 Phase 1.1 認證系統（Web + Session 管理）完成！(Feature 1.1.1 + 1.1.2)
 🎉 Phase 1.2 UI/UX 改版完成！(Feature 1.2.0 - 5/5 Stage，175/175 tests - 2026-02-16)
-🎉 Feature 1.2.1 Frontend Web 完成！(搜尋與加好友視覺重設計，175/175 tests - 2026-02-23)
+🎉 Feature 1.2.1 完成！(Frontend Web + Backend 好友系統 - 69 backend tests - 2026-02-24)
+🎉 Feature 1.3.1 Backend 完成！(對話管理、群組聊天室、黑名單 - 22/22 tests - 2026-02-25)
 ```
 
 ### 階段進度
@@ -643,9 +644,9 @@ Phase 1.0 成就解鎖 🏆:
   ✅ 170/170 測試全部通過（Backend: 27, Web: 46, Mobile: 97）
   ✅ TypeScript 0 errors, Linter 0 warnings, Formatter 100% formatted
 
-階段 2 (認證用戶):  1/7   (14.29%) - 🚀 進行中（OAuth 登入已完成）
-  ✅ OAuth 登入流程（Feature 1.1.1 - Web）
-  🔲 Session 管理
+階段 2 (認證用戶):  2/7   (28.57%) - 🚀 進行中
+  ✅ OAuth 登入流程（Feature 1.1.1 - Web - 2026-02-03）
+  ✅ Session 管理（Feature 1.1.2 - Backend - 8/8 tests - 2026-02-24）
   🔲 Magic Link (可選)
   🔲 查詢用戶資料
   🔲 更新個人資料
@@ -653,10 +654,33 @@ Phase 1.0 成就解鎖 🏆:
   🔲 搜尋用戶
 階段 2.5 (UI/UX 改版): 1/1   (100%) ✅ - Feature 1.2.0 完整完成（2026-02-16）
   ✅ Feature 1.2.0 - UI/UX 大改版 + Session 認證整合（5/5 Stage，175/175 tests）
-階段 3 (好友系統):  0/8   (0%)    - 依賴階段 2 完成
-階段 4 (一對一聊天): 0/8   (0%)    - 依賴階段 3 完成
-階段 5 (即時功能):  0/7   (0%)    - 依賴階段 4 完成
-階段 6 (前端開發):  7/10 (70%) ✅ - Web 基礎設施 + Design System + OAuth 登入 + 好友頁面完成
+階段 3 (好友系統):  7/8   (87.5%) ✅ - Feature 1.2.1 Backend 完成（2026-02-24）
+  ✅ 發送好友邀請 (sendFriendRequest)
+  ✅ 接受好友邀請 (acceptFriendRequest)
+  ✅ 拒絕好友邀請 (rejectFriendRequest)
+  ✅ 取消好友邀請 (cancelFriendRequest)
+  ✅ 查詢好友列表 (friends)
+  ✅ 查詢待處理邀請 (pendingFriendRequests)
+  ✅ 查詢已發送邀請 (sentFriendRequests)
+  🔲 移除好友 (removeFriend) - 後續實作
+階段 4 (對話/群組/黑名單): 8/8 (100%) ✅ - Feature 1.3.1 Backend 完成（2026-02-25）
+  ✅ getOrCreateConversation（好友才能建立 1-on-1）
+  ✅ createGroupConversation（creator=OWNER，好友限制）
+  ✅ inviteToGroup / removeFromGroup（onlyOwnerCanInvite/Kick 設定）
+  ✅ leaveGroup（繼承人選擇 / 最後一人解散）
+  ✅ updateGroupSettings（群名 + 權限三開關）
+  ✅ pinConversation / unpinConversation
+  ✅ sendMessage + markMessagesAsRead（雙向 cursor 分頁）
+  ✅ blockUser / unblockUser（黑名單 + 自動解除好友）
+階段 5 (即時功能):  1/7   (14.29%) - Socket.io 已在 1.3.1 實作
+  ✅ Socket.io conversation room join + message:new broadcast（Feature 1.3.1）
+  ✅ sync:required 重連補漏事件（非恢復連線時）
+  🔲 在線狀態追蹤（Redis heartbeat）
+  🔲 在線狀態廣播
+  🔲 輸入狀態追蹤 (typing_start/stop)
+  🔲 輸入提示廣播
+  🔲 訊息狀態同步 (SENT → DELIVERED → READ)
+階段 6 (前端開發):  7/10 (70%) - Web 基礎設施 + Design System + OAuth 登入 + 好友頁面完成
   ✅ Web 架構設定
   ✅ Web 前端基礎設施（Feature 1.0.2）
   ✅ Mobile 架構設定
@@ -665,8 +689,8 @@ Phase 1.0 成就解鎖 🏆:
   ✅ 登入頁面（Web）（Feature 1.1.1 - 2026-02-03 完成）
   ✅ 好友管理頁面（Web）（Feature 1.2.1 - 2026-02-23 完成）
   🔲 登入畫面（Mobile）（後續階段）
-  🔲 對話列表頁面/畫面
-  🔲 聊天室頁面/畫面
+  🔲 對話列表頁面/畫面（Feature 1.3.1 Frontend - 下一步）
+  🔲 聊天室頁面/畫面（Feature 1.3.1 Frontend - 下一步）
 ```
 
 ### 當前 Sprint 狀態
@@ -1012,11 +1036,32 @@ E2E Tests: 目標涵蓋主要流程
     - ✅ `friends-page.spec.tsx` 11 tests（per-test query cache seeding）
     - ✅ Commits: `d5290e7` + `58e915a`
     - 測試：175/175 tests 全部通過（100%）
+  - ✅ **Feature 1.2.1 Backend 完成（2026-02-24）**
+    - Branch: `feature/1.2.1-backend`
+    - 8 個 Friend Resolvers（searchUsers、sendFriendRequest、acceptFriendRequest、rejectFriendRequest、cancelFriendRequest、friends、pendingFriendRequests、sentFriendRequests）
+    - DataLoader 模式防 N+1（user loader per-request）
+    - GraphQL Security：depth limiting + introspection disable in production
+    - 14 整合測試（TC-B-01 ~ TC-B-14），55/55 全部通過
+  - ✅ **Feature 1.3.1 Backend 完成（2026-02-25）**
+    - Prisma Migration：`ParticipantRole` enum、`pinnedAt`、群組設定三欄位、`Blacklist` model
+    - 17 個新 GraphQL 操作（Query + Mutation），雙向游標 `MessagePage`
+    - DataLoaders：`participants`、`lastMessage`、`friendshipStatus`（viewer-bound Prisma LRU 優化）
+    - 16 個 Resolvers in `conversations.ts`，Socket.io `message:new` + `participant:changed` 廣播
+    - Socket.io `sync:required`：非恢復重連時通知 client 補漏訊息
+    - 22 整合測試（TC-B-01 ~ TC-B-22），77/77 全部通過
+  - ✅ **後端架構改善（同 Sprint）**
+    - `types.ts`：集中 domain types + `Brand<T,B>` + `MessageCursor` opaque type
+    - `resolvers/utils.ts`：共享工具（`requireAuth`、`getParticipant`、`makeMessageCursor`、`parseMessageCursor`、`asMessageCursor`）
+    - 移除冗餘 `isAuthenticated`，統一 `UNAUTHENTICATED` 錯誤代碼
   - 📊 **進度更新**：
     - 階段 1 (基礎設施)：100% 完成 ✅
-    - 階段 2 (認證用戶)：14.29% 完成（1/7 - OAuth 登入）
+    - 階段 2 (認證用戶)：28.57% 完成（2/7 - OAuth + Session 管理）
     - 階段 2.5 (UI/UX 改版)：100% 完成 ✅
+    - 階段 3 (好友系統)：87.5% 完成（7/8）
+    - 階段 4 (對話/群組/黑名單)：100% 完成 ✅（Backend）
     - 階段 6 (前端開發)：70% 完成（7/10）
-    - 整體完成率：28.00%（14/50 features 完成）
+    - 整體完成率：34.00%（17/50 features 完成）
   - 🚀 **下一步**：
-    - Feature 1.2.1 Backend 實作（GraphQL resolvers + 14 backend tests）
+    - PR 合併 `feature/1.2.1-backend` → `main`
+    - 開啟 `feature/1.3.1-frontend` 分支
+    - Feature 1.3.1 Frontend：對話列表 + 聊天室 + Socket.io 整合（讀 SDD 第 8 節）

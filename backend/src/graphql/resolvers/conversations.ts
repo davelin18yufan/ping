@@ -31,7 +31,13 @@ import {
     asMessageCursor,
 } from "./utils"
 import { getIO } from "@/socket"
-import { MessageType, ConversationType, FriendshipStatus, MessageStatusType, ParticipantRole } from "@generated/prisma/enums"
+import {
+    MessageType,
+    ConversationType,
+    FriendshipStatus,
+    MessageStatusType,
+    ParticipantRole,
+} from "@generated/prisma/enums"
 import type { SortOrder } from "@generated/prisma/internal/prismaNamespace"
 
 type MessageParent = MessageRecord
@@ -406,7 +412,10 @@ const Mutation = {
                 participants: {
                     create: [
                         { userId: myId, role: ParticipantRole.OWNER },
-                        ...args.userIds.map((uid) => ({ userId: uid, role: ParticipantRole.MEMBER  })),
+                        ...args.userIds.map((uid) => ({
+                            userId: uid,
+                            role: ParticipantRole.MEMBER,
+                        })),
                     ],
                 },
             },

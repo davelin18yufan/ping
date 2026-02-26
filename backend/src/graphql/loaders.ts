@@ -15,6 +15,7 @@
 import DataLoader from "dataloader"
 import type { PrismaClient } from "@generated/prisma/client"
 import type { UserRecord, ParticipantRecord, MessageRecord } from "./types"
+import { MessageStatusType, FriendshipStatus } from "@generated/prisma/enums"
 
 export type { UserRecord, ParticipantRecord, MessageRecord }
 
@@ -87,7 +88,7 @@ function createParticipantsLoader(prisma: PrismaClient): DataLoader<string, Part
                 list.push({
                     userId: p.userId,
                     conversationId: p.conversationId,
-                    role: p.role as "OWNER" | "MEMBER",
+                    role: p.role,
                     joinedAt: p.joinedAt.toISOString(),
                     lastReadAt: p.lastReadAt ? p.lastReadAt.toISOString() : null,
                 })
@@ -139,10 +140,10 @@ function createLastMessageLoader(prisma: PrismaClient): DataLoader<string, Messa
                         conversationId: m.conversationId,
                         senderId: m.senderId,
                         content: m.content,
-                        messageType: m.messageType as "TEXT" | "IMAGE",
+                        messageType: m.messageType,
                         imageUrl: m.imageUrl,
                         createdAt: m.createdAt.toISOString(),
-                        status: "SENT",
+                        status: MessageStatusType.SENT,
                     })
                 }
             }
@@ -180,7 +181,7 @@ function createFriendshipStatusLoader(
             // produce distinct query shapes and effectively bypass the cache).
             const friendships = await prisma.friendship.findMany({
                 where: {
-                    status: "ACCEPTED",
+                    status: FriendshipStatus.ACCEPTED,
                     OR: [
                         { userId1: viewerUserId, userId2: { in: uniqueIds } },
                         { userId2: viewerUserId, userId1: { in: uniqueIds } },

@@ -8,6 +8,14 @@
  * avoid circular dependencies. It is the leaf of the dependency graph.
  */
 
+import {
+    ParticipantRole,
+    ConversationType,
+    MessageType,
+    MessageStatusType,
+    FriendshipStatus,
+} from "@generated/prisma/enums"
+
 // ---------------------------------------------------------------------------
 // Branded / Opaque types
 // ---------------------------------------------------------------------------
@@ -69,7 +77,7 @@ export type UserRecord = {
 export type ParticipantRecord = {
     userId: string
     conversationId: string
-    role: "OWNER" | "MEMBER"
+    role: ParticipantRole
     joinedAt: string
     lastReadAt: string | null
 }
@@ -87,10 +95,10 @@ export type MessageRecord = {
     conversationId: string
     senderId: string
     content: string | null
-    messageType: "TEXT" | "IMAGE"
+    messageType: MessageType
     imageUrl: string | null
     createdAt: string
-    status: "SENT" | "DELIVERED" | "READ"
+    status: MessageStatusType
 }
 
 // ---------------------------------------------------------------------------
@@ -103,7 +111,7 @@ export type MessageRecord = {
  */
 export type ConversationParent = {
     id: string
-    type: "ONE_TO_ONE" | "GROUP"
+    type: ConversationType
     name: string | null
     pinnedAt: string | null
     onlyOwnerCanInvite: boolean
@@ -122,7 +130,7 @@ export type ConversationParent = {
  */
 export type FriendRequestParent = {
     id: string
-    status: string
+    status: FriendshipStatus
     createdAt: string
     updatedAt: string
     senderId: string

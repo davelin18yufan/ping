@@ -9,6 +9,7 @@
 import { GraphQLError } from "graphql"
 import type { GraphQLContext } from "../context"
 import type { MessageCursor } from "../types"
+import { ParticipantRole } from "@generated/prisma/enums"
 
 // ---------------------------------------------------------------------------
 // Auth guard
@@ -72,13 +73,13 @@ export async function getParticipant(
     prisma: GraphQLContext["prisma"],
     conversationId: string,
     userId: string
-): Promise<{ role: "OWNER" | "MEMBER"; lastReadAt: Date | null } | null> {
+): Promise<{ role: ParticipantRole; lastReadAt: Date | null } | null> {
     const p = await prisma.conversationParticipant.findUnique({
         where: { conversationId_userId: { conversationId, userId } },
         select: { role: true, lastReadAt: true },
     })
     if (!p) return null
-    return { role: p.role as "OWNER" | "MEMBER", lastReadAt: p.lastReadAt }
+    return { role: p.role, lastReadAt: p.lastReadAt }
 }
 
 // ---------------------------------------------------------------------------

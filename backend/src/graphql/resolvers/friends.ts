@@ -22,6 +22,7 @@ import { GraphQLError } from "graphql"
 import type { GraphQLContext } from "../context"
 import type { FriendRequestParent, FriendshipParent } from "../types"
 import { requireAuth, toISO, normalizeFriendshipIds } from "./utils"
+import { FriendshipStatus } from "@generated/prisma/enums"
 
 /**
  * Query Resolvers
@@ -81,7 +82,7 @@ const Query = {
 
         const friendships = await context.prisma.friendship.findMany({
             where: {
-                status: "ACCEPTED",
+                status: FriendshipStatus.ACCEPTED,
                 OR: [{ userId1: userId }, { userId2: userId }],
             },
             select: {
@@ -112,7 +113,7 @@ const Query = {
 
         const friendships = await context.prisma.friendship.findMany({
             where: {
-                status: "PENDING",
+                status: FriendshipStatus.PENDING,
                 requestedBy: { not: userId },
                 OR: [{ userId1: userId }, { userId2: userId }],
             },
@@ -150,7 +151,7 @@ const Query = {
 
         const friendships = await context.prisma.friendship.findMany({
             where: {
-                status: "PENDING",
+                status: FriendshipStatus.PENDING,
                 requestedBy: userId,
             },
             select: {
@@ -214,7 +215,7 @@ const Mutation = {
             data: {
                 userId1,
                 userId2,
-                status: "PENDING",
+                status: FriendshipStatus.PENDING,
                 requestedBy: myId,
             },
             select: {
@@ -272,7 +273,7 @@ const Mutation = {
 
         const updated = await context.prisma.friendship.update({
             where: { id: args.requestId },
-            data: { status: "ACCEPTED" },
+            data: { status: FriendshipStatus.ACCEPTED },
             select: { id: true, userId1: true, userId2: true, updatedAt: true },
         })
 
@@ -314,7 +315,7 @@ const Mutation = {
 
         await context.prisma.friendship.update({
             where: { id: args.requestId },
-            data: { status: "REJECTED" },
+            data: { status: FriendshipStatus.REJECTED },
         })
 
         return true

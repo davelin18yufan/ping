@@ -31,6 +31,8 @@ import {
     asMessageCursor,
 } from "./utils"
 import { getIO } from "@/socket"
+import { MessageType, ConversationType, FriendshipStatus, MessageStatusType, ParticipantRole } from "@generated/prisma/enums"
+import type { SortOrder } from "@generated/prisma/internal/prismaNamespace"
 
 type MessageParent = MessageRecord
 
@@ -40,7 +42,7 @@ type RawMessageRow = {
     conversationId: string
     senderId: string
     content: string | null
-    messageType: string
+    messageType: MessageType
     imageUrl: string | null
     createdAt: Date
 }
@@ -51,10 +53,10 @@ function toMessageParent(m: RawMessageRow): MessageParent {
         conversationId: m.conversationId,
         senderId: m.senderId,
         content: m.content,
-        messageType: m.messageType as "TEXT" | "IMAGE",
+        messageType: m.messageType,
         imageUrl: m.imageUrl,
         createdAt: m.createdAt.toISOString(),
-        status: "SENT",
+        status: MessageStatusType.SENT,
     }
 }
 
@@ -113,7 +115,7 @@ const Query = {
 
         return conversations.map((c) => ({
             id: c.id,
-            type: c.type as "ONE_TO_ONE" | "GROUP",
+            type: c.type,
             name: c.name,
             pinnedAt: c.pinnedAt ? c.pinnedAt.toISOString() : null,
             onlyOwnerCanInvite: c.onlyOwnerCanInvite,
@@ -148,7 +150,7 @@ const Query = {
 
         return {
             id: conv.id,
-            type: conv.type as "ONE_TO_ONE" | "GROUP",
+            type: conv.type,
             name: conv.name,
             pinnedAt: conv.pinnedAt ? conv.pinnedAt.toISOString() : null,
             onlyOwnerCanInvite: conv.onlyOwnerCanInvite,
@@ -206,7 +208,7 @@ const Query = {
         const afterCursor = args.after ?? null
 
         let whereFilter: Record<string, unknown> = { conversationId: args.conversationId }
-        let orderDir: "asc" | "desc" = "desc"
+        let orderDir: SortOrder = "desc"
 
         if (afterCursor) {
             // Forward pagination: messages NEWER than the cursor
@@ -309,7 +311,7 @@ const Mutation = {
             where: { userId1_userId2: { userId1: u1, userId2: u2 } },
         })
 
-        if (!friendship || friendship.status !== "ACCEPTED") {
+        if (!friendship || friendship.status !== FriendshipStatus.ACCEPTED) {
             throw new GraphQLError("Must be friends to start a conversation", {
                 extensions: { code: "FORBIDDEN", status: 403 },
             })
@@ -318,7 +320,7 @@ const Mutation = {
         // Check for existing ONE_TO_ONE conversation between these two users
         const existing = await context.prisma.conversation.findFirst({
             where: {
-                type: "ONE_TO_ONE",
+                type: ConversationType.ONE_TO_ONE,
                 AND: [
                     { participants: { some: { userId: myId } } },
                     { participants: { some: { userId: args.userId } } },
@@ -329,7 +331,7 @@ const Mutation = {
         if (existing) {
             return {
                 id: existing.id,
-                type: "ONE_TO_ONE",
+                type: ConversationType.ONE_TO_ONE,
                 name: existing.name,
                 pinnedAt: existing.pinnedAt ? existing.pinnedAt.toISOString() : null,
                 onlyOwnerCanInvite: existing.onlyOwnerCanInvite,
@@ -342,11 +344,11 @@ const Mutation = {
         // Create new conversation with both participants
         const conv = await context.prisma.conversation.create({
             data: {
-                type: "ONE_TO_ONE",
+                type: ConversationType.ONE_TO_ONE,
                 participants: {
                     create: [
-                        { userId: myId, role: "MEMBER" },
-                        { userId: args.userId, role: "MEMBER" },
+                        { userId: myId, role: ParticipantRole.MEMBER },
+                        { userId: args.userId, role: ParticipantRole.MEMBER },
                     ],
                 },
             },
@@ -354,7 +356,7 @@ const Mutation = {
 
         return {
             id: conv.id,
-            type: "ONE_TO_ONE",
+            type: ConversationType.ONE_TO_ONE,
             name: conv.name,
             pinnedAt: conv.pinnedAt ? conv.pinnedAt.toISOString() : null,
             onlyOwnerCanInvite: conv.onlyOwnerCanInvite,
@@ -389,7 +391,7 @@ const Mutation = {
                 where: { userId1_userId2: { userId1: u1, userId2: u2 } },
             })
 
-            if (!friendship || friendship.status !== "ACCEPTED") {
+            if (!friendship || friendship.status !== FriendshipStatus.ACCEPTED) {
                 throw new GraphQLError(
                     `User ${targetId} is not your friend. Only friends can be added to a group.`,
                     { extensions: { code: "FORBIDDEN", status: 403 } }
@@ -400,12 +402,12 @@ const Mutation = {
         // Create group conversation
         const conv = await context.prisma.conversation.create({
             data: {
-                type: "GROUP",
+                type: ConversationType.GROUP,
                 name: args.name,
                 participants: {
                     create: [
-                        { userId: myId, role: "OWNER" },
-                        ...args.userIds.map((uid) => ({ userId: uid, role: "MEMBER" as const })),
+                        { userId: myId, role: ParticipantRole.OWNER },
+                        ...args.userIds.map((uid) => ({ userId: uid, role: ParticipantRole.MEMBER  })),
                     ],
                 },
             },
@@ -413,7 +415,7 @@ const Mutation = {
 
         return {
             id: conv.id,
-            type: "GROUP",
+            type: ConversationType.GROUP,
             name: conv.name,
             pinnedAt: null,
             onlyOwnerCanInvite: conv.onlyOwnerCanInvite,
@@ -446,7 +448,7 @@ const Mutation = {
             })
         }
 
-        if (conv.type !== "GROUP") {
+        if (conv.type !== ConversationType.GROUP) {
             throw new GraphQLError("Cannot invite to a non-group conversation", {
                 extensions: { code: "BAD_REQUEST", status: 400 },
             })
@@ -461,7 +463,7 @@ const Mutation = {
         }
 
         // Check onlyOwnerCanInvite permission
-        if (conv.onlyOwnerCanInvite && inviterParticipant.role !== "OWNER") {
+        if (conv.onlyOwnerCanInvite && inviterParticipant.role !== ParticipantRole.OWNER) {
             throw new GraphQLError("Only the group owner can invite members", {
                 extensions: { code: "FORBIDDEN", status: 403 },
             })
@@ -473,7 +475,7 @@ const Mutation = {
             where: { userId1_userId2: { userId1: u1, userId2: u2 } },
         })
 
-        if (!friendship || friendship.status !== "ACCEPTED") {
+        if (!friendship || friendship.status !== FriendshipStatus.ACCEPTED) {
             throw new GraphQLError("You can only invite your friends to a group", {
                 extensions: { code: "FORBIDDEN", status: 403 },
             })
@@ -492,7 +494,7 @@ const Mutation = {
             data: {
                 conversationId: args.conversationId,
                 userId: args.userId,
-                role: "MEMBER",
+                role: ParticipantRole.MEMBER,
             },
         })
 
@@ -510,7 +512,7 @@ const Mutation = {
 
         return {
             id: conv.id,
-            type: "GROUP",
+            type: ConversationType.GROUP,
             name: conv.name,
             pinnedAt: conv.pinnedAt ? conv.pinnedAt.toISOString() : null,
             onlyOwnerCanInvite: conv.onlyOwnerCanInvite,
@@ -535,7 +537,7 @@ const Mutation = {
             where: { id: args.conversationId },
         })
 
-        if (!conv || conv.type !== "GROUP") {
+        if (!conv || conv.type !== ConversationType.GROUP) {
             throw new GraphQLError("Group conversation not found", {
                 extensions: { code: "NOT_FOUND", status: 404 },
             })
@@ -550,7 +552,7 @@ const Mutation = {
         }
 
         // Check onlyOwnerCanKick permission
-        if (conv.onlyOwnerCanKick && removerParticipant.role !== "OWNER") {
+        if (conv.onlyOwnerCanKick && removerParticipant.role !== ParticipantRole.OWNER) {
             throw new GraphQLError("Only the group owner can remove members", {
                 extensions: { code: "FORBIDDEN", status: 403 },
             })
@@ -569,7 +571,7 @@ const Mutation = {
         }
 
         // Cannot kick the OWNER
-        if (targetParticipant.role === "OWNER") {
+        if (targetParticipant.role === ParticipantRole.OWNER) {
             throw new GraphQLError("Cannot remove the group owner", {
                 extensions: { code: "FORBIDDEN", status: 403 },
             })
@@ -616,7 +618,7 @@ const Mutation = {
             where: { id: args.conversationId },
         })
 
-        if (!conv || conv.type !== "GROUP") {
+        if (!conv || conv.type !== ConversationType.GROUP) {
             throw new GraphQLError("Group conversation not found", {
                 extensions: { code: "NOT_FOUND", status: 404 },
             })
@@ -637,7 +639,7 @@ const Mutation = {
             },
         })
 
-        if (myParticipant.role === "OWNER") {
+        if (myParticipant.role === ParticipantRole.OWNER) {
             if (otherCount === 0) {
                 // Last member: dissolve the group (cascade deletes participants + messages)
                 await context.prisma.conversation.delete({
@@ -674,7 +676,7 @@ const Mutation = {
                             userId: args.successorUserId,
                         },
                     },
-                    data: { role: "OWNER" },
+                    data: { role: ParticipantRole.OWNER },
                 }),
                 context.prisma.conversationParticipant.delete({
                     where: {
@@ -742,7 +744,7 @@ const Mutation = {
             })
         }
 
-        if (conv.type !== "GROUP") {
+        if (conv.type !== ConversationType.GROUP) {
             throw new GraphQLError("Cannot update settings of a non-group conversation", {
                 extensions: { code: "BAD_REQUEST", status: 400 },
             })
@@ -756,7 +758,7 @@ const Mutation = {
         }
 
         // Check edit permission
-        if (conv.onlyOwnerCanEdit && myParticipant.role !== "OWNER") {
+        if (conv.onlyOwnerCanEdit && myParticipant.role !== ParticipantRole.OWNER) {
             throw new GraphQLError("Only the group owner can edit group settings", {
                 extensions: { code: "FORBIDDEN", status: 403 },
             })
@@ -793,7 +795,7 @@ const Mutation = {
 
         return {
             id: updated.id,
-            type: "GROUP",
+            type: ConversationType.GROUP,
             name: updated.name,
             pinnedAt: updated.pinnedAt ? updated.pinnedAt.toISOString() : null,
             onlyOwnerCanInvite: updated.onlyOwnerCanInvite,
@@ -876,7 +878,7 @@ const Mutation = {
                 conversationId: args.conversationId,
                 senderId: userId,
                 content: args.content,
-                messageType: "TEXT",
+                messageType: MessageType.TEXT,
             },
             select: {
                 id: true,
@@ -894,10 +896,10 @@ const Mutation = {
             conversationId: message.conversationId,
             senderId: message.senderId,
             content: message.content,
-            messageType: message.messageType as "TEXT" | "IMAGE",
+            messageType: message.messageType,
             imageUrl: message.imageUrl,
             createdAt: message.createdAt.toISOString(),
-            status: "SENT",
+            status: MessageStatusType.SENT,
         }
 
         // Broadcast via Socket.io (non-fatal if not initialized)
@@ -1059,7 +1061,7 @@ const Conversation = {
     },
 
     settings: (parent: ConversationParent) => {
-        if (parent.type !== "GROUP") return null
+        if (parent.type !== ConversationType.GROUP) return null
         return {
             onlyOwnerCanInvite: parent.onlyOwnerCanInvite,
             onlyOwnerCanKick: parent.onlyOwnerCanKick,

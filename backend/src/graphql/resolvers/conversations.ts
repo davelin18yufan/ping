@@ -76,46 +76,45 @@ const Query = {
     ): Promise<ConversationParent[]> => {
         const userId = requireAuth(context)
 
-        const participants = await context.prisma.conversationParticipant.findMany({
-            where: { userId },
-            select: {
-                conversationId: true,
-                conversation: {
-                    select: {
-                        id: true,
-                        type: true,
-                        name: true,
-                        pinnedAt: true,
-                        onlyOwnerCanInvite: true,
-                        onlyOwnerCanKick: true,
-                        onlyOwnerCanEdit: true,
-                        createdAt: true,
-                        messages: {
-                            orderBy: { createdAt: "desc" },
-                            take: 1,
-                            select: { createdAt: true },
-                        },
-                    },
-                },
-            },
-        })
+        type RawConvRow = {
+            id: string
+            type: string
+            name: string | null
+            pinnedAt: Date | null
+            onlyOwnerCanInvite: boolean
+            onlyOwnerCanKick: boolean
+            onlyOwnerCanEdit: boolean
+            createdAt: Date
+        }
 
-        // Sort: pinned first (by pinnedAt desc), then by last message time desc
-        const conversations = participants.map((p) => p.conversation)
-        conversations.sort((a, b) => {
-            if (a.pinnedAt && !b.pinnedAt) return -1
-            if (!a.pinnedAt && b.pinnedAt) return 1
-            if (a.pinnedAt && b.pinnedAt) {
-                return new Date(b.pinnedAt).getTime() - new Date(a.pinnedAt).getTime()
-            }
-            const aTime = a.messages[0]?.createdAt.getTime() ?? a.createdAt.getTime()
-            const bTime = b.messages[0]?.createdAt.getTime() ?? b.createdAt.getTime()
-            return bTime - aTime
-        })
+        // Single JOIN + GROUP BY — sorting is done entirely in Postgres so the
+        // composite index on Message(conversationId, createdAt DESC) is leveraged.
+        // Order: pinned conversations first (pinnedAt DESC among themselves),
+        // then non-pinned by latest message time DESC (fallback to conversation createdAt).
+        const rows = await context.prisma.$queryRaw<RawConvRow[]>`
+            SELECT
+                c.id,
+                c.type,
+                c.name,
+                c."pinnedAt",
+                c."onlyOwnerCanInvite",
+                c."onlyOwnerCanKick",
+                c."onlyOwnerCanEdit",
+                c."createdAt"
+            FROM "ConversationParticipant" cp
+            JOIN "Conversation" c ON c.id = cp."conversationId"
+            LEFT JOIN "Message" m ON m."conversationId" = c.id
+            WHERE cp."userId" = ${userId}
+            GROUP BY c.id
+            ORDER BY
+                (c."pinnedAt" IS NOT NULL) DESC,
+                c."pinnedAt" DESC NULLS LAST,
+                COALESCE(MAX(m."createdAt"), c."createdAt") DESC
+        `
 
-        return conversations.map((c) => ({
+        return rows.map((c) => ({
             id: c.id,
-            type: c.type,
+            type: c.type as ConversationType,
             name: c.name,
             pinnedAt: c.pinnedAt ? c.pinnedAt.toISOString() : null,
             onlyOwnerCanInvite: c.onlyOwnerCanInvite,

@@ -60,6 +60,13 @@ export const schema = createSchema({
         Timestamp when user account was last updated
         """
         updatedAt: String!
+
+        """
+        Whether the user is currently online (active tab/app in foreground).
+        Computed from Redis key user:online:{id} with 35s TTL.
+        Refreshed by client heartbeat every 30s while active.
+        """
+        isOnline: Boolean!
       }
 
       """
@@ -516,6 +523,8 @@ export const schema = createSchema({
             ...sessionsResolvers.Mutation,
             ...conversationsResolvers.Mutation,
         },
+        // Type-level resolvers
+        User: userResolvers.User,
         // Type-level resolvers: use DataLoader to prevent N+1 queries
         FriendRequest: friendsResolvers.FriendRequest,
         Friendship: friendsResolvers.Friendship,

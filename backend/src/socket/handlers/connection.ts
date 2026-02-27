@@ -91,6 +91,35 @@ export async function handleConnection(socket: AuthenticatedSocket): Promise<voi
         // Join all conversation rooms this user participates in
         const roomIds = await joinConversationRooms(socket, userId)
 
+        // Register all event handlers BEFORE emitting authenticated.
+        // This prevents a race condition where the client reacts to authenticated
+        // (e.g. sends heartbeat / user:away / disconnects) before the server has
+        // finished awaiting broadcastPresence and registered the handlers.
+
+        // Heartbeat: client sends every 30s while tab/app is in foreground.
+        // Refreshes the Redis TTL to keep the user marked as online.
+        socket.on("heartbeat", async () => {
+            try {
+                await setUserOnline(userId, PRESENCE_TTL)
+            } catch (error) {
+                console.error(`Failed to refresh heartbeat for user ${userId}:`, error)
+            }
+        })
+
+        // Away: client sends when tab/app goes to background or page closes.
+        // Immediately marks the user as offline without waiting for TTL expiry.
+        socket.on("user:away", async () => {
+            try {
+                await setUserOffline(userId)
+                await broadcastPresence(socket, userId, false)
+            } catch (error) {
+                console.error(`Failed to handle away event for user ${userId}:`, error)
+            }
+        })
+
+        // Disconnect handler
+        socket.on("disconnect", (reason) => handleDisconnect(socket, reason))
+
         // Send authenticated event to client
         socket.emit("authenticated", {
             userId,
@@ -106,36 +135,13 @@ export async function handleConnection(socket: AuthenticatedSocket): Promise<voi
             socket.emit("sync:required", { conversationIds: roomIds })
         }
 
-        // Broadcast online status to all conversation room members
+        // Broadcast online status to all conversation room members.
+        // Done last so all handlers are already in place when the client reacts.
         await broadcastPresence(socket, userId, true)
 
         console.log(`✓ User ${userId} connected (socket: ${socket.id})`, {
             color: "rgb(0, 255, 0)",
         })
-
-        // Heartbeat: client sends every 30s while tab/app is in foreground
-        // Refreshes the Redis TTL to keep the user marked as online
-        socket.on("heartbeat", async () => {
-            try {
-                await setUserOnline(userId, PRESENCE_TTL)
-            } catch (error) {
-                console.error(`Failed to refresh heartbeat for user ${userId}:`, error)
-            }
-        })
-
-        // Away: client sends when tab/app goes to background or page closes
-        // Immediately marks the user as offline without waiting for TTL expiry
-        socket.on("user:away", async () => {
-            try {
-                await setUserOffline(userId)
-                await broadcastPresence(socket, userId, false)
-            } catch (error) {
-                console.error(`Failed to handle away event for user ${userId}:`, error)
-            }
-        })
-
-        // Register disconnect handler
-        socket.on("disconnect", (reason) => handleDisconnect(socket, reason))
     } catch (error) {
         console.error(`Failed to handle connection for user ${userId}:`, error)
         socket.disconnect(true)

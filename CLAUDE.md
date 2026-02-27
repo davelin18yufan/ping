@@ -70,6 +70,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 設定優先度與依賴關係
 
 #### 步驟 3：撰寫測試規格文件
+- Skill: `/qa-test-planner`, `vitest`
 - 建立 `Feature-X.X.X-TDD-Tests.md`
 - 定義 Backend 測試案例（7+ 個）
 - 定義 Frontend (Web) 測試案例（6+ 個）
@@ -98,6 +99,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 持續迭代直到 MVP 完成
 
 ### 重要原則
+- 遵守 `/qa-test-planner` SKILL 設計測試
+- 各技術框架要使用相對應存在的 SKILL
 - ✅ **所有功能必須有測試規格才能開發**
 - ✅ **所有測試必須通過才能標記完成**
 - ✅ **task-board.md 是唯一的進度來源**
@@ -117,6 +120,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `Feature-X.X.X-TDD-Tests.md` - 測試規格文件
 
 **輸出物**：SDD 文件、測試規格（RED phase）、PR 審查、CI/CD 配置、task-board.md 更新
+**規則**: 須遵守 `/qa-test-planner`, `/vitest` skill
 
 ---
 
@@ -578,4 +582,4 @@ A：看 `MULTI_AGENT_PLAN.md` 的狀態欄，每天更新。
 - 程式碼內容（包括 string）以及註解總是以英文撰寫(包括PR跟commit)
 - 程式碼中不准出現表情符號
 - 有疑慮的地方必須要發問
-
+- 各技術框架要使用相對應存在的 SKILL

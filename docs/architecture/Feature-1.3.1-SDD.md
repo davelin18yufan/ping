@@ -458,6 +458,47 @@ emit 'authenticated' 給用戶端
 此後 sendMessage 時：io.to(conversationId).emit('message:new', ...)
 ```
 
+### 6.4 前端心跳整合注意事項
+
+#### 新增 Socket Events（由心跳機制觸發）
+
+Client → Server:
+- `heartbeat` — 前台活躍時每 30s 送出一次（刷新 Redis TTL，保持在線）
+- `user:away` — 切換背景 / 頁面關閉時立即送出
+
+Server → Client（broadcast 到用戶所屬 conversation rooms）:
+- `presence:changed` — `{ userId: string, isOnline: boolean, timestamp: string }`
+
+#### 在線狀態語意
+
+| 狀態 | 觸發條件 | Redis 結果 |
+|------|---------|-----------|
+| **Online** | 前台活躍，heartbeat 每 30s 刷新 | `setex user:online:{id} 35 "true"` |
+| **Offline** | 35s 無 heartbeat（TTL 到期） | key 自然消失 |
+| **Offline** | 明確送出 `user:away` event | 立即 `del user:online:{id}` |
+| **Offline** | Socket 斷線且無其他 socket | 立即 `del user:online:{id}` |
+
+#### Web 前端（useHeartbeat hook）
+
+- 監聽 `document.visibilitychange`
+- `hidden` → 送 `user:away` + 停止 interval
+- `visible` → 送 `heartbeat` + 啟動 `setInterval(30000)`
+- `beforeunload` → 送 `user:away`
+- 在 root 元件掛載（singleton，避免重複 interval）
+
+#### Mobile 前端（useHeartbeat hook）
+
+- 監聽 `AppState.addEventListener("change", ...)`
+- `"active"` → 送 `heartbeat` + 啟動 `setInterval(30000)`
+- `"background"` / `"inactive"` → 送 `user:away` + 停止 interval
+- 在 `_layout.tsx` 掛載
+
+#### 前端 User 查詢更新
+
+- `User` GraphQL type 新增 `isOnline: Boolean!`
+- 初始渲染時用 GraphQL 取得 `isOnline` 初始值
+- 後續實時更新來自 Socket `presence:changed` 事件
+
 ---
 
 ## 七、錯誤碼對照表

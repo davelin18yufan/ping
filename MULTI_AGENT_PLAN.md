@@ -6,591 +6,30 @@
 ---
 
 ## 一、Feature 優先級列表（MVP Phase 1）
-feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成)
 
-### Phase 1.0：基礎設施完整初始化（Week 1）
+feature 狀態（🔲 待開始 → ⏳ 進行中 → ✅ 完成）
 
-#### ✅ Feature 1.0.1 - Backend 基礎設施設定
+### Phase 1.0：基礎設施（已完成）
 
-| 欄位 | 內容 |
-|------|------|
-| **狀態** | ✅ 完成（5/5 子任務完成 - 100%） |
-| **優先級** | P0（Critical - 阻止所有功能） |
-| **負責** | Architect + Backend |
-| **SDD 參考** | backend.md、database.md |
-| **實際完成日期** | 2026-01-07 |
+| Feature | 名稱 | 完成日期 | 測試數 | 核心產出 |
+|---------|------|---------|--------|---------|
+| 1.0.1 | Backend 基礎設施 | 2026-01-07 | 27 | Prisma schema, Redis, Better Auth, GraphQL Yoga, Socket.io |
+| 1.0.2 | Frontend (Web) 基礎設施 | 2026-01-20 | 46 | TanStack Store, Apollo Client, Socket.io client, Better Auth client |
+| 1.0.3 | Mobile 基礎設施 | 2026-01-24 | 97 | NativeWind, Jest, TanStack Store, Apollo, Socket.io, Better Auth Expo |
+| 1.0.4 | Design System | 2026-01-26 | - | Design Tokens (28 colors/OKLCH), Primitive + Web + Mobile UI components |
 
-**子任務分解**：
-1. **Prisma 初始化與 Schema 設計**（Backend）- 2 小時 ✅
-   - ✅ 建立 `/backend/prisma/schema.prisma`
-   - ✅ 定義 Better Auth 所需 tables（User, Session, Account, Verification）
-   - ✅ 定義業務 tables（Friendship, Conversation, ConversationParticipant, Message, MessageStatus）
-   - ✅ 執行初始 migration：`bun prisma migrate dev --name init`
-   - ✅ 建立 seed data（測試用戶）
-   - ✅ **Commit**: `f6f3c62 [chore] improve Prisma scripts and architect agent config`
-   - ✅ **PR #1 & #2**: Merged to main
-
-2. **Redis 設定**（Backend）- 1 小時 ✅
-   - ✅ 建立 `/backend/src/lib/redis.ts`（193 行，包含完整 helper functions）
-   - ✅ 設定 Redis client 連線（retry strategy, event handlers）
-   - ✅ 建立測試工具 `/backend/test-redis.ts`（6 個測試案例全部通過）
-   - ✅ 文件化使用方式（online status, unread count, socket mapping, typing indicators）
-   - ✅ **Commit**: `efb992e [feat] setup Redis client with comprehensive helper functions`
-   - ✅ **PR #3**: Merged to main (2025-01-04)
-
-3. **基礎建設及Better Auth 整合**（Backend）- 2 小時 ✅
-   - ✅ 測試規格文件已完成：`/docs/architecture/Feature-1.0.1-Subtask-3-TDD-Tests.md`
-   - ✅ 建立基礎設定檔 `tsconfig`, `oxlint`, `oxfmt`
-     - `.oxlintrc.json` - 嚴謹的 linting 規則（correctness: error, suspicious: warn）
-     - `.oxfmtrc.json` - 格式化規則（100 char, 2 space, semicolons）
-     - `tsconfig.json` - 完整的 TypeScript 配置（ES2024, strict mode, Bun 專用）
-   - ✅ 建立 CI/CD（GitHub Actions workflow）
-     - `.github/workflows/backend-ci.yml` - Lint + Format + Type Check jobs
-     - `package.json` - 新增 CI scripts（type-check, prisma:generate, prisma:migrate:deploy）
-     - `backend/README.md` - 完整的 CI/CD 使用文檔
-   - ✅ 建立 `/backend/src/lib/auth.ts`（OAuth providers 配置完成）
-   - ✅ 設定 OAuth providers（Google, GitHub, Apple）環境變數範本
-   - ✅ 整合 Prisma adapter（已整合並通過測試）
-   - ✅ 建立 auth middleware (`/backend/src/middleware.ts`)（session 驗證完成）
-   - ✅ 測試 session 驗證流程（11 個測試案例全部通過 ✅）
-   - ✅ 測試框架設定（Bun test + fixtures + setup）
-   - ✅ 測試覆蓋率：86.20% 函數 / 90.88% 行（超過 80% 目標）
-   - **🔔 Commit Checkpoint 1**: `b8a7eeb [refactor] improve Prisma initialization with factory pattern`（已提交）
-   - **🔔 Commit Checkpoint 2**: `eb197e1 [feat] integrate Better Auth with OAuth providers and add comprehensive tests`（已提交）
-   - **完成時間**: 2026-01-05
-   - **狀態**: ✅ 完成（GREEN Phase - 測試全通過，REFACTOR - 程式碼優化完成）
-
-4. **GraphQL Yoga 設定**（Backend）- 1.5 小時 ✅
-   - ✅ 建立 `/backend/src/graphql/schema.ts`（完整 GraphQL Schema）
-   - ✅ 建立 `/backend/src/graphql/context.ts`（Context builder）
-   - ✅ 建立 `/backend/src/graphql/resolvers/user.ts`（`me` Query resolver）
-   - ✅ 設定 GraphQL Yoga server（CORS、GraphiQL、session middleware）
-   - ✅ 整合 auth middleware（從 cookie 注入 userId）
-   - ✅ 建立 8 個整合測試（認證、DB 查詢、錯誤處理、introspection）
-   - ✅ **Commit**: `13efc71 [feat] setup GraphQL Yoga with auth middleware`
-
-5. **Socket.io 設定**（Backend）- 1.5 小時 ✅
-   - ✅ 建立 `/backend/src/socket/index.ts`（Socket.io server with Bun Engine）
-   - ✅ 建立 `/backend/src/socket/middleware.ts`（Socket 認證中間件）
-   - ✅ 建立 `/backend/src/socket/handlers/connection.ts`（Connection/Disconnect handlers）
-   - ✅ 設定 Socket.io server with auth（handshake 驗證）
-   - ✅ 建立基礎 connection/disconnect handlers（Redis 同步、在線狀態管理）
-   - ✅ 建立 8 個整合測試（認證、多裝置、Redis cleanup）
-   - ✅ **Commit**: `c74b7cd [feat] setup Socket.io server with Bun Engine and authentication`
-
-**當前狀況**：
-- ✅ Bun + Hono 基礎 server 已建立
-- ✅ Prisma Schema 已完成（PR #1, #2 已合併）
-- ✅ Redis 配置已完成（PR #3 已合併）
-- ✅ 基礎建設完成 100%（Linter/Formatter/CI/CD 已配置）
-- ✅ Better Auth 整合完成（測試規格已完成，實作已通過 11 個測試）
-  - Commits: `b8a7eeb` (Prisma 重構) + `eb197e1` (Better Auth 整合)
-  - 測試覆蓋率：86.20% 函數 / 90.88% 行
-  - OAuth Providers: Google, GitHub, Apple 已配置
-  - Session Middleware: 已實作並通過驗證
-- ✅ GraphQL Yoga 設定完成（8 個測試全部通過）
-- ✅ Socket.io 設定完成（8 個測試全部通過）
-- **產出**：完整可運行的 backend 基礎設施（已完成 100%）
-- **完成度**: 100% (5/5 subtasks)
-- **測試結果**：27/27 測試全部通過 ✅（11 Better Auth + 8 GraphQL + 8 Socket.io）
+> Sprint 1 (100% 完成)。Sprint 1 分工略。
 
 ---
 
-#### ✅ Feature 1.0.2 - Frontend (Web) 基礎設施設定
+### Phase 1.1：認證系統（已完成）
 
-| 欄位 | 內容 |
-|------|------|
-| **狀態** | ✅ 完成（5/5 子任務完成 - 100%） |
-| **優先級** | P0 |
-| **負責** | Full-Stack Frontend |
-| **SDD 參考** | frontend.md |
-| **依賴** | Feature 1.0.1（需要 GraphQL endpoint） |
-| **實際完成日期** | 2026-01-20 |
+| Feature | 名稱 | 完成日期 | 測試數 | 核心產出 |
+|---------|------|---------|--------|---------|
+| 1.1.1 | OAuth Google/GitHub 登入 (Web) | 2026-02-03 | 79 | Server-Side Auth Middleware, OAuth 登入頁, 路由保護, SoundWaveLoader |
+| 1.1.2 | Session 管理 | 2026-02-24 | 8 | `sessions` query, `revokeSession` / `revokeAllSessions` mutations |
 
-**測試規格狀態**：
-- ✅ 測試規格文件已完成：`/docs/architecture/Feature-1.0.2-TDD-Tests.md`
-- ✅ 測試案例數量：46 個測試全部通過（TanStack Store: 7, Apollo Client: 19, Socket.io: 15, Better Auth: 5）
-- ✅ TDD Red Phase 完成時間：2026-01-11
-- ✅ TDD Green Phase 完成時間：2026-01-20
-- ✅ 負責人：Full-Stack Frontend Agent
-
-**子任務分解**：
-1. **Vitest 測試框架配置**（2 小時）✅
-   - ✅ 建立 `vitest.config.ts`（coverage thresholds: functions 75%, branches 50%）
-   - ✅ 建立 `tests/setup.ts`（全域測試設定）
-   - ✅ 設定 MSW (Mock Service Worker) for API mocking
-   - ✅ 測試覆蓋率配置（Lines: 83.33%, Statements: 81.96%, Functions: 79.16%, Branches: 50%）
-
-2. **TanStack Store 設定**（1.5 小時）✅
-   - ✅ 驗證 `@tanstack/react-store` 和 `@tanstack/store` 已安裝
-   - ✅ 建立 `/frontend/src/stores/chatStore.ts`（聊天狀態：當前對話、草稿訊息）
-   - ✅ 建立 `/frontend/src/stores/socketStore.ts`（Socket 連線狀態）
-   - ✅ **不需要** authStore（Better Auth 提供 useSession/useUser）
-   - ✅ 設定 TypeScript 類型定義
-   - ✅ 測試 Store 基本功能（7 個測試全部通過）
-
-3. **Apollo Client 設定**（2 小時）✅
-   - ✅ 建立 `/frontend/src/lib/apollo.ts`（含 errorLink 錯誤處理）
-   - ✅ 設定 HTTP link（credentials: 'include'）
-   - ✅ 配置 InMemoryCache
-   - ✅ 整合 Better Auth session
-   - ✅ 建立 GraphQL queries（6 個查詢操作）
-   - ✅ 19 個測試全部通過（包括 errorLink 測試）
-
-4. **Socket.io Client 設定**（1 小時）✅
-   - ✅ 建立 `/frontend/src/lib/socket.ts`（含自動重連策略：5 attempts, exponential backoff）
-   - ✅ 設定 Socket.io client with auth（withCredentials: true）
-   - ✅ 實作連線/斷線/重連事件處理
-   - ✅ 15 個測試全部通過（包括自動重連測試）
-
-5. **Better Auth Client 設定**（1 小時）✅
-   - ✅ 安裝 `@better-auth/react`
-   - ✅ 建立 `/frontend/src/lib/auth-client.ts`（React client）
-   - ✅ 建立 `/frontend/src/lib/auth.ts`（Server config）
-   - ✅ 建立 `/frontend/src/middleware/auth.ts`（Auth middleware）
-   - ✅ 整合 MSW for OAuth mocking
-   - ✅ 5 個測試全部通過
-
-6. **整合測試與驗證**（1.5 小時）✅
-   - ✅ 執行完整測試套件（46/46 測試通過）
-   - ✅ 測試覆蓋率達標（>80% lines, >75% functions, >50% branches）
-   - ✅ TypeScript 類型檢查通過
-   - ✅ Lint/Format 檢查通過
-   - ✅ Build 成功
-
-**當前狀況**：
-- ✅ Vitest 測試框架配置完成（coverage thresholds 設定）
-- ✅ TanStack Store stores 建立完成（chatStore + socketStore）
-- ✅ Apollo Client 配置完成（含 errorLink 錯誤處理）
-- ✅ Socket.io Client 配置完成（含自動重連策略）
-- ✅ Better Auth Client 整合完成（含 MSW mocking）
-- ✅ 測試結果：46/46 測試全部通過（100%）
-- ✅ 測試覆蓋率：
-  - Lines: 83.33% ✅
-  - Statements: 81.96% ✅
-  - Functions: 79.16% ✅（threshold: 75%）
-  - Branches: 50% ✅（threshold: 50%）
-- ✅ TypeScript 編譯：0 errors
-- ✅ Lint：0 warnings
-- ✅ Format：Pass
-- ✅ Build：Success
-
-**品質指標**：
-- 測試通過率：100% (46/46)
-- 程式碼覆蓋率：>80% (target met)
-- TypeScript 類型安全：100%
-- 程式碼品質：Lint/Format 通過
-
-**產出**：
-- Web 前端完整基礎設施（測試框架、狀態管理、API 客戶端、認證）
-- 46 個整合測試確保系統穩定性
-- 完整的 MSW mock 設定用於測試
-- Apollo Client 與 Socket.io 錯誤處理機制
-- Better Auth 與前端完整整合
-
-**Git 記錄**：
-- PR #10: https://github.com/davelin18yufan/ping/pull/10
-- Branch: feature/frontend-infrastructure
-- Commits:
-  - `f4a3b68` - [test] enhance test coverage for Apollo Client and Socket.io
-  - `20388a8` - [chore] update IDE and Claude settings configuration
-  - `42a8f0f` - [feat] implement Better Auth client and MSW test infrastructure
-  - `8ee9219` - [style] apply 4-space indentation formatting across frontend
-  - `6e84d3d` - [feat] implement Socket.io Client configuration with error handling
-  - `6b0086a` - [feat] implement Apollo Client configuration with error handling
-
----
-
-#### ✅ Feature 1.0.3 - Mobile 基礎設施設定
-
-| 欄位 | 內容 |
-|------|------|
-| **狀態** | ✅ 完成（7/7 子任務完成 - 100%） |
-| **優先級** | P0 |
-| **負責** | Full-Stack Frontend |
-| **SDD 參考** | mobile.md |
-| **依賴** | Feature 1.0.1（需要 GraphQL endpoint） |
-| **實際完成日期** | 2026-01-24 |
-
-**測試規格狀態**：
-- ✅ 測試規格文件已完成：`/docs/architecture/Feature-1.0.3-TDD-Tests.md`
-- ✅ 測試案例數量：97 個（NativeWind: 3, TanStack Store: 21, Apollo Client: 17, Socket.io: 43, Better Auth: 13）
-- ✅ TDD Red Phase 完成時間：2026-01-11
-- ✅ TDD Green Phase 完成時間：2026-01-24
-- ✅ 負責人：Full-Stack Frontend Agent
-
-**子任務分解**：
-1. **NativeWind 與測試環境設定**（1.5 小時）✅
-   - ✅ 安裝 NativeWind 4.2.1 + Tailwind CSS v3
-   - ✅ 配置 `tailwind.config.js`
-   - ✅ 設定 `babel.config.js`（加入 nativewind/babel）
-   - ✅ 安裝 Jest 30.2.0 + jest-expo 54.0.16
-   - ✅ 安裝 @testing-library/react-native 13.3.3
-   - ✅ 3 個 NativeWind 測試通過
-
-2. **程式碼品質工具設定**（1 小時）✅
-   - ✅ ESLint 9 flat config with expo integration
-   - ✅ Prettier 3.8.1 with Tailwind CSS plugin
-   - ✅ TypeScript 5.9 strict mode
-   - ✅ 新增 check script（typecheck + lint + format:check + test）
-   - ✅ Path Aliases 修復（@components/, @hooks/, @constants/, @assets/）
-   - ✅ TypeScript strict mode 完全通過
-
-3. **TanStack Store 設定（與 Web 共享邏輯）**（1 小時）✅
-   - ✅ 建立 `/mobile/stores/chatStore.ts`（對話與草稿訊息管理）
-   - ✅ 建立 `/mobile/stores/socketStore.ts`（Socket 連線狀態管理）
-   - ✅ 21 個測試全部通過（9 chatStore + 8 socketStore + 4 integration）
-   - ✅ 100% store 測試覆蓋率
-   - ✅ API 與 Web 前端一致，未來可抽取到 `/shared/stores/`
-   - ✅ 驗證 Store 在 React Native 環境下運作正常
-
-4. **Apollo Client 設定（Expo 適配）**（1.5 小時）✅
-   - ✅ 建立 `/mobile/lib/apollo.ts`（Apollo Client with Expo adaptation）
-   - ✅ 設定 HTTP link（credentials: 'include'）
-   - ✅ 配置 InMemoryCache with better-auth session integration
-   - ✅ 整合 Better Auth session
-   - ✅ 建立 `/mobile/hooks/useApolloClient.ts`（React hook）
-   - ✅ 17 個測試全部通過（Apollo Client: 8, useApolloClient hook: 9）
-
-5. **Socket.io Client 設定**（1 小時）✅
-   - ✅ 建立 `/mobile/lib/socket.ts`（Socket.io Client with auto-reconnect）
-   - ✅ 設定 Socket.io client（Expo 環境，withCredentials: true）
-   - ✅ 建立 `/mobile/hooks/useSocket.ts`（useSocket, useSocketEvent, useSocketEmit hooks）
-   - ✅ 43 個測試全部通過（Socket.io Client: 33, useSocket hooks: 10）
-   - ✅ 自動重連策略（5 attempts, exponential backoff）
-   - ✅ 與 socketStore 整合（連線狀態同步）
-
-6. **Better Auth Expo 設定（OAuth + Deep Linking）**（1.5 小時）✅
-   - ✅ 安裝 @better-auth/expo + expo-secure-store + expo-web-browser + expo-linking
-   - ✅ 建立 `/mobile/lib/auth.ts`（Better Auth Expo client）
-   - ✅ 建立 `/mobile/hooks/useAuth.ts`（React hook with session/user）
-   - ✅ 建立 `/mobile/app/auth/login.tsx`（Login screen with OAuth buttons）
-   - ✅ 建立 `/mobile/app/auth/callback.tsx`（OAuth callback handler）
-   - ✅ 配置 Deep Linking (`app.config.ts`)：`exp://ping-app/auth/callback`
-   - ✅ 設定 OAuth redirect URIs
-   - ✅ 13 個測試全部通過（Better Auth Client: 6, useAuth hook: 7）
-
-7. **整合測試與驗證**（1 小時）✅
-   - ✅ 執行完整測試套件（97/97 測試通過）
-   - ✅ 測試覆蓋率達標（lib/ 核心模組：79.81%）
-   - ✅ TypeScript 類型檢查通過（0 errors）
-   - ✅ ESLint 檢查通過（0 warnings）
-   - ✅ Prettier format 檢查通過
-
-**當前狀況**：
-- ✅ NativeWind 4.2.1 + Tailwind CSS v3 設定完成（3 個測試通過）
-- ✅ Jest 測試框架完成（30.2.0 + jest-expo 54.0.16）
-- ✅ 程式碼品質工具設定完成（ESLint 9 + Prettier 3.8.1）
-- ✅ TanStack Store stores 建立完成（chatStore + socketStore）
-- ✅ Apollo Client 設定完成（17 個測試通過）
-- ✅ Socket.io Client 設定完成（43 個測試通過）
-- ✅ Better Auth Expo 設定完成（13 個測試通過）
-- ✅ 整合測試完成（97/97 測試通過）
-- ✅ TypeScript strict mode 完全通過
-- ✅ Path Aliases 修復完成
-
-**測試結果**：
-```
-✅ 97/97 tests passing (100%)
-  - NativeWind: 3/3
-  - TanStack Store: 21/21
-  - Apollo Client: 17/17
-  - Socket.io: 43/43
-  - Better Auth: 13/13
-✅ Test Coverage (lib/): 79.81%
-✅ TypeScript check: 0 errors
-✅ ESLint: 0 warnings
-✅ Prettier: All files formatted
-```
-
-**Git 記錄**：
-- PR #14: https://github.com/davelin18yufan/ping/pull/14 (MERGED)
-- Branch: feature/1.0.3-mobile-infrastructure
-- Commits:
-  - `5f9ed5f` - [docs] add Git Bash npm/pnpm configuration guide to CLAUDE.md
-  - `4310fd6` - [feat] setup Mobile infrastructure with NativeWind, Jest, and code quality tools
-  - `4206e48` - [fix] resolve TypeScript errors and ESLint warnings in Mobile
-  - `42db2fb` - [feat] setup TanStack Store with chatStore and socketStore for Mobile
-  - `5fc677c` - [feat] implement Apollo Client setup with Expo adaptation
-  - `4578191` - [docs] update Feature 1.0.3 progress after completing Subtask 4
-  - `ab189e8` - [feat] implement Socket.io Client for Mobile with React Hooks
-  - `99bcaf7` - [chore] add .env to .gitignore for Mobile
-  - `fcc8a16` - [feat] implement Better Auth Expo with OAuth and Deep Linking
-
-**產出**：
-- Mobile 完整基礎設施（NativeWind + Jest + 程式碼品質工具）
-- TanStack Store 狀態管理（chatStore + socketStore）
-- Apollo Client with Expo adaptation（含 errorLink）
-- Socket.io Client with auto-reconnect（含 React hooks）
-- Better Auth Expo integration（OAuth + Deep Linking + React hooks）
-- 97 個測試確保系統穩定性（100% 通過率）
-- 完整的 Path Aliases 配置
-- 核心模組 (lib/) 測試覆蓋率：79.81%
-- 8 個新增模組與配置檔案
-
----
-
-#### ✅ Feature 1.0.4 - Design System 設定（Web + Mobile）
-
-| 欄位 | 內容 |
-|------|------|
-| **狀態** | ✅ 完成（4/4 子任務完成 - 100%） |
-| **優先級** | P0 |
-| **負責** | Full-Stack Frontend |
-| **SDD 參考** | frontend.md、mobile.md |
-| **依賴** | Feature 1.0.2, 1.0.3（需要 Tailwind 和 NativeWind 配置完成） |
-| **實際完成日期** | 2026-01-26 |
-
-**子任務分解**：
-1. **設計 Token 定義**（2 小時）✅
-   - ✅ 建立 `/shared/design-tokens/` 目錄結構
-   - ✅ 定義顏色系統（colors.ts）：
-     - 28 個 color tokens (Primary, Neutral, Semantic, Chat bubble)
-     - OKLCH 色彩空間（perceptually uniform）
-     - Dark/Light mode support
-   - ✅ 定義間距系統（spacing.ts）：16 級間距（0-px, 1-0.25rem, ..., 96-24rem）
-   - ✅ 定義字型系統（typography.ts）：
-     - Font families (sans, mono)
-     - Font sizes (xs-6xl)
-     - Line heights (tight-loose)
-     - Font weights (300-900)
-   - ✅ 定義陰影系統（shadows.ts）：8 級陰影（sm-2xl, inner）
-   - ✅ 定義圓角系統（radius.ts）：7 級圓角（none-full）
-   - ✅ OKLCH to RGB conversion utility (culori library)
-
-2. **Tailwind 配置整合**（1.5 小時）✅
-   - ✅ 更新 `/frontend/tailwind.config.ts`（Web - Tailwind v4 CSS-based）
-   - ✅ 更新 `/mobile/tailwind.config.ts`（Mobile - Tailwind v3 with NativeWind v4）
-   - ✅ 匯入 design tokens 到 Tailwind theme
-   - ✅ 確保 Web 和 Mobile 使用相同的 design tokens
-   - ✅ 自動 OKLCH to RGB conversion for React Native
-   - ✅ TypeScript path aliases 配置（@shared/design-tokens）
-
-3. **共享元件基礎**（2 小時）✅
-   - ✅ 建立 `/shared/components/primitives/`（headless logic）:
-     - button/ - Button primitive with states and event handling
-     - input/ - Input primitive with validation and formatting
-     - card/ - Card primitive with hover/press states
-     - avatar/ - Avatar primitive with image loading, fallback, online status
-   - ✅ 建立 `/frontend/src/components/ui/`（Web UI 實作）:
-     - button.tsx（CVA variants: primary/secondary/ghost/danger, sizes: sm/md/lg）
-     - input.tsx（variants: default/error, error handling, icons support）
-     - card.tsx（variants: default/elevated/bordered, sub-components）
-     - avatar.tsx（sizes: sm/md/lg/xl, online status badge, AvatarGroup）
-   - ✅ 建立 `/mobile/src/components/ui/`（Mobile UI 實作）:
-     - button.tsx（NativeWind styles with same API）
-     - input.tsx（keyboard handling, returnKeyType）
-     - card.tsx（Pressable with touch feedback）
-     - avatar.tsx（React Native Image with online status）
-   - ✅ All components follow Shared-First strategy
-   - ✅ API consistency between Web and Mobile
-
-4. **文件設定**（1.5 小時）✅
-   - ✅ 建立 `/docs/design-system.md`（Design System usage guide）:
-     - Design Tokens overview
-     - Component usage examples
-     - Best practices
-     - Dark/Light mode guidelines
-   - ✅ 建立 `/docs/design-philosophy.md`（Core design principles）:
-     - 三大核心原則（儀式優先、輕盈即時、關係空間）
-     - Visual language (Modern Dark Elegance)
-     - Color system (Dark: #1E1F22, Light: #FAF9F8)
-     - Typography, Spacing, Shadows, Animation principles
-     - Component priority (Phase 1-3)
-     - Accessibility (WCAG AAA)
-   - ✅ 更新 `/CLAUDE.md`（Frontend UI/UX design guidelines）:
-     - Design core documents (design-philosophy.md, design-system.md)
-     - Required Skills (/frontend-design, /ui-ux-pro-max)
-     - Design workflow standards
-     - Quality checklist
-
-**當前狀況**：
-- ✅ Design Tokens 定義完成（28 colors, spacing, typography, shadows, radius）
-- ✅ OKLCH to RGB conversion utility 完成（culori 整合）
-- ✅ Tailwind 配置整合完成（Web + Mobile）
-- ✅ Primitive Components 完成（Button, Input, Card, Avatar）
-- ✅ Web UI Components 完成（Button, Input, Card, Avatar）
-- ✅ Mobile UI Components 完成（Button, Input, Card, Avatar）
-- ✅ 設計文件完成（design-system.md, design-philosophy.md）
-- ✅ CLAUDE.md 更新完成（Frontend UI/UX guidelines）
-
-**Git 記錄**：
-- Branch: feature/1.0.4-design-system
-- Commits:
-  1. `93c3fef` - [feat] implement shared design tokens with OKLCH to RGB conversion
-  2. `51ad7e4` - [chore] configure TypeScript path aliases for shared directory
-  3. `8a23e25` - [feat] integrate shared design tokens into Mobile Tailwind config
-  4. `c581e3f` - [feat] implement Button primitive component (headless)
-  5. `ecae9b6` - [feat] implement Web Button UI component with design tokens
-  6. `e73c8a2` - [feat] implement Mobile Button UI component with NativeWind
-  7. `c7f0e1a` - [docs] add Design System usage documentation
-  8. `5e3942f` - [style] apply linter and formatter fixes to Feature 1.0.4 files
-  9. `bc2d167` - [style] apply formatter fixes across backend, frontend, and mobile
-  10. `0ac73b9` - [chore] setup Oxlint and Oxfmt for shared directory
-  11. `eea9559` - [style] apply Oxfmt formatting fixes to shared directory
-  12. `11fc107` - [docs] add comprehensive design philosophy document
-  13. `a3e8f7b` - [docs] add frontend UI/UX design guidelines to CLAUDE.md
-  14. `db4c2e9` - [feat] implement Input, Card, Avatar components (Primitive + Web + Mobile)
-
-**程式碼品質**：
-- ✅ TypeScript check: 0 errors (frontend + mobile + shared)
-- ✅ Linter: 0 warnings
-  - shared: Oxlint (0 warnings)
-  - frontend: Oxlint (0 warnings)
-  - mobile: ESLint (0 warnings)
-- ✅ Formatter: All files formatted
-  - shared: Oxfmt (100% formatted)
-  - frontend: Oxfmt (100% formatted)
-  - mobile: Prettier (100% formatted)
-- ✅ All components follow design philosophy
-- ✅ All components use Design Tokens (no hardcoded colors)
-- ✅ Dark/Light mode support
-- ✅ Accessibility (WCAG AAA compliant)
-
-**產出**：
-- ✅ 統一的 Design Tokens（28 colors, spacing, typography, shadows, radius）
-- ✅ OKLCH to RGB conversion utility (React Native compatible)
-- ✅ Web 和 Mobile 共享設計規範（same tokens, same class names）
-- ✅ Primitive Components（headless logic）: Button, Input, Card, Avatar
-- ✅ Web UI Components: Button, Input, Card, Avatar
-- ✅ Mobile UI Components: Button, Input, Card, Avatar
-- ✅ 設計文檔: design-system.md (usage guide), design-philosophy.md (principles)
-- ✅ CLAUDE.md Frontend UI/UX guidelines
-
----
-
-#### 🔲 Feature 1.0.5 - 測試框架設定
-
-| 欄位 | 內容 |
-|------|------|
-| **狀態** | 🔲 待開始 |
-| **優先級** | P0 |
-| **負責** | Architect + Backend + Full-Stack Frontend |
-| **預期完成日期** | 2025-01-03 |
-
-**子任務分解**：
-1. **Backend 測試框架**（Backend）- 1.5 小時
-   - 設定 Bun test（內建測試）
-   - 建立測試 helpers (`/backend/tests/setup.ts`)
-   - 建立測試 database 配置
-   - 範例測試：測試 Prisma 連線
-
-2. **Frontend 測試框架**（Full-Stack Frontend）- 1.5 小時
-   - 設定 Vitest + React Testing Library
-   - 建立測試 setup
-   - 範例測試：測試 Apollo provider
-
-3. **Mobile 測試框架**（Full-Stack Frontend）- 2 小時
-   - 設定 Jest + React Native Testing Library
-   - 設定 Detox E2E（基礎配置）
-   - 範例測試：測試基本渲染
-
-**產出**：所有三個平台測試框架就緒，可開始 TDD
-
----
-
-### Phase 1.1：認證系統（Week 1-2）
-
-#### ✅ Feature 1.1.1 - OAuth Google 登入（Backend + Frontend + Mobile）
-
-| 欄位 | 內容 |
-|------|------|
-| **狀態** | ✅ 完成（Web 端完成，Mobile 端後續階段） |
-| **優先級** | P0（阻止其他功能） |
-| **負責** | Full-Stack Frontend |
-| **SDD 參考** | backend.md §III、frontend.md §II、mobile.md §III |
-| **依賴** | Feature 1.0.1, 1.0.2, 1.0.3 ✅ |
-| **實際完成日期** | 2026-02-03 |
-| **PR** | #23 - https://github.com/davelin18yufan/ping/pull/23（OPEN，等待 review） |
-
-**實作總結（已完成）：**
-
-1. ✅ **測試規格（RED Phase）**
-   - 產出：`/docs/architecture/Feature-1.1.1-TDD-Tests.md`
-   - 測試規格已完成並通過（79/79 測試）
-
-2. ✅ **Frontend 實作（GREEN Phase）- Full-Stack Frontend Agent**
-   - **Server-Side Auth Middleware**：
-     - `/frontend/src/middleware/auth.middleware.server.ts`
-     - `requireAuthServer`：保護需登入路由
-     - `requireGuestServer`：保護訪客專用路由（如登入頁）
-     - `optionalAuthServer`：可選登入路由
-     - 使用 `createMiddleware().server()` 實作 SSR middleware
-     - 使用 `auth.api.getSession({ headers })` 進行伺服器端驗證
-   - **OAuth 登入頁面**：
-     - `/frontend/src/routes/auth/index.tsx`
-     - Google 和 GitHub OAuth 按鈕
-     - 錯誤處理與 loading 狀態
-     - 使用 `requireGuestServer` 保護（已登入自動導向首頁）
-   - **首頁路由保護**：
-     - `/frontend/src/routes/index.tsx`
-     - 使用 `requireAuthServer` 保護（未登入導向登入頁）
-   - **路由切換動畫**：
-     - `/frontend/src/components/shared/SoundWaveLoader.tsx`
-     - `/frontend/src/routes/__root.tsx`
-     - 200ms 延遲顯示，最少顯示 500ms
-   - **測試**：
-     - `/frontend/tests/integration/oauth-login.spec.tsx`（13 測試通過）
-     - `/frontend/tests/integration/auth-middleware-server.spec.ts`（16 測試通過）
-     - Better Auth Integration 測試（5 測試通過）
-     - Web Infrastructure 測試（46 測試通過）
-   - **總測試結果**：79/79 測試通過（100%）
-
-3. ✅ **程式碼品質（REFACTOR Phase）**
-   - TypeScript check: 0 errors ✅
-   - Linter (Oxlint): 0 warnings ✅
-   - Formatter (Oxfmt): 100% formatted ✅
-   - Import order 修復完成 ✅
-
-4. ✅ **Git 記錄**
-   - Branch: `feature/1.1.1-oauth-google-login`
-   - PR #23: https://github.com/davelin18yufan/ping/pull/23
-   - Status: OPEN（等待 Architect review）
-   - Commits: 8 個
-   - Changes: +1728 / -619 lines
-
-**關鍵實作細節**：
-- ✅ Server-Side Middleware（SSR 認證）
-- ✅ Type-safe session context 傳遞
-- ✅ OAuth 流程完整測試（Google, GitHub）
-- ✅ 路由保護（需登入、訪客專用、可選登入）
-- ✅ SoundWaveLoader 路由切換動畫
-- ✅ 錯誤處理與 loading 狀態
-- ✅ Better Auth + TanStack Start 深度整合
-
-**Mobile 實作**：
-- 狀態：延後至後續階段（優先完成 Web 端）
-- 原因：專注於 Server-Side Auth Middleware 實作與測試
-- 預計：Feature 1.1.2 或後續 feature 處理 Mobile OAuth
-
-**備註：** Web 端 OAuth 登入已完整實作並測試，為後續功能奠定堅實基礎。
-
----
-
-#### ✅ Feature 1.1.2 - Session 管理
-
-> **⚠️ 定義變更**：本 Feature 原規劃為 Magic Link 登入（後備方案），本 Sprint 重新定義為「Session 管理」（多裝置 Session 查詢與撤銷）。Magic Link 功能移至未來 backlog。
-
-| 欄位 | 內容 |
-|------|------|
-| **狀態** | ✅ 完成（8/8 測試通過 - 100%） |
-| **優先級** | P1 |
-| **負責** | Architect + Backend |
-| **SDD 參考** | backend.md §Session Management |
-| **TDD 文件** | `/docs/architecture/Feature-1.1.2-TDD-Tests.md` ✅ |
-| **分支** | `feature/1.2.1-backend`（合併於此 Sprint） |
-| **實際完成日期** | 2026-02-24 |
-
-**子任務：**
-- ✅ TDD 規格文件建立（`Feature-1.1.2-TDD-Tests.md`，8 個測試案例設計）
-- ✅ Prisma migration：`add-session-created-at`（Session model 加入 `createdAt` 欄位）
-- ✅ `verifySession` 更新：回傳 `{ userId, sessionId }` 以支援 `isCurrent` 判斷
-- ✅ `GraphQLContext` 更新：加入 `sessionId` 欄位
-- ✅ 建立 `/backend/src/graphql/resolvers/sessions.ts`（`sessions`, `revokeSession`, `revokeAllSessions`）
-- ✅ `schema.ts` 新增 `SessionInfo` type + Query/Mutation 定義
-- ✅ 建立 `/backend/tests/integration/sessions.spec.ts`（8 個測試全部通過）
-
-**GraphQL API**：
+**1.1.2 GraphQL API**：
 ```graphql
 type SessionInfo { id, userAgent, ipAddress, createdAt, expiresAt, isCurrent }
 sessions: [SessionInfo!]!
@@ -598,197 +37,34 @@ revokeSession(sessionId: ID!): Boolean!
 revokeAllSessions: Boolean!
 ```
 
-**測試結果**：8/8 通過（TC-B-01 至 TC-B-08）
+> Sprint 2 (100% 完成)。Sprint 2 分工略。
 
 ---
 
-### Phase 1.2：UI/UX 設計改版（Week 3-4）
+### Phase 1.2：UI/UX 設計改版（已完成）
 
-#### ✅ Feature 1.2.0 - UI/UX 大改版 + Session 認證整合
+| Feature | 名稱 | 完成日期 | 測試數 | 核心產出 |
+|---------|------|---------|--------|---------|
+| 1.2.0 | UI/UX 大改版 + Session 認證整合 | 2026-02-16 | 175 | 雙模式系統 (Glamorous/Minimal), CSS 架構重組, Capsule Morphing AppHeader, uiStore |
+| 1.2.1 | 搜尋與加好友 | 2026-02-23 | 69 backend + 175 frontend | Friends GraphQL resolvers, DataLoader, Friends Page + Sonar Ping 動畫 |
 
-| 欄位 | 內容 |
-|------|------|
-| **狀態** | ✅ 完成（5/5 Stage 完成 - 100%） |
-| **優先級** | P0（UI/UX 改版優先，Session 認證整合其次） |
-| **負責** | Full-Stack Frontend |
-| **SDD 參考** | frontend.md、design-philosophy.md、design-system.md |
-| **依賴** | Feature 1.0.4 ✅（Design System 基礎）、Feature 1.1.1 ✅（OAuth 登入） |
-| **預期完成日期** | 2026-02-21 |
-| **測試規格** | `/docs/architecture/Feature-1.2.0-TDD-Tests.md` |
-| **主分支** | `feature/1.2.0-ui-ux-redesign` |
+**1.2.1 GraphQL API**：
+```graphql
+searchUsers(query: String!): [User!]!
+friends: [User!]!
+pendingFriendRequests: [FriendRequest!]!
+sentFriendRequests: [FriendRequest!]!
+sendFriendRequest(userId: ID!): FriendRequest!
+acceptFriendRequest(requestId: ID!): Friendship!
+rejectFriendRequest(requestId: ID!): Boolean!
+cancelFriendRequest(requestId: ID!): Boolean!
+```
 
-**階段分解**（4 個 Stage）：
-
-**Stage 1 - Design Tokens + 樣板確認**（✅ 完成）
-- ✅ 更新 `/shared/design-tokens/colors.ts`
-  - Dark Mode: Noctis Obscuro（深沉神秘）
-    - Background: #0B0E13（深黑藍）
-    - Surface: #141821（深灰藍）
-    - Accent: #6B7FE8（柔和藍）
-  - Light Mode: Kyoto Whisper（日式簡樸）
-    - Background: #F5F4F0（米白色）
-    - Surface: #FDFCFA（柔和白）
-    - Text: #2C2C2E（深灰黑）
-- ✅ 確認配色與樣式方向
-
-**Stage 2 - CSS 架構重組 + Design Tokens CSS 擴展**（✅ 完成 - 2026-02-14）
-
-> **注意**：此 Stage 的實際實作內容對應到 branch `feature/1.2.0-stage-4-css-architecture`，PR #27 已建立。
-
-**實作產出（33 個檔案，+2444/-1312 行）**：
-
-Shared Design Tokens CSS 擴展：
-- ✅ `shared/design-tokens/css/colors.css` — CSS variable exports
-- ✅ `shared/design-tokens/css/animations.css` — CSS 動畫變數
-- ✅ `shared/design-tokens/css/effects.css` — 特效 CSS 變數
-- ✅ `shared/design-tokens/css/spacing.css` — 間距 CSS 變數
-- ✅ `shared/design-tokens/animations.ts` — 動畫 Token TypeScript
-- ✅ `shared/design-tokens/borders.ts` — 邊框 Token TypeScript
-- ✅ `shared/design-tokens/effects.ts` — 特效 Token TypeScript
-- ✅ `shared/design-tokens/z-index.ts` — Z-index Token TypeScript
-
-Frontend CSS 架構重組：
-- ✅ `frontend/src/styles/themes/aesthetic-modes.css` — 雙模式主題 CSS
-- ✅ `frontend/src/styles/themes/index.css` — 主題入口
-- ✅ `frontend/src/styles/animations/` — 動畫定義
-- ✅ `frontend/src/styles/base/typography.css` — 字型基礎樣式
-- ✅ `frontend/src/styles/base/overrides.css` — 全域覆蓋樣式
-- ✅ `frontend/src/styles/utilities/glass-effects.css` — 玻璃特效工具
-- ✅ `frontend/src/styles/utilities/interactions.css` — 互動工具
-- ✅ `frontend/src/styles/components/glass-button.css` — 按鈕元件
-- ✅ `frontend/src/styles/components/glass-card.css` — 卡片元件
-- ✅ `frontend/src/styles/components/glass-input.css` — 輸入元件
-- ✅ `frontend/src/styles/components/bubble-card.css` — 對話氣泡元件
-
-測試套件（Feature 1.2.0）：
-- ✅ `frontend/tests/integration/aesthetic-mode-toggle.spec.tsx` — 339 行
-- ✅ `frontend/tests/unit/contexts/aesthetic-mode-context.spec.tsx` — 336 行
-
-CI / Dependencies 更新：
-- ✅ pnpm 10.28.2 → 10.29.3
-- ✅ frontend 依賴更新（含 @types/node 固定版本）
-- ✅ 修復測試中的 Invalid hook call 問題
-
-**Git 記錄**：
-- Branch: `feature/1.2.0-stage-4-css-architecture`
-- Base branch: `feature/1.2.0-ui-ux-redesign`
-- PR #27: https://github.com/davelin18yufan/ping/pull/27 (OPEN，等待 review)
-- Commits:
-  - `1b9864a` - [refactor] extend Design Tokens with CSS format for Tailwind CSS v4
-  - `6a38486` - [refactor] reorganize Frontend CSS architecture with Tailwind CSS v4
-  - `390af03` - [fix] fix Invalid hook call in tests and add Feature 1.2.0 test suite
-  - `f673da6` - [chore] update frontend dependencies to latest and pin @types/node
-  - `f3e0fb6` - [chore] bump pnpm from 10.28.2 to 10.29.3
-
-**Stage 3 - 雙模式系統 + 元件升級**（✅ 完成 - 2026-02-14）
-- ✅ 建立雙模式切換系統
-  - 華麗模式（Glamorous）：完整動畫、特效
-  - 簡潔模式（Minimal）：簡化動畫、高效能
-- ✅ 升級 UI 元件
-  - Button, Input, Card, Avatar 使用新配色
-  - 整合 View Transition API
-  - 整合 Framer Motion
-- ✅ 升級 SoundWaveLoader
-  - 保留核心功能
-  - 增強視覺效果
-  - 支援雙模式切換
-
-**Stage 4 - Session 認證整合**（✅ 完成 - 2026-02-16）
-- ✅ 整合 Better Auth session 管理
-  - Session 驗證與更新
-  - Session 延長邏輯
-- ✅ 實作登出流程
-  - 登出 mutation
-  - 清除 session cookie
-  - 導向登入頁（useNavigate 取代 window.location.href）
-- ✅ 測試與優化
-  - 測試 session 流程
-  - 測試登出流程
-
-**Stage 5 - Capsule Morphing AppHeader**（✅ 完成 - 2026-02-16）
-- ✅ AppHeader 完整實作（三態：minimal / default / expanded）
-- ✅ uiStore（@tanstack/store）管理 headerExpanded + isViewTransitioning
-- ✅ View Transition 期間的 expanded 狀態保護（isViewTransitioning guard + cursorInHeaderRef）
-- ✅ useNavigate 取代 window.location.href 進行 sign-out 導航
-- ✅ 完整測試套件：app-header.spec.tsx（12 tests）、uiStore.spec.ts（6 tests）
-- ✅ 測試整理：移除 3 個重複測試，清理跨層測試責任
-
-**當前狀況**：
-- ✅ Stage 1 完成：Design Tokens 更新（新配色系統）
-- ✅ Stage 2 完成：CSS 架構重組（2026-02-14）
-  - shared/design-tokens CSS 格式擴展
-  - frontend/src/styles/ 完整重組
-  - Feature 1.2.0 測試套件新增（675 行）
-- ✅ Stage 3 完成：雙模式系統 + 元件升級（2026-02-14）
-  - 雙模式切換系統（Glamorous / Minimal）
-  - Button, Input, Card, Avatar 元件升級（新配色與動畫）
-  - SoundWaveLoader 升級（支援雙模式切換）
-- ✅ Stage 4 完成：Session 認證整合（2026-02-16）
-  - Better Auth session 管理整合
-  - 登出流程實作（useNavigate 導航）
-- ✅ Stage 5 完成：Capsule Morphing AppHeader（2026-02-16）
-  - AppHeader 三態實作（minimal / default / expanded）
-  - uiStore（headerExpanded + isViewTransitioning）
-  - View Transition 狀態保護機制
-
-**核心變更**：
-1. **配色系統改革**（Dark Mode 跳脫 Discord 風格）
-   - Background: #0D1117 → #0B0E13（更深沉）
-   - Surface: #161B22 → #141821（更沉穩）
-   - Accent: #5865F2 → #6B7FE8（更柔和）
-
-2. **Light Mode 日式簡樸**
-   - Background: #FAF9F8 → #F5F4F0（米白色）
-   - Surface: #FFFFFF → #FDFCFA（柔和白）
-   - Text: #060607 → #2C2C2E（深灰黑）
-
-3. **字型系統優化**
-   - Heading: Noto Sans TC Medium (500)
-   - Body: Noto Sans TC Regular (400)
-   - Serif: Noto Serif TC Light (300)
-
-4. **動畫系統升級**
-   - 路由切換：View Transition API
-   - 元件互動：Framer Motion
-   - 支援 Reduced Motion
-
-5. **雙模式系統**
-   - 華麗模式（Glamorous）：完整特效
-   - 簡潔模式（Minimal）：高效能
-
-6. **SoundWaveLoader 保留與增強**
-   - 保留核心載入動畫
-   - 增強視覺效果
-   - 支援雙模式切換
-
-**產出**：
-- ✅ 新配色系統（28+ tokens，Dark/Light）
-- ✅ 新字型系統（Noto Sans TC / Serif TC）
-- ✅ 動畫系統（View Transition API + Framer Motion）
-- ✅ 雙模式切換系統（Glamorous / Minimal）
-- ✅ CSS 架構重組（themes/, animations/）
-- ✅ SoundWaveLoader 升級版
-- ✅ Session 認證整合（登出、session 更新）
-- ✅ Capsule Morphing AppHeader（三態、uiStore、View Transition 保護）
-
-**測試規格**：
-- 測試規格文件：`/docs/architecture/Feature-1.2.0-TDD-Tests.md`
-- 實際測試通過：175/175 tests（100%）
-  - aesthetic-mode-toggle.spec.tsx
-  - aesthetic-mode-context.spec.tsx
-  - app-header.spec.tsx（12 tests）
-  - uiStore.spec.ts（6 tests）
-- 實際完成日期：2026-02-16
+> Sprint 3 + Sprint 4 (100% 完成)。分工略。
 
 ---
 
-### Phase 1.3：好友系統（Week 2-3）
-
-#### 🔲 Feature 1.2.1 - 搜尋與加好友（舊佔位符，已移至後方詳細區塊）
-
----
-
-### Phase 1.3：聊天系統（Week 3-4）
+### Phase 1.3：聊天系統
 
 #### ⏳ Feature 1.3.1 - 對話管理、群組聊天室、黑名單
 
@@ -799,18 +75,17 @@ CI / Dependencies 更新：
 | **負責** | Backend（已完成）→ Fullstack Frontend Developer（下一步）|
 | **依賴** | Feature 1.2.1（好友系統，已合併 PR #32）|
 | **SDD 參考** | `docs/architecture/Feature-1.3.1-SDD.md`（v2.0.0）|
-| **分支** | Backend: `feature/1.3.1-backend` ✅ 待 PR |
+| **分支** | Backend: `feature/1.2.1-backend` ✅ 待 PR |
 | **實際完成日期（Backend）** | 2026-02-25 |
 
-**Backend 已完成子任務**：
+**Backend 已完成（22 個整合測試 TC-B-01 ~ TC-B-22，77/77 全部通過）**：
 
 1. ✅ Prisma Migration：`ParticipantRole`、`pinnedAt`、群組設定、`Blacklist` model
 2. ✅ GraphQL Schema：17 個新 Mutation / Query，雙向游標 `MessagePage`
 3. ✅ DataLoaders：`participants`、`lastMessage`、`friendshipStatus`（viewer-bound）
 4. ✅ Resolvers（`conversations.ts`）：16 個 resolver，含 Socket.io 廣播
 5. ✅ Socket.io：`joinConversationRooms`、`sync:required` 重連補漏事件
-6. ✅ 整合測試：22 個測試（TC-B-01 ~ TC-B-22），77/77 全部通過
-7. ✅ 後端改善：集中型別（`types.ts`）、共享工具（`resolvers/utils.ts`）、移除冗餘 `isAuthenticated`、統一錯誤代碼 `UNAUTHENTICATED`、雙向游標分頁
+6. ✅ 後端改善：集中型別（`types.ts`）、共享工具（`resolvers/utils.ts`）、統一錯誤代碼 `UNAUTHENTICATED`、雙向游標分頁
 
 **Frontend 待開始子任務**：
 
@@ -825,176 +100,155 @@ CI / Dependencies 更新：
 
 ---
 
-#### 🔲 Feature 1.3.2 - 即時訊息更新（Socket.io）
-
-> ℹ️ Socket.io 即時功能已在 Feature 1.3.1 Backend 中實作（`message:new`、`participant:changed`、`sync:required`）。
-> 本 Feature 可考慮合併入 1.3.1 Frontend，或改為 **訊息狀態升級**（DELIVERED / READ 確認機制）的獨立 Sprint。
+#### 🔲 Feature 1.3.2 - 即時訊息狀態（DELIVERED / READ）
 
 | 欄位 | 內容 |
 |------|------|
-| **狀態** | 🔲 待評估（部分功能已在 1.3.1 實作）|
-| **優先級** | P0 |
+| **狀態** | 🔲 待評估（Socket.io 即時推送已在 1.3.1 實作，本 Feature 聚焦於已讀/已送達確認機制）|
+| **優先級** | P1 |
 | **負責** | Backend + QA |
-| **依賴** | Feature 1.3.1 |
+| **依賴** | Feature 1.3.1 Frontend 完成後 |
 | **SDD 參考** | Feature-1.3.1-SDD.md §六 |
 | **預期完成日期** | 待重新評估 |
 
 ---
 
-### Phase 1.4：圖片與文件（Week 4）
+### Phase 1.4：即時功能補完（調整後順序）
 
-#### 🔲 Feature 1.4.1 - 圖片上傳與發送
+> **調整說明（2026-02-28）**：
+> 後端 `feature/1.2.1-backend` 分支尚有數個 P0 功能待補完（`me` query、`updateProfile` 等），須在前端開始 Feature 1.3.1 之前先行完成。
+> 功能執行順序為：① 後端補完 → ② Feature 1.3.1 Frontend → ③ Feature 1.4.2 圖片上傳。
+
+#### ✅ Feature 1.4.1 - 心跳機制 & 在線狀態
 
 | 欄位 | 內容 |
 |------|------|
-| **狀態** | 🔲 待開始 |
-| **優先級** | P1 |
-| **負責** | Backend + Frontend + Mobile + QA |
-| **依賴** | Feature 1.3.1 |
-| **SDD 參考** | backend.md §VI、database.md |
-| **預期完成日期** | 2025-01-26 |
+| **狀態** | ✅ 完成（2026-02-28） |
+| **優先級** | P0 |
+| **負責** | Backend Developer |
+| **分支** | `feature/1.2.1-backend` |
+| **實際完成日期** | 2026-02-28 |
 
-**待分解子任務...**
+**完成內容（20/20 socket tests，TC-9~TC-20）**：
+- ✅ TTL-based presence：`setUserOnline(userId, 35)` 35s TTL，客戶端每 30s 心跳刷新
+- ✅ `heartbeat` socket handler：刷新 `user:online:{id}` TTL
+- ✅ `user:away` handler：立即刪除 key + 廣播 `presence:changed { isOnline: false }`
+- ✅ `broadcastPresence` helper：向用戶所在所有對話 room 廣播 `presence:changed`
+- ✅ connect/disconnect 事件：自動廣播，多 socket 時不重複廣播
+- ✅ GraphQL `User.isOnline: Boolean!` field resolver（讀 Redis TTL key）
+- ✅ `searchUsers` 回傳 `isOnline` 狀態
+
+**Commits**：`cc0af5b`, `756251f`, `53bfc29`, `4d9a6ce`
 
 ---
 
-## 二、當前衝刺（Sprint）
+#### 🔲 [優先] 後端補完（P0）— 待 PR 合併後立即開始
+
+> 分支：從 `main` 開新分支（待命名），或在 `feature/1.2.1-backend` 合併後的 main 上建立。
+
+| 子任務 | 說明 | 狀態 |
+|--------|------|------|
+| `me` query | 回傳當前登入使用者完整資料（含 `isOnline`） | 🔲 待開始 |
+| `updateProfile` mutation | 更新 displayName、avatarUrl、bio | 🔲 待開始 |
+| typing indicator | `typing:start` / `typing:stop` socket events + Redis TTL 防抖 | 🔲 待開始 |
+| `markMessagesAsRead` mutation | 批次更新 MessageStatus → READ，廣播 `message:read` | 🔲 待開始 |
+
+**完成標準**：
+- 以上 4 項均有整合測試（TDD Green Phase）
+- TypeScript 0 errors, Linter 0 warnings
+- PR 建立並通知 Architect review
+
+---
+
+#### 🔲 Feature 1.4.2 - 圖片上傳與發送
+
+| 欄位 | 內容 |
+|------|------|
+| **狀態** | 🔲 待開始（等 Feature 1.3.1 Frontend 完成後才開始）|
+| **優先級** | P1（已往後移）|
+| **負責** | Backend + Frontend + Mobile |
+| **依賴** | Feature 1.3.1 Frontend ✅ |
+| **SDD 參考** | backend.md §VI、database.md |
+| **預期完成日期** | 待重新評估 |
+
+**子任務（待分解）**：
+- Architect 設計上傳 API 規格（S3 / local storage 策略）
+- 建立測試規格文件 `Feature-1.4.2-TDD-Tests.md`
+- Backend：上傳 endpoint、message type 擴充、file metadata 儲存
+- Frontend Web：圖片選取 + 預覽 + 發送 UI
+- Mobile：`expo-image-picker` 整合
+- 壓縮策略（行動網路考量）
+
+---
+
+## 二、當前衝刺（Sprint 5）
 
 ### 衝刺目標
-**Sprint 1 (已完成)**: Phase 1.0 基礎設施完整初始化（100% 完成）
-**Sprint 2 (已完成)**: Feature 1.1.1 OAuth 登入（Web 端完成，79/79 測試通過）
-**Sprint 3 (已完成)**: Feature 1.2.0 UI/UX 大改版 + Session 認證整合（5/5 Stage 完成，175/175 測試通過）
-**Sprint 4 (已完成)**: Feature 1.2.1 搜尋與加好友 — Frontend Web 視覺重設計（175/175 測試通過，2026-02-23）
+- **Sprint 1~4（已完成）**：Phase 1.0 基礎設施、OAuth 登入、UI/UX 改版、好友系統 + 聊天後端
+- **Sprint 5（進行中）**：後端補完（me/updateProfile/typing/markRead）→ Feature 1.3.1 Frontend
 
-### 開發分工（3 Agents 配置）
+### 當前各 Agent 狀態
 
-#### Sprint 1: Phase 1.0 基礎設施初始化
+#### Architect Agent
+- **下一步**：
+  1. Review & merge `feature/1.2.1-backend` → main（Backend: Feature 1.1.2 + 1.2.1 + 1.3.1 + 1.4.1，89/89 tests）
+  2. 建立後端補完任務的測試規格（me query、updateProfile、typing indicator、markMessagesAsRead）
+  3. 待後端補完 PR 合併後，分配 Feature 1.3.1 Frontend 給 Fullstack Frontend Developer
+  4. 持續更新 task-board.md
 
-| Agent | 分配任務 | 預計時間 | 狀態 |
-|-------|---------|---------|------|
-| **Architect** | 1. ✅ 檢視並完善 Prisma schema 設計<br>2. ✅ 審查 Better Auth 整合方案<br>3. ✅ 準備 GraphQL Yoga 測試規格<br>4. ✅ 審查 Feature 1.0.2 PR 並更新文件<br>5. ✅ 審查 Feature 1.0.3 進度並更新文件<br>6. ✅ 審查 Feature 1.0.4 進度並更新文件 | 3 小時 | ✅ 100% 完成 |
-| **Backend** | **Feature 1.0.1**: <br>1. ✅ Prisma schema + migrations<br>2. ✅ Redis 設定<br>3. ✅ Better Auth 整合（11 測試通過）<br>4. ✅ GraphQL Yoga 設定（完成）<br>5. ✅ Socket.io 設定（完成）<br>**Feature 1.0.5 (Backend)**: ✅ 測試框架已設定 | 9.5 小時 | ✅ 100% 完成 |
-| **Full-Stack Frontend** | **Feature 1.0.2**: ✅ Web 基礎設施完成（TanStack Store + Apollo + Socket.io + Better Auth - 46 測試通過）<br>**Feature 1.0.3**: ✅ Mobile 基礎設施完成（7/7 子任務完成 - 100%）<br>&nbsp;&nbsp;- ✅ NativeWind 與測試環境（3 測試通過）<br>&nbsp;&nbsp;- ✅ 程式碼品質工具（ESLint + Prettier + TypeScript）<br>&nbsp;&nbsp;- ✅ TanStack Store（21 測試通過，100% 覆蓋率）<br>&nbsp;&nbsp;- ✅ Apollo Client（17 測試通過）<br>&nbsp;&nbsp;- ✅ Socket.io Client（43 測試通過）<br>&nbsp;&nbsp;- ✅ Better Auth Expo（13 測試通過）<br>&nbsp;&nbsp;- ✅ 整合測試（97/97 測試通過，79.81% 核心覆蓋率）<br>**Feature 1.0.4**: ✅ Design System 完成（4/4 子任務完成 - 100%）<br>&nbsp;&nbsp;- ✅ Design Tokens 定義（28 colors, spacing, typography, shadows, radius）<br>&nbsp;&nbsp;- ✅ Tailwind 配置整合（Web + Mobile）<br>&nbsp;&nbsp;- ✅ 共享元件基礎（Primitive + Web + Mobile UI: Button, Input, Card, Avatar）<br>&nbsp;&nbsp;- ✅ 文件設定（design-system.md, design-philosophy.md, CLAUDE.md update）<br>**Feature 1.0.5 (Frontend)**: ✅ 測試框架（Web 已完成，Mobile 已完成） | 18 小時 | ✅ 100% 完成 |
+#### Backend Developer
+- **下一步**：
+  1. 等待 Architect merge `feature/1.2.1-backend`
+  2. 新分支：實作 `me` query + `updateProfile` mutation（含整合測試）
+  3. 實作 typing indicator（`typing:start` / `typing:stop` socket events）
+  4. 實作 `markMessagesAsRead` mutation
+  5. 提交 PR，等待 Architect review
 
-**總計**：約 29.5 小時（約 4 個工作日）
-
-**完成標準**：
-- ✅ Backend 可啟動並連接 PostgreSQL + Redis
-- ✅ GraphQL endpoint 可訪問（`http://localhost:3000/graphql`）
-- ✅ Socket.io 可連接（`ws://localhost:3000`）
-- ✅ Web 可連接 GraphQL 並執行簡單 query（46 測試通過）
-- ✅ Web 的 TanStack Store 正常運作（7 測試通過）
-- ✅ Web 的 Apollo Client 正常運作（19 測試通過）
-- ✅ Web 的 Socket.io Client 正常運作（15 測試通過）
-- ✅ Web 的 Better Auth Client 正常運作（5 測試通過）
-- ✅ Web 測試框架可運行（Vitest + MSW 設定完成）
-- ✅ Mobile 可連接 GraphQL 並執行簡單 query（17 測試通過）
-- ✅ NativeWind 在 Mobile 正常運作（3 測試通過）
-- ✅ TanStack Store 在 Mobile 正常運作（21 測試通過，100% 覆蓋率）
-- ✅ 測試框架在 Mobile 可運行（Jest + @testing-library/react-native 設定完成）
-- ✅ Mobile 程式碼品質工具可運行（ESLint + Prettier + TypeScript strict）
-- ✅ Mobile 的 Socket.io Client 正常運作（43 測試通過）
-- ✅ Mobile 的 Better Auth Expo 正常運作（13 測試通過）
-- ✅ Design Tokens 定義完成（28 colors, spacing, typography, shadows, radius）
-- ✅ OKLCH to RGB conversion utility 完成（React Native compatible）
-- ✅ 基礎 UI 元件（Button, Input, Card, Avatar）在 Web 和 Mobile 都可用
-- ✅ 設計文檔完成（design-system.md, design-philosophy.md）
-- ✅ Frontend UI/UX 設計規範更新（CLAUDE.md）
-
----
-
-#### ✅ Sprint 2: Feature 1.1.1 OAuth 登入（已完成）
-
-| Agent | 分配任務 | 實際時間 | 狀態 |
-|-------|---------|---------|------|
-| **Architect** | 1. ✅ 檢視測試規格完整性<br>2. ⏳ Code review PR #23（進行中） | 1 小時 | ⏳ |
-| **Full-Stack Frontend** | 1. ✅ 讀取測試規格<br>2. ✅ 實作 Server-Side Auth Middleware<br>3. ✅ 實作 Web OAuth UI<br>4. ✅ 通過所有測試（79/79） | 8 小時 | ✅ |
-| **All** | ✅ Refactor + ⏳ code review（等待 Architect） | 1 小時 | ⏳ |
-
-**總計**：約 10 小時（實際 1-2 個工作日）
-
-**完成標準**：
-- ✅ Server-Side Auth Middleware 實作完成（requireAuthServer, requireGuestServer, optionalAuthServer）
-- ✅ OAuth 登入頁面完成（Google, GitHub）
-- ✅ 路由保護正常運作（需登入、訪客專用、可選登入）
-- ✅ SoundWaveLoader 路由切換動畫
-- ✅ 79/79 測試全部通過（OAuth: 13, Middleware: 16, Better Auth: 5, Web: 46）
-- ✅ TypeScript 0 errors, Linter 0 warnings, Formatter 100%
-- ✅ PR #23 已建立（等待 review）
-
----
-
-#### ✅ Sprint 3: Feature 1.2.0 UI/UX 大改版（已完成）
-
-| Agent | 分配任務 | 實際時間 | 狀態 |
-|-------|---------|---------|------|
-| **Architect** | 1. ✅ 建立測試規格文件（Feature-1.2.0-TDD-Tests.md）<br>2. ✅ 審查 Stage 1 樣板設計<br>3. ✅ Code review Stage 2-5 實作<br>4. ✅ 更新文件（MULTI_AGENT_PLAN.md, task-board.md） | 3 小時 | ✅ 100% |
-| **Full-Stack Frontend** | **Stage 1** (✅ 完成):<br>1. ✅ 更新 Design Tokens（colors.ts）<br>2. ✅ 確認配色方向<br>**Stage 2** (✅ 完成 - 2026-02-14):<br>1. ✅ 擴展 shared/design-tokens CSS 格式（4 個 CSS 檔 + 4 個 TS 檔）<br>2. ✅ 重組 frontend/src/styles/ 架構（themes, animations, base, utilities, components）<br>3. ✅ 新增 Feature 1.2.0 測試套件（675 行）<br>**Stage 3** (✅ 完成 - 2026-02-14):<br>1. ✅ 建立雙模式切換系統（Glamorous / Minimal）<br>2. ✅ 升級 UI 元件（Button, Input, Card, Avatar）<br>3. ✅ 升級 SoundWaveLoader（支援雙模式切換）<br>**Stage 4** (✅ 完成 - 2026-02-16):<br>1. ✅ 整合 Better Auth session 管理<br>2. ✅ 實作登出流程（useNavigate 導航）<br>3. ✅ 測試與優化<br>**Stage 5** (✅ 完成 - 2026-02-16):<br>1. ✅ AppHeader 三態實作（minimal / default / expanded）<br>2. ✅ uiStore（headerExpanded + isViewTransitioning）<br>3. ✅ View Transition 狀態保護機制<br>4. ✅ app-header.spec.tsx（12 tests）+ uiStore.spec.ts（6 tests） | 14 小時 | ✅ 100% |
-
-**總計**：約 14 小時（約 2-3 個工作日）
-
-**完成標準**：
-- ✅ Design Tokens 更新完成（新配色系統）
-- ✅ CSS 架構重組完成（themes/, animations/, base/, utilities/, components/）
-- ✅ shared/design-tokens CSS 格式擴展（4 CSS + 4 TS 新增）
-- ✅ Feature 1.2.0 測試套件新增（aesthetic-mode-toggle + aesthetic-mode-context）
-- ✅ 雙模式系統實作完成（Stage 3 - 2026-02-14）
-- ✅ UI 元件升級完成（使用新配色）（Stage 3 - 2026-02-14）
-- ✅ SoundWaveLoader 升級完成（Stage 3 - 2026-02-14）
-- ✅ Session 認證整合完成（登出、session 更新）（Stage 4 - 2026-02-16）
-- ✅ AppHeader Capsule Morphing 完成（Stage 5 - 2026-02-16）
-- ✅ 175/175 測試全部通過（100%）
-- ✅ TypeScript 0 errors, Linter 0 warnings, Formatter 100%
+#### Fullstack Frontend Developer
+- **下一步**：
+  1. 等待 Architect 確認後端補完 PR 合併
+  2. 讀取 `docs/architecture/Feature-1.3.1-SDD.md` 第八節
+  3. 開始 Feature 1.3.1 Frontend（對話列表 + 聊天室頁面）
+  4. 實作 Socket.io 即時整合（`message:new`、`presence:changed`、`sync:required`）
 
 ---
 
 ## 三、重要決議與設計細節
 
-### 3.1 認證流程確認
-- ✅ OAuth 為主（Google、GitHub、Apple）
-- ✅ Magic Link 為備援
-- ✅ Better Auth 作為統一認證層
-- ✅ Session 儲存在 HTTP-only Secure Cookie
-- ✅ GraphQL Middleware 從 cookie 注入 userId 到 context
+### 3.1 認證流程
+- OAuth 為主（Google、GitHub、Apple），Magic Link 為備援
+- Better Auth 作為統一認證層
+- Session 儲存在 HTTP-only Secure Cookie
+- GraphQL Middleware 從 cookie 注入 userId 到 context
 
 ### 3.2 GraphQL vs Socket.io 劃分
 - GraphQL：查詢、修改、初始資料（訊息歷史、好友列表）
 - Socket.io：實時推送（新訊息、在線狀態、輸入提示）
-- GraphQL Subscription：暫未使用（MVP 由 Socket.io 完全覆蓋）
+- GraphQL Subscription：MVP 暫不使用（Socket.io 完全覆蓋）
 
 ### 3.3 資料庫層級
 - PostgreSQL（生產）+ 本地開發用 Postgres 容器
 - Prisma 作為唯一 ORM
 - Better Auth tables 與業務 tables 共存
-- 版本控制：schema.prisma + migrations/
 
 ### 3.4 Web vs Mobile 共享策略
-- `/shared/graphql/` - GraphQL 查詢定義
-- `/shared/hooks/` - useMessages、useFriends 等
-- `/shared/types/` - TypeScript 類型
-- `/shared/utils/` - 日期、格式化工具
-- **不共享**：UI 元件（Web 用 TanStack Start / React，Mobile 用 React Native）
+- 共享：`/shared/graphql/`、`/shared/hooks/`、`/shared/types/`、`/shared/utils/`
+- 不共享：UI 元件（Web 用 React DOM，Mobile 用 React Native）
 
 ---
 
 ## 四、每週檢查清單
 
-### 每日（Daily）
+### 每日
 - [ ] Architect 檢視 MULTI_AGENT_PLAN.md，確認優先級
 - [ ] 各 agent 讀取計畫，確認自己的任務與依賴
-- [ ] 測試執行結果回報在對應 feature 旁
-- [ ] 更新 feature 狀態（🔴 待開始 → ⏳ 進行中 → ✅ 完成）
-- [ ] **每完成一個子任務，提醒使用者 commit**
+- [ ] 更新 feature 狀態（🔲 待開始 → ⏳ 進行中 → ✅ 完成）
+- [ ] 每完成一個子任務，提醒使用者 commit
 
-### 每週五（Weekly Sync）
+### 每週五
 - [ ] 審視本週完成情況，更新狀態
 - [ ] 檢查是否有 blocker，escalate 給 Architect
 - [ ] 計畫下週工作
-
-### 每兩週（Milestone）
-- [ ] 執行一次完整 E2E 測試（跨層級）
-- [ ] 審視是否需要調整設計或優先級
-- [ ] 準備 demo 或 staging 部署
 
 ---
 
@@ -1002,20 +256,17 @@ CI / Dependencies 更新：
 
 | 風險 | 影響 | Mitigation |
 |------|------|-----------|
-| **Phase 1.0 基礎設施配置錯誤** | 後續所有功能受阻 | Architect 仔細審查每個設定，建立驗證清單，每個 Feature 完成後測試 |
-| **NativeWind 設定問題** | Mobile UI 無法正常顯示 | Feature 1.0.3 優先測試 NativeWind，確保 Tailwind classes 正常運作 |
-| **Better Auth + Prisma 整合問題** | 認證層崩潰 | Feature 1.0.1 建立最小化測試，確認 session 正確儲存到 DB |
-| Better Auth OAuth 流程複雜性 | 認證層可能遇冷 | 先完成 Feature 1.0.1 確保 Better Auth 基礎正確 |
-| Web + Mobile Socket.io 不同步 | 實時通訊不可靠 | Feature 1.0.1 完成後立即測試 Socket.io 連線 |
-| PostgreSQL 初期設定錯誤 | 資料一致性 | Architect 預先驗證 schema.prisma，Prisma migration dry-run |
-| 圖片壓縮效能 | 行動網路卡頓 | Feature 1.4.1 前進行 PoC 測試 |
+| 後端補完延遲 | 前端 1.3.1 無法開始 | 後端先行合併 PR，補完功能單獨分支快速迭代 |
+| NativeWind 設定問題 | Mobile UI 無法正常顯示 | Feature 1.0.3 已驗證，持續維護 |
+| Better Auth + Prisma 整合問題 | 認證層崩潰 | 已完整測試，session middleware 穩定 |
+| Web + Mobile Socket.io 不同步 | 實時通訊不可靠 | Feature 1.3.1 前端整合須嚴格測試 |
+| 圖片壓縮效能 | 行動網路卡頓 | Feature 1.4.2 前進行 PoC 測試 |
 
 ---
 
 ## 六、溝通管道
 
 - **Architect 答疑**：設計疑問找 Architect
-- **測試疑問**：找 QA Agent
 - **跨層協調**：更新 MULTI_AGENT_PLAN.md，其他 agent 會看到
 - **Git 衝突**：優先按照目錄邊界避免，若衝突找 Architect 仲裁
 
@@ -1030,203 +281,40 @@ CI / Dependencies 更新：
 | Web 規格 | `/docs/architecture/frontend.md` |
 | Mobile 規格 | `/docs/architecture/mobile.md` |
 | 資料庫規格 | `/docs/architecture/database.md` |
+| 對話系統 SDD | `/docs/architecture/Feature-1.3.1-SDD.md` |
 | Claude Code 工作指南 | `/CLAUDE.md` |
-| 本計畫 | `/MULTI_AGENT_PLAN.md` |
+| 進度看板 | `/docs/task-board.md` |
 
 ---
 
-**最後更新**：2026-02-25
-**下次計畫更新**：Feature 1.3.1 Frontend 實作完成後
-**當前 Sprint**：Sprint 5 進行中（Feature 1.3.1 Backend 完成，等待 PR + Frontend 開始）
-**最新進展**：Feature 1.3.1 Backend 全部完成（2026-02-25）
-  - Branch: `feature/1.2.1-backend`（含 Feature 1.1.2 + 1.2.1 + 1.3.1 所有後端實作）
-  - 完成進度：Backend 77/77 tests，TypeScript 0 errors
-  - 完成內容（Feature 1.3.1 Backend）：
-    - ✅ Prisma Migration：`ParticipantRole`、`pinnedAt`、群組設定欄位、`Blacklist` model
-    - ✅ GraphQL Schema：17 個新 Mutation / Query，雙向游標 `MessagePage`（before/after/prevCursor）
-    - ✅ DataLoaders：`participants`、`lastMessage`、`friendshipStatus`（viewer-bound LRU 優化）
-    - ✅ Resolver `conversations.ts`：16 個 resolver，含 Socket.io `message:new` + `participant:changed` 廣播
-    - ✅ Socket.io：`joinConversationRooms` 返回 roomIds，非恢復連線時 emit `sync:required`
-    - ✅ 整合測試 22 個（TC-B-01 ~ TC-B-22），77/77 全部通過
-  - 完成內容（後端架構改善）：
-    - ✅ `types.ts`：集中所有 domain types（`UserRecord`、`MessageRecord`、`Brand<T,B>`、`MessageCursor`）
-    - ✅ `resolvers/utils.ts`：共享工具（`requireAuth`、`toISO`、`normalizeFriendshipIds`、`getParticipant`、`parseMessageCursor`、`makeMessageCursor`、`asMessageCursor`）
-    - ✅ 移除冗餘 `isAuthenticated`，統一使用 `requireAuth(context)` 拋出 `UNAUTHENTICATED`
-    - ✅ `MessageCursor` branded type：opaque cursor 型別安全，三工廠函式對應 create / cast / parse
-  - 下一步：PR 合併 → `feature/1.3.1-frontend` 分支 → Frontend 實作
+## 八、整體進度統計
 
-**Phase 1.0 + 1.1 + 1.2 + 1.3 總結**：
-- ✅ Feature 1.0.1 - Backend 基礎設施（100% 完成）
-- ✅ Feature 1.0.2 - Frontend (Web) 基礎設施（100% 完成）
-- ✅ Feature 1.0.3 - Mobile 基礎設施（100% 完成）
-- ✅ Feature 1.0.4 - Design System 設定（100% 完成）
-- ✅ Feature 1.1.1 - OAuth Google 登入（Web 端 100% 完成）
-- ✅ Feature 1.1.2 - Session 管理（Backend 100% 完成，8/8 tests - 2026-02-24）
-- ✅ Feature 1.2.0 - UI/UX 大改版（5/5 Stage 完成，175/175 測試通過 - 2026-02-16）
-- ✅ Feature 1.2.1 - 搜尋與加好友（Backend + Frontend Web 完成，55+14=69 backend tests - 2026-02-24）
-- ✅ Feature 1.3.1 - 對話管理、群組、黑名單（Backend 完成，22/22 tests - 2026-02-25）
-- **Sprint 1 完成度：4/4 features（100%）**
-- **Sprint 2 完成度：1/1 features（100%）**
-- **Sprint 3 完成度：1/1 features（100%）**
-- **Sprint 4 完成度：2/2 features Backend（Feature 1.2.1 + 1.3.1 Backend）**
-- **Sprint 5 完成度：Backend ✅ / Frontend 🔲**
-- **總測試通過數（Backend）：77/77 tests**
-  - Session Management (1.1.2): 8 tests
-  - Friends Resolvers (1.2.1): 14 tests
-  - Conversations (1.3.1): 22 tests
-  - GraphQL Infrastructure: 8 tests
-  - Socket.io: 8 tests
-  - Better Auth: 11 tests
-  - Legacy integration: 6 tests
-- **下一步：PR 合併 feature/1.2.1-backend → main，開啟 feature/1.3.1-frontend**
-
-**Feature 1.2.0 完成總結**：
-  - 主分支: feature/1.2.0-ui-ux-redesign
-  - Status: ✅ 全部完成（5/5 Stage，175/175 tests）
-  - 測試規格：`/docs/architecture/Feature-1.2.0-TDD-Tests.md` ✅
-  - **階段分解**：
-    - ✅ Stage 1: Design Tokens + 配色確認 - 完成
-    - ✅ Stage 2: CSS 架構重組 + Design Tokens CSS 擴展 - 完成（2026-02-14）
-      - Branch: `feature/1.2.0-stage-4-css-architecture`
-      - 33 個檔案變更（+2444/-1312 行）
-    - ✅ Stage 3: 雙模式系統 + 元件升級 - 完成（2026-02-14）
-      - 雙模式切換系統（Glamorous / Minimal）
-      - Button, Input, Card, Avatar 元件升級（新配色與動畫）
-      - SoundWaveLoader 升級（支援雙模式切換）
-    - ✅ Stage 4: Session 認證整合 - 完成（2026-02-16）
-      - Better Auth session 管理整合
-      - 登出流程（useNavigate 導航）
-    - ✅ Stage 5: Capsule Morphing AppHeader - 完成（2026-02-16）
-      - AppHeader 三態（minimal / default / expanded）
-      - uiStore（@tanstack/store）：headerExpanded + isViewTransitioning
-      - View Transition 狀態保護機制
-      - app-header.spec.tsx（12 tests）+ uiStore.spec.ts（6 tests）
-  - **實際完成**：2026-02-16
+| Phase | 完成度 | 測試通過數 |
+|-------|--------|-----------|
+| 1.0 基礎設施 | 4/4 ✅ | 170+ |
+| 1.1 認證系統 | 2/2 ✅ | 87 |
+| 1.2 UI/UX + 好友 | 2/2 ✅ | 244+ |
+| 1.3 聊天系統 | Backend ✅ / Frontend 🔲 | 22 (backend) |
+| 1.4 即時功能 | 1/3 ✅ (1.4.1 完成) | 20 |
+| **Backend 總計** | **89/89 tests** | **feature/1.2.1-backend 待 merge** |
 
 ---
 
-#### ✅ Feature 1.2.1 - 搜尋與加好友
+**最後更新**：2026-02-28
+**當前 Sprint**：Sprint 5（後端 PR 待合併 → 後端補完 → Feature 1.3.1 Frontend）
+**最新進展**：Feature 1.4.1 心跳機制 & 在線狀態完成（2026-02-28）。`feature/1.2.1-backend` 含 Feature 1.1.2 + 1.2.1 + 1.3.1 + 1.4.1 所有後端實作，89/89 tests 全部通過，等待 Architect merge。
 
-| 欄位 | 內容 |
-|------|------|
-| **狀態** | ✅ 完成（Backend + Frontend Web 全部完成，55/55 後端測試、175/175 前端測試通過） |
-| **優先級** | P1 |
-| **負責** | Backend + Full-Stack Frontend |
-| **SDD 參考** | backend.md §Friend Management、frontend.md §Friends Page |
-| **依賴** | Feature 1.0.1 ✅、Feature 1.0.2 ✅、Feature 1.2.0 ✅ |
-| **分支** | `feature/1.2.1-friend-search` |
-| **TDD 文件** | `/docs/Feature-1.2.1-TDD-Tests.md` ✅ |
-| **實際完成日期** | 2026-02-23 |
-
-**測試規格狀態**：
-- ✅ TDD 測試規格文件已完成：`/docs/Feature-1.2.1-TDD-Tests.md`
-- ✅ Backend 測試：14 個整合測試全部通過（friends.spec.ts, TC-B-01 至 TC-B-14）
-- ✅ Frontend Web 測試：11 個整合測試全部通過（friends-page.spec.tsx）
-- ✅ 後端總測試通過：55/55（100%），前端：175/175（100%）
-
-**子任務分解**：
-
-1. **Backend — GraphQL Schema 擴充**（Backend Agent）✅
-   - ✅ 新增 `FriendRequest`、`Friendship` GraphQL types
-   - ✅ 新增 `FriendshipStatus` enum
-   - ✅ 擴充 `Query`: `searchUsers`, `friends`, `pendingFriendRequests`, `sentFriendRequests`
-   - ✅ 擴充 `Mutation`: `sendFriendRequest`, `acceptFriendRequest`, `rejectFriendRequest`, `cancelFriendRequest`
-
-2. **Backend — Resolvers 實作**（Backend Agent）✅
-   - ✅ 建立 `/backend/src/graphql/resolvers/friends.ts`
-   - ✅ `searchUsers`: 搜尋邏輯（ILIKE、排除自己、最多 20 筆、需認證）
-   - ✅ `sendFriendRequest`: 防重複（409）、防自送（400）、userId1/userId2 排序慣例
-   - ✅ `acceptFriendRequest`: 驗證接收方身份（403）、更新狀態為 ACCEPTED
-   - ✅ `rejectFriendRequest`: 驗證接收方身份（403）、更新狀態為 REJECTED
-   - ✅ `cancelFriendRequest`: 驗證發送方身份（403）、刪除記錄
-   - ✅ `friends`: 回傳 ACCEPTED 好友（雙向）
-   - ✅ `pendingFriendRequests` / `sentFriendRequests`: 分開回傳收到/發出的 PENDING
-   - ✅ DataLoader 模式：`/backend/src/graphql/loaders.ts`，批次載入 User，防止 N+1 查詢
-   - ✅ `FriendRequest` type resolver（sender/receiver via DataLoader）
-   - ✅ `Friendship` type resolver（friend via DataLoader）
-
-3. **Backend — 測試實作**（Backend Agent）✅
-   - ✅ 建立 `/backend/tests/integration/friends.spec.ts`
-   - ✅ 實作 14 個測試案例全部通過（TC-B-01 至 TC-B-14）
-   - ✅ 測試覆蓋率 >80%
-
-4. **Frontend Web — /friends 路由與頁面**（Full-Stack Frontend Agent，3 小時）✅
-   - ✅ `/frontend/src/routes/friends/index.tsx`（TanStack Start route，`requireAuthServer` + loader）
-   - ✅ `/frontend/src/components/friends/UserCard.tsx`（整合 `useAestheticMode`、`UserStatusAvatar`）
-   - ✅ `/frontend/src/components/shared/UserStatusAvatar.tsx`（新增 `showWaveRings` prop）
-   - ✅ 移除所有 dummy data（DUMMY_PENDING、DUMMY_SENT、DUMMY_FRIENDS）
-   - ✅ 接入真實 TanStack Query options（`friendsListQueryOptions`、`pendingRequestsQueryOptions`、`sentRequestsQueryOptions`）
-   - ✅ Sonar Ping 動畫（sonar rings、stagger list entry）
-   - ✅ 雙模式支援（`useAestheticMode`：minimal 模式下隱藏裝飾性動畫）
-
-5. **Shared — Hooks 與 GraphQL Fragments**（Full-Stack Frontend Agent，2 小時）
-   - [ ] 建立 `useSearchUsers` hook（防抖 300ms + TanStack Query）
-   - [ ] 建立 `useFriendActions` hook（sendRequest, accept, reject, cancel）
-   - [ ] 建立 GraphQL fragments（UserBasicFields, FriendRequestFields, FriendshipFields）
-   - [ ] GraphQL queries/mutations（SearchUsers, SendFriendRequest, etc.）
-
-6. **Frontend — 測試實作**（Full-Stack Frontend Agent，2 小時）✅
-   - ✅ `/frontend/tests/integration/friends-page.spec.tsx`（11 tests 全部通過）
-     - TC-F-NEW-01~04：更新為 per-test 注入 query cache，不再依賴 dummy data
-     - 新增 `AestheticModeProvider` + `vi.mock` for context isolation
-
-7. **CSS 與視覺**（Full-Stack Frontend Agent）✅
-   - ✅ `/frontend/src/styles/components/friends.css`：Sonar ring 改為圓形（160px × 160px, border-radius 50%）
-     - Light Mode「Kyoto Sunrise」：珊瑚色三重漣漪
-     - Dark Mode「Steel Frost」：藍色單掃
-   - ✅ `/frontend/src/styles/base/overrides.css`：`scrollbar-gutter: stable` + Ping 自訂捲軸樣式（adaptive OKLCH colors）
-   - ✅ `/frontend/vite.config.ts`：新增 `server: { port: 3001 }`
-
-**API Contract（GraphQL）**：
-
-```graphql
-# Queries
-searchUsers(query: String!): [User!]!
-friends: [User!]!
-pendingFriendRequests: [FriendRequest!]!
-sentFriendRequests: [FriendRequest!]!
-
-# Mutations
-sendFriendRequest(userId: ID!): FriendRequest!
-acceptFriendRequest(requestId: ID!): Friendship!
-rejectFriendRequest(requestId: ID!): Boolean!
-cancelFriendRequest(requestId: ID!): Boolean!
-```
-
-**驗收標準（Backend 部分）**：
-- ✅ 14 個 Backend 整合測試全部通過（friends.spec.ts，TC-B-01 至 TC-B-14）
-- ✅ DataLoader 模式實作（N+1 防護），loaders.ts per-request 建立
-- ✅ GraphQL Schema 完整（FriendRequest, Friendship, FriendshipStatus, 4 Query, 4 Mutation）
-- ✅ 所有 Resolver 含認證保護（UNAUTHENTICATED, FORBIDDEN, CONFLICT, NOT_FOUND）
-
-**驗收標準（Frontend Web 部分）**：
-- ✅ 11 個 Frontend 整合測試全部通過（friends-page.spec.tsx）
-- ✅ TypeScript 類型完整（0 errors）
-- ✅ Linter/Formatter 通過（oxfmt 格式化完成）
-- ✅ 移除 dummy data，接入真實 GraphQL query options
-- ✅ 雙模式支援（Sonar 動畫在 minimal 模式下關閉）
-- ✅ `UserStatusAvatar` 支援 `showWaveRings` prop
-- ✅ Sonar Ping 視覺重設計（圓形 sonar ring）
-
-**Git 記錄**：
-- Branch: `feature/1.2.1-friend-search`
-- Commits:
-  - `d5290e7` - [style] implement Sonar Ping visual redesign for friends search page
-  - `58e915a` - [style] apply oxfmt formatter to frontend source and test files
-- 變更統計：8 個檔案，319 insertions，216 deletions（visual redesign commit）
-
----
-
-#### 風險與注意事項
-- ✅ **OAuth 流程**：已完整實作並測試（Google, GitHub）
-- ✅ **Session 管理**：Server-Side Middleware 已實作並測試
-- ⚠️ **Mobile 實作**：後續需補充 Mobile 端 OAuth 流程（Feature 1.1.1-Mobile 或單獨 feature）
+**下一步優先順序**：
+1. Architect merge `feature/1.2.1-backend` → main
+2. Backend 補完（me query、updateProfile、typing indicators、markMessagesAsRead）
+3. Feature 1.3.1 Frontend（對話列表 + 聊天室）
+4. Feature 1.4.2 圖片上傳（等 1.3.1 Frontend 完成後才開始）
 
 ---
 
 ## Appendix：Feature 狀態圖示說明
 
-- 🔴 **待開始**：未動工，等待上一個 feature 完成或設計確認
+- 🔲 **待開始**：未動工，等待上一個 feature 完成或設計確認
 - ⏳ **進行中**：已分派任務，agent 正在執行（紅-綠-重構）
 - 🟡 **測試中**：實作完成，等待 QA / CI/CD 驗收
 - ✅ **完成**：所有層級實作 + 測試 + merge，可進行下一個 feature

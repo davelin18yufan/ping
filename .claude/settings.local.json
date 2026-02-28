@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(gh run view:*)",
+      "Bash(pnpm test:*)",
+      "Bash(bun test:*)",
+      "Bash(git status)",
+      "Bash(cmd.exe //C \"pnpm lint\")",
+      "Bash(find *)",
+      "Bash(Read *)"
+    ],
+    "ask": [
+      "Bash(rm *)",
+      "Bash(git push *)"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "github"
+  ],
+  "spinnerTipsEnabled": true
+}

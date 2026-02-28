@@ -70,11 +70,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 設定優先度與依賴關係
 
 #### 步驟 3：撰寫測試規格文件
+- Skill: `/qa-test-planner`, `vitest`
 - 建立 `Feature-X.X.X-TDD-Tests.md`
 - 定義 Backend 測試案例（7+ 個）
 - 定義 Frontend (Web) 測試案例（6+ 個）
 - 定義 Frontend (Mobile) 測試案例（6+ 個）
-- 包含：期望輸入/輸出、錯誤碼、邊界情況
+- 包含：期望輸入/輸出、錯誤碼、邊界情況，須包含極端邊界情況，不能只考慮 Happy Path
 
 #### 步驟 4：分配給開發者
 - Backend Developer：實作 `/backend/**`
@@ -98,6 +99,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 持續迭代直到 MVP 完成
 
 ### 重要原則
+- 遵守 `/qa-test-planner` SKILL 設計測試
+- 各技術框架要使用相對應存在的 SKILL
 - ✅ **所有功能必須有測試規格才能開發**
 - ✅ **所有測試必須通過才能標記完成**
 - ✅ **task-board.md 是唯一的進度來源**
@@ -117,6 +120,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `Feature-X.X.X-TDD-Tests.md` - 測試規格文件
 
 **輸出物**：SDD 文件、測試規格（RED phase）、PR 審查、CI/CD 配置、task-board.md 更新
+**規則**: 須遵守 `/qa-test-planner`, `/vitest` skill
 
 ---
 
@@ -149,7 +153,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - **測試**: 單元 / 整合 / E2E 測試實作
 
 **架構技術規範**
-- React 須遵照 `/vercel-react-best-practices`來時做
+- React 須遵照 `/vercel-react-best-practices`
+- React-Native 須遵照 `/vercel-react-native-best-practices`
 - 框架架構則須遵照 `tanstack-start` , `tanstack-router` 的規範
 - 請求主體用 `tanstack-query` 規範
 
@@ -171,19 +176,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ✅ **必須檢查命名慣例**：新檔案命名需符合專案現有慣例
 - ❌ **禁止盲目新增檔案**：沒有探索專案結構就新增全新模組
 - ❌ **禁止重複功能**：新增前必須確認沒有重複或類似的實作
-
-**檢查流程**：
-```
-1. 使用 Glob 搜尋相關檔案（例如：**/*auth*.ts）
-   ↓
-2. 使用 Grep 搜尋關鍵字（例如：authentication）
-   ↓
-3. 使用 Read 讀取相關檔案，理解現有實作
-   ↓
-4. 判斷：修改現有檔案 or 新增檔案？
-   ↓
-5. 若新增，確認命名、位置、架構符合專案慣例
-```
 
 ### 規則 1：Architect 設計階段（RED Phase）
 - ✅ **必須先有 SDD**：更新 `/docs/architecture/*.md` 完成設計
@@ -237,14 +229,6 @@ feature/[功能名稱]-[agent]
 - feature/google-oauth-mobile
 ```
 
-### Merge 前檢查清單
-- [ ] 所有相關測試綠燈
-- [ ] 沒有 console.log / TODO（完整實作）
-- [ ] 程式碼符合目錄邊界
-- [ ] 更新 MULTI_AGENT_PLAN.md
-- [ ] CI/CD 通過
-- [ ] (可選) Architect 檢視過設計變更
-
 ### Commit Message 格式
 - 以 `[flag] message` 為主體撰寫
 - 以英文撰寫，確保精準明確
@@ -280,7 +264,7 @@ feature/[功能名稱]-[agent]
 4. ✅ 修復一個 bug 後
 5. ✅ 新增一個完整的測試檔案後
 6. ✅ 切換到不同功能前
-7. ✅ 每日工作結束前
+7. ✅ 當前計劃階段結束
 
 **每次 commit 前檢查**：
 - [ ] 程式碼可以正常執行
@@ -375,9 +359,6 @@ try {
    - 使用指南與最佳實踐
 
 3. **設計系統 CSS 元件（必須使用）**
-   - `/frontend/src/styles/components/glass-button.css` - 按鈕樣式
-   - `/frontend/src/styles/components/glass-card.css` - 卡片樣式
-   - `/frontend/src/styles/components/glass-input.css` - 輸入框樣式
    - 所有 UI 元件**必須使用**這些設計系統定義的 classes，不得自行撰寫重複樣式
 
 4. **🔴 修改任何樣式前必須先檢查 Shared 樣式架構（MANDATORY）**
@@ -431,18 +412,12 @@ try {
    ↓
 4. 閱讀設計核心文件
    ↓
-5. 使用設計系統 CSS classes 實作
+5. 使用設計系統 CSS classes 實作和共用基礎元件 `/shared/`
    ↓
 6. 執行設計交付檢查
    ↓
 7. 提交程式碼
 ```
-
-**⚠️ 違反此流程的後果**：
-- ❌ 不符合設計系統一致性
-- ❌ 產生重複樣式程式碼
-- ❌ 破壞整體設計風格
-- ❌ PR 將被拒絕
 
 #### 設計流程規範
 **Fullstack Frontend Developer 在實作任何 UI 元件前必須**：
@@ -536,26 +511,6 @@ cmd.exe //C "npm run build"
 2. `/docs/task-board` - 總計畫板
 3. `/MULTI_AGENT_PLAN.md` - 當前任務面板
 
-### 技術文檔
-- Bun：https://bun.sh/docs
-- Hono：https://hono.dev/docs/
-- GraphQL Yoga：https://the-guild.dev/graphql/yoga-server
-- Better Auth：https://better-auth.com
-- Socket.io：https://socket.io/docs
-- Prisma：https://www.prisma.io/docs
-- TanStack Start：https://tanstack.com/start/latest
-- TanStack Router: https://tanstack.com/router/latest
-- Tanstack Query: https://tanstack.com/query/latest
-- Expo：https://docs.expo.dev
-- React Native：https://reactnative.dev/docs
-- Nativewind: https://www.nativewind.dev/docs
-- Tailwind: https://tailwindcss.com/docs/installation
-- Oxlint: https://oxc.rs/docs/guide/usage/linter.html
-- Oxfmt: https://oxc.rs/docs/guide/usage/formatter.html
-- apollo: https://www.apollographql.com/docs/react/get-started
-- motion: https://motion.dev/docs/react
-- React Native Reanimated: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/
-
 ---
 
 ## 九、常見 Q&A
@@ -574,23 +529,6 @@ A：看 `MULTI_AGENT_PLAN.md` 的狀態欄，每天更新。
 
 ---
 
-## 十一、關鍵架構決策
-
-### Runtime 選擇
-- **Backend 使用 Bun**：比 Node.js 更快的啟動與執行速度，內建 TypeScript 支援，無需額外編譯
-- **前端使用 pnpm**：節省磁碟空間，更快的安裝速度，嚴格的依賴管理
-
-### 認證策略
-- **完全採用 Better Auth + OAuth**：不使用傳統 email/password，簡化安全性管理
-- 支援 Google、GitHub、Apple OAuth，備援使用 Magic Link
-- Session 管理基於 secure cookie，避免 JWT 的複雜性
-
-### 即時通訊架構
-- **GraphQL + Socket.io 混合模式**：
-  - GraphQL：處理查詢與變更（CRUD 操作）
-  - Socket.io：處理即時事件（訊息、在線狀態、打字指示器）
-- Redis 用於在線狀態快取與 Socket.io 的 Pub/Sub
-
 ### 共享程式碼策略
 - Web 與 Mobile 可共享：`types/`、`graphql/`、`stores/`、`hooks/`
 - 不可共享：UI 元件（Web 用 React DOM，Mobile 用 React Native）
@@ -602,7 +540,5 @@ A：看 `MULTI_AGENT_PLAN.md` 的狀態欄，每天更新。
 - 對話總是用繁體中文回覆、唯有專有技術名詞以英文呈現（例如 GraphQL、Socket.io）
 - 程式碼內容（包括 string）以及註解總是以英文撰寫(包括PR跟commit)
 - 程式碼中不准出現表情符號
-
----
-
-**最後提醒**：這份指南是團隊約定，每位 agent 都應遵循。有任何疑問，優先問 Architect，保持設計一致性。祝編碼愉快！ 🚀
+- 有疑慮的地方必須要發問
+- 各技術框架要使用相對應存在的 SKILL

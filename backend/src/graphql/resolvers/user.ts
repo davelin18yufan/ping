@@ -7,6 +7,7 @@
 import { GraphQLError } from "graphql"
 import type { GraphQLContext } from "../context"
 import { requireAuth } from "./utils"
+import { isUserOnline } from "@/lib/redis"
 
 /**
  * User Query Resolvers
@@ -90,10 +91,32 @@ const Mutation = {}
 const Subscription = {}
 
 /**
+ * User Type-level Field Resolvers
+ *
+ * These resolve computed fields that are not stored in the database
+ * but derived from other data sources (e.g., Redis).
+ */
+const User = {
+    /**
+     * Resolve isOnline field for a User
+     *
+     * Checks Redis for the user:online:{id} key.
+     * Returns true if the key exists (user sent a heartbeat within the last 35s).
+     *
+     * @param parent - User object with at least { id: string }
+     * @returns true if user is currently online
+     */
+    isOnline: async (parent: { id: string }): Promise<boolean> => {
+        return await isUserOnline(parent.id)
+    },
+}
+
+/**
  * Export all user resolvers
  */
 export const userResolvers = {
     Query,
     Mutation,
     Subscription,
+    User,
 }

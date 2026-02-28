@@ -1,6 +1,7 @@
-# Claude Code internal directories
-.claude/
-.agents/
+# Claude Code - only exclude installed skills data
+.claude/skills/
+skills-lock.json
+.agents/skills/
 
 # Dependencies
 node_modules/

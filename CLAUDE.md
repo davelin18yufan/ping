@@ -177,19 +177,6 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - ❌ **禁止盲目新增檔案**：沒有探索專案結構就新增全新模組
 - ❌ **禁止重複功能**：新增前必須確認沒有重複或類似的實作
 
-**檢查流程**：
-```
-1. 使用 Glob 搜尋相關檔案（例如：**/*auth*.ts）
-   ↓
-2. 使用 Grep 搜尋關鍵字（例如：authentication）
-   ↓
-3. 使用 Read 讀取相關檔案，理解現有實作
-   ↓
-4. 判斷：修改現有檔案 or 新增檔案？
-   ↓
-5. 若新增，確認命名、位置、架構符合專案慣例
-```
-
 ### 規則 1：Architect 設計階段（RED Phase）
 - ✅ **必須先有 SDD**：更新 `/docs/architecture/*.md` 完成設計
 - ✅ **必須先有測試規格**：建立 `Feature-X.X.X-TDD-Tests.md`（包含 Backend、Web、Mobile 測試案例）
@@ -242,14 +229,6 @@ feature/[功能名稱]-[agent]
 - feature/google-oauth-mobile
 ```
 
-### Merge 前檢查清單
-- [ ] 所有相關測試綠燈
-- [ ] 沒有 console.log / TODO（完整實作）
-- [ ] 程式碼符合目錄邊界
-- [ ] 更新 MULTI_AGENT_PLAN.md
-- [ ] CI/CD 通過
-- [ ] (可選) Architect 檢視過設計變更
-
 ### Commit Message 格式
 - 以 `[flag] message` 為主體撰寫
 - 以英文撰寫，確保精準明確
@@ -285,7 +264,7 @@ feature/[功能名稱]-[agent]
 4. ✅ 修復一個 bug 後
 5. ✅ 新增一個完整的測試檔案後
 6. ✅ 切換到不同功能前
-7. ✅ 每日工作結束前
+7. ✅ 當前計劃階段結束
 
 **每次 commit 前檢查**：
 - [ ] 程式碼可以正常執行
@@ -433,7 +412,7 @@ try {
    ↓
 4. 閱讀設計核心文件
    ↓
-5. 使用設計系統 CSS classes 實作
+5. 使用設計系統 CSS classes 實作和共用基礎元件 `/shared/`
    ↓
 6. 執行設計交付檢查
    ↓
@@ -531,26 +510,6 @@ cmd.exe //C "npm run build"
 1. `/docs/architecture/overview.md` - SDD 總覽
 2. `/docs/task-board` - 總計畫板
 3. `/MULTI_AGENT_PLAN.md` - 當前任務面板
-
-### 技術文檔
-- Bun：https://bun.sh/docs
-- Hono：https://hono.dev/docs/
-- GraphQL Yoga：https://the-guild.dev/graphql/yoga-server
-- Better Auth：https://better-auth.com
-- Socket.io：https://socket.io/docs
-- Prisma：https://www.prisma.io/docs
-- TanStack Start：https://tanstack.com/start/latest
-- TanStack Router: https://tanstack.com/router/latest
-- Tanstack Query: https://tanstack.com/query/latest
-- Expo：https://docs.expo.dev
-- React Native：https://reactnative.dev/docs
-- Nativewind: https://www.nativewind.dev/docs
-- Tailwind: https://tailwindcss.com/docs/installation
-- Oxlint: https://oxc.rs/docs/guide/usage/linter.html
-- Oxfmt: https://oxc.rs/docs/guide/usage/formatter.html
-- apollo: https://www.apollographql.com/docs/react/get-started
-- motion: https://motion.dev/docs/react
-- React Native Reanimated: https://docs.swmansion.com/react-native-reanimated/docs/fundamentals/getting-started/
 
 ---
 

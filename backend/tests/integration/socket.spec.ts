@@ -641,9 +641,9 @@ describe("Socket.io Integration", () => {
             const result = await parseGraphQLResponse(response)
 
             expect(result.errors).toBeUndefined()
-            expect(
-                (result.data as { me: { id: string; isOnline: boolean } }).me.isOnline
-            ).toBe(false)
+            expect((result.data as { me: { id: string; isOnline: boolean } }).me.isOnline).toBe(
+                false
+            )
         })
 
         /**
@@ -662,9 +662,9 @@ describe("Socket.io Integration", () => {
             const result = await parseGraphQLResponse(response)
 
             expect(result.errors).toBeUndefined()
-            expect(
-                (result.data as { me: { id: string; isOnline: boolean } }).me.isOnline
-            ).toBe(true)
+            expect((result.data as { me: { id: string; isOnline: boolean } }).me.isOnline).toBe(
+                true
+            )
         })
 
         /**
@@ -700,9 +700,8 @@ describe("Socket.io Integration", () => {
             const result = await parseGraphQLResponse(response)
             expect(result.errors).toBeUndefined()
 
-            const users = (
-                result.data as { searchUsers: Array<{ id: string; isOnline: boolean }> }
-            ).searchUsers
+            const users = (result.data as { searchUsers: Array<{ id: string; isOnline: boolean }> })
+                .searchUsers
 
             const found = users.find((u) => u.id === onlineUser.id)
             const foundOffline = users.find((u) => u.id === offlineUser.id)

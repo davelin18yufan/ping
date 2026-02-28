@@ -185,6 +185,33 @@ export async function getTypingUsers(conversationId: string): Promise<string[]> 
 }
 
 /**
+ * Set a per-user typing indicator key with TTL.
+ * Key pattern: typing:{conversationId}:{userId}
+ *
+ * @param conversationId - Conversation ID
+ * @param userId - Typing user ID
+ * @param ttl - Time to live in seconds (default: 8 seconds)
+ */
+export async function setTypingIndicator(
+    conversationId: string,
+    userId: string,
+    ttl: number = 8
+): Promise<void> {
+    await redis.setex(`typing:${conversationId}:${userId}`, ttl, "1")
+}
+
+/**
+ * Delete a per-user typing indicator key.
+ * Key pattern: typing:{conversationId}:{userId}
+ *
+ * @param conversationId - Conversation ID
+ * @param userId - Typing user ID
+ */
+export async function clearTypingIndicator(conversationId: string, userId: string): Promise<void> {
+    await redis.del(`typing:${conversationId}:${userId}`)
+}
+
+/**
  * Gracefully disconnect from Redis
  */
 export async function disconnectRedis() {

@@ -141,6 +141,7 @@ const Query = {
     ): Promise<ConversationParent | null> => {
         const userId = requireAuth(context)
 
+        // check current user is in this conversation
         const participant = await getParticipant(context.prisma, args.id, userId)
         if (!participant) {
             throw new GraphQLError("Not a participant of this conversation", {
@@ -199,6 +200,7 @@ const Query = {
     }> => {
         const userId = requireAuth(context)
 
+        // check user first
         const participant = await getParticipant(context.prisma, args.conversationId, userId)
         if (!participant) {
             throw new GraphQLError("Not a participant of this conversation", {

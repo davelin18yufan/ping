@@ -22,6 +22,7 @@ import {
     setUserOffline,
 } from "@/lib/redis"
 import { prisma } from "@/lib/prisma"
+import { handleTypingStart, handleTypingStop } from "./typing"
 
 /** TTL in seconds for the user:online key. Heartbeat interval is 30s, giving 5s buffer. */
 const PRESENCE_TTL = 35
@@ -105,6 +106,10 @@ export async function handleConnection(socket: AuthenticatedSocket): Promise<voi
                 console.error(`Failed to refresh heartbeat for user ${userId}:`, error)
             }
         })
+
+        // Typing indicators: client notifies when user starts/stops typing
+        socket.on("typing:start", (data) => handleTypingStart(socket, data))
+        socket.on("typing:stop", (data) => handleTypingStop(socket, data))
 
         // Away: client sends when tab/app goes to background or page closes.
         // Immediately marks the user as offline without waiting for TTL expiry.

@@ -5,7 +5,7 @@
  */
 
 import type { Server as SocketIOServer } from "socket.io"
-import type { AuthenticatedSocket } from "../middleware"
+import type { AuthenticatedSocket, ClientToServerEvents, ServerToClientEvents } from "../middleware"
 import { handleConnection } from "./connection"
 
 /**
@@ -17,7 +17,9 @@ import { handleConnection } from "./connection"
  *
  * @param io - Socket.io server instance
  */
-export function registerConnectionHandlers(io: SocketIOServer): void {
+export function registerConnectionHandlers(
+    io: SocketIOServer<ClientToServerEvents, ServerToClientEvents>
+): void {
     io.on("connection", (socket) => {
         handleConnection(socket as AuthenticatedSocket)
     })

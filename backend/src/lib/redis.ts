@@ -3,18 +3,23 @@ import Redis from "ioredis"
 /**
  * Redis client for Ping messaging application
  *
- * Usage scenarios:
- * 1. Online Status - Track user presence (online/offline/away)
- * 2. Unread Count - Cache message unread counters for fast access
- * 3. Socket Mapping - Map user IDs to Socket.io connection IDs
- * 4. Rate Limiting - API rate limiting and throttling
- * 5. Session Cache - Temporary session data caching
+ * Key families:
  *
- * Key naming conventions (following resource:entity:id pattern):
- * - user:online:{userId} - User online status (STRING, persistent or with TTL)
- * - user:sockets:{userId} - Socket connection ID(s) (SET for multiple devices)
- * - user:unread:{userId}:{conversationId} - Unread message count (STRING)
- * - conversation:typing:{conversationId} - Users currently typing (SET with TTL)
+ * @group Presence Display
+ * `user:online:{userId}` STRING — "true" with TTL 35 s (heartbeat) or no TTL (socket-tied).
+ * Drives the green dot in the UI. Expires automatically when client stops heartbeating.
+ *
+ * @group Cross-Device Socket Index
+ * `user:sockets:{userId}` SET — all active Socket.io connection IDs for a user.
+ * Lets the server know whether any device is still connected before clearing presence.
+ *
+ * @group Unread Badge Count
+ * `user:unread:{userId}:{conversationId}` STRING (integer) — incremented on new message,
+ * reset to 0 when the conversation is opened. Used to render notification badges.
+ *
+ * @group Typing Indicators
+ * `typing:{conversationId}:{userId}` STRING — "1" with TTL 8 s.
+ * Each typist has an independent countdown; no shared-expiry race condition.
  */
 
 const REDIS_URL = process.env.REDIS_URL || "redis://localhost:6379"
@@ -156,32 +161,66 @@ export async function resetUnreadCount(userId: string, conversationId: string) {
 }
 
 /**
- * Add user to typing indicator
+ * Set a per-user typing indicator key with TTL.
+ * Key pattern: typing:{conversationId}:{userId}
+ *
  * @param conversationId - Conversation ID
- * @param userId - User ID
- * @param ttl - Time to live in seconds (default: 5 seconds)
+ * @param userId - Typing user ID
+ * @param ttl - Time to live in seconds (default: 8 seconds)
  */
-export async function addTypingUser(conversationId: string, userId: string, ttl: number = 5) {
-    await redis.sadd(`conversation:typing:${conversationId}`, userId)
-    await redis.expire(`conversation:typing:${conversationId}`, ttl)
+export async function setTypingIndicator(
+    conversationId: string,
+    userId: string,
+    ttl: number = 8
+): Promise<void> {
+    await redis.setex(`typing:${conversationId}:${userId}`, ttl, "1")
 }
 
 /**
- * Remove user from typing indicator
+ * Delete a per-user typing indicator key.
+ * Key pattern: typing:{conversationId}:{userId}
+ *
  * @param conversationId - Conversation ID
- * @param userId - User ID
+ * @param userId - Typing user ID
  */
-export async function removeTypingUser(conversationId: string, userId: string) {
-    await redis.srem(`conversation:typing:${conversationId}`, userId)
+export async function clearTypingIndicator(conversationId: string, userId: string): Promise<void> {
+    await redis.del(`typing:${conversationId}:${userId}`)
 }
 
 /**
- * Get all users currently typing in a conversation
+ * Delete a per-user typing indicator key if it exists, and report whether it was present.
+ *
+ * Redis DEL returns the number of keys actually deleted (0 or 1), which makes it an
+ * atomic check-and-delete. The caller can use the return value to decide whether to
+ * broadcast a typing:update { isTyping: false } — avoiding spurious broadcasts to rooms
+ * where the user was never typing.
+ *
  * @param conversationId - Conversation ID
- * @returns Array of user IDs
+ * @param userId - Typing user ID
+ * @returns true if the key existed and was deleted (user was actively typing)
  */
-export async function getTypingUsers(conversationId: string): Promise<string[]> {
-    return await redis.smembers(`conversation:typing:${conversationId}`)
+export async function clearTypingIndicatorIfExists(
+    conversationId: string,
+    userId: string
+): Promise<boolean> {
+    const deleted = await redis.del(`typing:${conversationId}:${userId}`)
+    return deleted > 0
+}
+
+/**
+ * Get all user IDs currently typing in a conversation.
+ *
+ * Scans Redis for `typing:{conversationId}:*` keys and extracts the userId
+ * segment. Returns a Set for O(1) membership checks and uniqueness guarantee.
+ *
+ * @param conversationId - Conversation to query
+ * @returns Set of user IDs with an active typing indicator
+ */
+export async function getActiveTypingUsers(conversationId: string): Promise<Set<string>> {
+    const prefix = `typing:${conversationId}:`
+    const keys = await redis.keys(`${prefix}*`)
+    const userIds = keys.map((key) => key.slice(prefix.length)).filter(Boolean)
+    return new Set(userIds)
 }
 
 /**

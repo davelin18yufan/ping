@@ -7,13 +7,14 @@
 
 import { Server as SocketIOServer } from "socket.io"
 import { Server as BunEngine } from "@socket.io/bun-engine"
+import type { ClientToServerEvents, ServerToClientEvents } from "./middleware"
 import { socketAuthMiddleware } from "./middleware"
 import { registerConnectionHandlers } from "./handlers"
 
 /**
  * Socket.io Server Instance
  */
-let io: SocketIOServer | null = null
+let io: SocketIOServer<ClientToServerEvents, ServerToClientEvents> | null = null
 
 /**
  * Bun Engine Instance
@@ -48,7 +49,7 @@ export function initializeSocketIO(): {
     })
 
     // Create Socket.io server
-    io = new SocketIOServer({
+    io = new SocketIOServer<ClientToServerEvents, ServerToClientEvents>({
         // CORS configuration (match Hono settings)
         cors: {
             origin: process.env.CORS_ORIGIN?.split(",") ?? [

@@ -20,8 +20,11 @@ import {
     getUserSockets,
     setUserOnline,
     setUserOffline,
+    clearTypingIndicatorIfExists,
+    getActiveTypingUsers,
 } from "@/lib/redis"
 import { prisma } from "@/lib/prisma"
+import { handleTypingStart, handleTypingStop } from "./typing"
 
 /** TTL in seconds for the user:online key. Heartbeat interval is 30s, giving 5s buffer. */
 const PRESENCE_TTL = 35
@@ -91,6 +94,21 @@ export async function handleConnection(socket: AuthenticatedSocket): Promise<voi
         // Join all conversation rooms this user participates in
         const roomIds = await joinConversationRooms(socket, userId)
 
+        // Push initial typing state so the client immediately knows who is typing
+        // in each room without waiting for the next typing:start event.
+        for (const roomId of roomIds) {
+            const typingUsers = await getActiveTypingUsers(roomId)
+            for (const typingUserId of typingUsers) {
+                if (typingUserId !== userId) {
+                    socket.emit("typing:update", {
+                        userId: typingUserId,
+                        conversationId: roomId,
+                        isTyping: true,
+                    })
+                }
+            }
+        }
+
         // Register all event handlers BEFORE emitting authenticated.
         // This prevents a race condition where the client reacts to authenticated
         // (e.g. sends heartbeat / user:away / disconnects) before the server has
@@ -106,12 +124,36 @@ export async function handleConnection(socket: AuthenticatedSocket): Promise<voi
             }
         })
 
+        // Typing indicators: client notifies when user starts/stops typing
+        socket.on("typing:start", (data) => handleTypingStart(socket, data))
+        socket.on("typing:stop", (data) => handleTypingStop(socket, data))
+
         // Away: client sends when tab/app goes to background or page closes.
         // Immediately marks the user as offline without waiting for TTL expiry.
+        // Also clears any active typing indicators so peers don't see a stuck
+        // "typing..." bubble after the user navigates away.
         socket.on("user:away", async () => {
             try {
                 await setUserOffline(userId)
                 await broadcastPresence(socket, userId, false)
+
+                // Iterate all joined rooms and attempt to delete the typing key.
+                // socket.rooms is a Set — for...of avoids creating an intermediate array.
+                // Socket.io always adds the socket's own ID as a room; skip it.
+                // clearTypingIndicatorIfExists uses Redis DEL's return value (0 or 1)
+                // to atomically check-and-delete — only rooms where the key existed
+                // receive a broadcast, so peers never see spurious isTyping:false events.
+                for (const conversationId of socket.rooms) {
+                    if (conversationId === socket.id) continue
+                    const wasTyping = await clearTypingIndicatorIfExists(conversationId, userId)
+                    if (wasTyping) {
+                        socket.to(conversationId).emit("typing:update", {
+                            userId,
+                            conversationId,
+                            isTyping: false,
+                        })
+                    }
+                }
             } catch (error) {
                 console.error(`Failed to handle away event for user ${userId}:`, error)
             }

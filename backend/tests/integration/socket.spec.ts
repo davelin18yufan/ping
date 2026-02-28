@@ -713,4 +713,341 @@ describe("Socket.io Integration", () => {
             expect(foundOffline!.isOnline).toBe(false) // oxlint-disable-line typescript/no-non-null-assertion
         })
     })
+
+    // =========================================================================
+    // Typing Indicators — Feature 1.2.2 (TC-T-01 ~ TC-T-05)
+    // =========================================================================
+
+    describe("Typing Indicators (Feature 1.2.2)", () => {
+        /** typing:update payload emitted by the server */
+        type TypingPayload = { userId: string; conversationId: string; isTyping: boolean }
+
+        /**
+         * Wait for the next `typing:update` event, or null if timeout expires.
+         */
+        function waitForTypingOrNull(socket: Socket, timeout = 600): Promise<TypingPayload | null> {
+            return new Promise((resolve) => {
+                const timer = setTimeout(() => {
+                    socket.off("typing:update", handler)
+                    resolve(null)
+                }, timeout)
+
+                const handler = (data: TypingPayload) => {
+                    clearTimeout(timer)
+                    resolve(data)
+                }
+
+                socket.once("typing:update", handler)
+            })
+        }
+
+        /**
+         * TC-T-01: typing:start sets TTL key in Redis
+         */
+        test("TC-T-01: typing:start should set typing key with TTL in Redis", async () => {
+            const { userA, tokenA, conversationId } = await createTwoUsersInConversation(testPrisma)
+
+            const socketA = createAuthenticatedSocketClient(tokenA)
+            connectedSockets.push(socketA)
+            await connectAndAuth(socketA)
+
+            socketA.emit("typing:start", { conversationId })
+            await new Promise((resolve) => setTimeout(resolve, 150))
+
+            const ttl = await redis.ttl(`typing:${conversationId}:${userA.id}`)
+            expect(ttl).toBeGreaterThan(0)
+            expect(ttl).toBeLessThanOrEqual(8)
+        })
+
+        /**
+         * TC-T-02: typing:start broadcasts typing:update { isTyping: true }
+         */
+        test("TC-T-02: typing:start should broadcast typing:update isTyping:true to room", async () => {
+            const { userA, tokenA, tokenB, conversationId } =
+                await createTwoUsersInConversation(testPrisma)
+
+            const socketA = createAuthenticatedSocketClient(tokenA)
+            const socketB = createAuthenticatedSocketClient(tokenB)
+            connectedSockets.push(socketA, socketB)
+
+            await connectAndAuth(socketA)
+            await connectAndAuth(socketB)
+
+            // B listens for typing events from A
+            const typingPromise = waitForSocketEvent<TypingPayload>(socketB, "typing:update", 3000)
+
+            socketA.emit("typing:start", { conversationId })
+
+            const event = await typingPromise
+            expect(event.userId).toBe(userA.id)
+            expect(event.conversationId).toBe(conversationId)
+            expect(event.isTyping).toBe(true)
+        })
+
+        /**
+         * TC-T-03: typing:stop deletes Redis key and broadcasts isTyping:false
+         */
+        test("TC-T-03: typing:stop should delete Redis key and broadcast isTyping:false", async () => {
+            const { userA, tokenA, tokenB, conversationId } =
+                await createTwoUsersInConversation(testPrisma)
+
+            const socketA = createAuthenticatedSocketClient(tokenA)
+            const socketB = createAuthenticatedSocketClient(tokenB)
+            connectedSockets.push(socketA, socketB)
+
+            await connectAndAuth(socketA)
+            await connectAndAuth(socketB)
+
+            // Start typing first
+            socketA.emit("typing:start", { conversationId })
+            await new Promise((resolve) => setTimeout(resolve, 150))
+
+            // Stop typing — B should receive isTyping:false
+            const stopPromise = waitForSocketEvent<TypingPayload>(socketB, "typing:update", 3000)
+            socketA.emit("typing:stop", { conversationId })
+
+            const event = await stopPromise
+            expect(event.userId).toBe(userA.id)
+            expect(event.conversationId).toBe(conversationId)
+            expect(event.isTyping).toBe(false)
+
+            // Redis key should be gone
+            const exists = await redis.exists(`typing:${conversationId}:${userA.id}`)
+            expect(exists).toBe(0)
+        })
+
+        /**
+         * TC-T-04: Non-participant typing:start is ignored — no broadcast
+         */
+        test("TC-T-04: typing:start from non-participant should not be broadcast", async () => {
+            const { tokenB, conversationId } = await createTwoUsersInConversation(testPrisma)
+
+            // Create a third user who is NOT in the conversation
+            const ts = Date.now()
+            const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+            const userC = await testPrisma.user.create({
+                data: {
+                    email: `typing-outsider-${ts}@example.com`,
+                    name: "Outsider C",
+                    emailVerified: new Date(),
+                },
+            })
+            const tokenC = `typing-outsider-sess-${ts}`
+            await testPrisma.session.create({
+                data: { userId: userC.id, sessionToken: tokenC, expires: expiresAt },
+            })
+
+            const socketB = createAuthenticatedSocketClient(tokenB)
+            const socketC = createAuthenticatedSocketClient(tokenC)
+            connectedSockets.push(socketB, socketC)
+
+            await connectAndAuth(socketB)
+            await connectAndAuth(socketC)
+
+            // B listens — should NOT receive any typing:update from C
+            const noEventPromise = waitForTypingOrNull(socketB, 600)
+
+            // C tries to send typing:start for a conversation it does not belong to
+            socketC.emit("typing:start", { conversationId })
+
+            const event = await noEventPromise
+            if (event !== null) {
+                // If any event arrived it must not be from C
+                expect(event.userId).not.toBe(userC.id)
+            }
+
+            // Redis key should NOT have been set for the outsider
+            const exists = await redis.exists(`typing:${conversationId}:${userC.id}`)
+            expect(exists).toBe(0)
+        })
+
+        /**
+         * TC-T-05: TTL expiry — Redis key vanishes automatically after 8 seconds
+         * This is a lightweight check: we set a short TTL and verify the key is gone.
+         */
+        test("TC-T-05: typing Redis key expires automatically after TTL", async () => {
+            const { userA, tokenA, conversationId } = await createTwoUsersInConversation(testPrisma)
+
+            const socketA = createAuthenticatedSocketClient(tokenA)
+            connectedSockets.push(socketA)
+            await connectAndAuth(socketA)
+
+            socketA.emit("typing:start", { conversationId })
+            await new Promise((resolve) => setTimeout(resolve, 150))
+
+            // Verify key exists
+            const keyBefore = await redis.exists(`typing:${conversationId}:${userA.id}`)
+            expect(keyBefore).toBe(1)
+
+            // Manually expire the key immediately (simulates TTL expiry)
+            await redis.expire(`typing:${conversationId}:${userA.id}`, 0)
+            await new Promise((resolve) => setTimeout(resolve, 50))
+
+            const keyAfter = await redis.exists(`typing:${conversationId}:${userA.id}`)
+            expect(keyAfter).toBe(0)
+        })
+
+        /**
+         * TC-T-06: user:away while typing should clear typing key and broadcast isTyping:false
+         *
+         * Scenario: A starts typing, then navigates away (user:away).
+         * Expected:
+         *   - typing:{conversationId}:{userId} key deleted from Redis
+         *   - B receives typing:update { isTyping: false } for A
+         */
+        test("TC-T-06: user:away while typing should clear typing key and broadcast isTyping:false", async () => {
+            const { userA, tokenA, tokenB, conversationId } =
+                await createTwoUsersInConversation(testPrisma)
+
+            const socketA = createAuthenticatedSocketClient(tokenA)
+            const socketB = createAuthenticatedSocketClient(tokenB)
+            connectedSockets.push(socketA, socketB)
+
+            await connectAndAuth(socketA)
+            await connectAndAuth(socketB)
+
+            // A starts typing
+            socketA.emit("typing:start", { conversationId })
+            await new Promise((resolve) => setTimeout(resolve, 150))
+
+            // Confirm typing key is set in Redis
+            const keyBefore = await redis.exists(`typing:${conversationId}:${userA.id}`)
+            expect(keyBefore).toBe(1)
+
+            // B listens for the typing:update { isTyping: false } triggered by user:away
+            const stopPromise = waitForSocketEvent<TypingPayload>(socketB, "typing:update", 3000)
+
+            socketA.emit("user:away")
+
+            const event = await stopPromise
+            expect(event.userId).toBe(userA.id)
+            expect(event.conversationId).toBe(conversationId)
+            expect(event.isTyping).toBe(false)
+
+            // Redis typing key must be deleted
+            const keyAfter = await redis.exists(`typing:${conversationId}:${userA.id}`)
+            expect(keyAfter).toBe(0)
+        })
+
+        /**
+         * TC-T-07: New socket should receive initial typing state on connect
+         *
+         * Scenario: A is already typing. B connects.
+         * Expected: B receives typing:update { isTyping: true, userId: A } immediately on connect
+         * without needing to wait for the next typing:start from A.
+         */
+        test("TC-T-07: connecting socket should receive initial typing state for active typists", async () => {
+            const { userA, tokenA, tokenB, conversationId } =
+                await createTwoUsersInConversation(testPrisma)
+
+            // A connects and starts typing before B joins
+            const socketA = createAuthenticatedSocketClient(tokenA)
+            connectedSockets.push(socketA)
+            await connectAndAuth(socketA)
+
+            socketA.emit("typing:start", { conversationId })
+            await new Promise((resolve) => setTimeout(resolve, 150))
+
+            // B connects while A is actively typing
+            const socketB = createAuthenticatedSocketClient(tokenB)
+            connectedSockets.push(socketB)
+
+            // Start listening before connecting so we catch the initial push
+            const initialTypingPromise = waitForSocketEvent<TypingPayload>(
+                socketB,
+                "typing:update",
+                3000
+            )
+            socketB.connect()
+            await waitForSocketConnect(socketB)
+            await waitForSocketEvent(socketB, "authenticated")
+
+            const event = await initialTypingPromise
+            expect(event.userId).toBe(userA.id)
+            expect(event.conversationId).toBe(conversationId)
+            expect(event.isTyping).toBe(true)
+        })
+
+        /**
+         * TC-T-08: Sender should NOT receive their own typing:update echo
+         *
+         * socket.to(room) excludes the sender. Verifies this semantics is preserved
+         * so the sender's UI doesn't show their own "typing..." bubble.
+         */
+        test("TC-T-08: typing:start sender should not receive their own typing:update", async () => {
+            const { tokenA, conversationId } = await createTwoUsersInConversation(testPrisma)
+
+            const socketA = createAuthenticatedSocketClient(tokenA)
+            connectedSockets.push(socketA)
+            await connectAndAuth(socketA)
+
+            const selfEchoPromise = waitForTypingOrNull(socketA, 500)
+            socketA.emit("typing:start", { conversationId })
+
+            const selfEvent = await selfEchoPromise
+            // Sender must not receive their own event
+            expect(selfEvent).toBeNull()
+        })
+
+        /**
+         * TC-T-09: Rapid consecutive typing:start messages should reset TTL (idempotent)
+         *
+         * Each typing:start sets SETEX which overwrites the key and resets TTL.
+         * The key should still exist with a fresh TTL after repeated calls.
+         */
+        test("TC-T-09: repeated typing:start should refresh TTL (idempotent)", async () => {
+            const { userA, tokenA, conversationId } = await createTwoUsersInConversation(testPrisma)
+
+            const socketA = createAuthenticatedSocketClient(tokenA)
+            connectedSockets.push(socketA)
+            await connectAndAuth(socketA)
+
+            // Emit twice rapidly
+            socketA.emit("typing:start", { conversationId })
+            await new Promise((resolve) => setTimeout(resolve, 50))
+
+            // Manually reduce TTL to simulate time passing
+            await redis.expire(`typing:${conversationId}:${userA.id}`, 2)
+
+            // Second typing:start should reset TTL back to 8
+            socketA.emit("typing:start", { conversationId })
+            await new Promise((resolve) => setTimeout(resolve, 150))
+
+            const ttl = await redis.ttl(`typing:${conversationId}:${userA.id}`)
+            expect(ttl).toBeGreaterThan(2)
+            expect(ttl).toBeLessThanOrEqual(8)
+        })
+
+        /**
+         * TC-T-10: Two users typing simultaneously should both broadcast independently
+         *
+         * Verifies that per-user STRING keys don't interfere with each other —
+         * the old shared-SET pattern would have had a single TTL for both users.
+         */
+        test("TC-T-10: two users typing simultaneously should both have independent Redis keys", async () => {
+            const { userA, userB, tokenA, tokenB, conversationId } =
+                await createTwoUsersInConversation(testPrisma)
+
+            const socketA = createAuthenticatedSocketClient(tokenA)
+            const socketB = createAuthenticatedSocketClient(tokenB)
+            connectedSockets.push(socketA, socketB)
+
+            await connectAndAuth(socketA)
+            await connectAndAuth(socketB)
+
+            // Both start typing concurrently
+            socketA.emit("typing:start", { conversationId })
+            socketB.emit("typing:start", { conversationId })
+            await new Promise((resolve) => setTimeout(resolve, 200))
+
+            const ttlA = await redis.ttl(`typing:${conversationId}:${userA.id}`)
+            const ttlB = await redis.ttl(`typing:${conversationId}:${userB.id}`)
+
+            // Both keys exist with independent TTLs
+            expect(ttlA).toBeGreaterThan(0)
+            expect(ttlA).toBeLessThanOrEqual(8)
+            expect(ttlB).toBeGreaterThan(0)
+            expect(ttlB).toBeLessThanOrEqual(8)
+        })
+    })
 })

@@ -67,6 +67,26 @@ export const schema = createSchema({
         Refreshed by client heartbeat every 30s while active.
         """
         isOnline: Boolean!
+
+        """
+        Public status message set by the user (null if not set).
+        Maximum 80 characters.
+        """
+        statusMessage: String
+
+        """
+        UI preference for the aesthetic mode.
+        One of: ornate | minimal. Defaults to ornate.
+        """
+        aestheticMode: AestheticMode!
+      }
+
+      """
+      Aesthetic mode enum for UI preference (used by frontend codegen)
+      """
+      enum AestheticMode {
+        ornate
+        minimal
       }
 
       """
@@ -247,6 +267,32 @@ export const schema = createSchema({
       }
 
       """
+      Input for updating the current user's profile
+      """
+      input UpdateProfileInput {
+        """
+        New display name (1-50 characters). Omit to leave unchanged.
+        """
+        name: String
+
+        """
+        New avatar image URL. Must be a valid URL. Omit to leave unchanged.
+        """
+        image: String
+
+        """
+        Public status message (0-80 characters).
+        Empty string clears the status (stored as null). Omit to leave unchanged.
+        """
+        statusMessage: String
+
+        """
+        UI preference: ornate | minimal. Omit to leave unchanged.
+        """
+        aestheticMode: AestheticMode
+      }
+
+      """
       Input for updating group permission settings
       """
       input GroupSettingsInput {
@@ -372,6 +418,13 @@ export const schema = createSchema({
       Root Mutation type - all write operations
       """
       type Mutation {
+        """
+        Update the current user's profile (name and/or avatar image URL).
+        Requires authentication.
+        Returns the updated User object.
+        """
+        updateProfile(input: UpdateProfileInput!): User!
+
         """
         Authenticate with Google OAuth.
         Verifies OAuth code and creates user session.
@@ -518,6 +571,7 @@ export const schema = createSchema({
             ...conversationsResolvers.Query,
         },
         Mutation: {
+            ...userResolvers.Mutation,
             ...authResolvers.Mutation,
             ...friendsResolvers.Mutation,
             ...sessionsResolvers.Mutation,

@@ -227,7 +227,10 @@ describe("Authentication", () => {
             }
         }>(response)
 
-        const { sessionToken, user } = result.data?.authenticateWithGoogle ?? { sessionToken: "", user: { id: "" } }
+        const { sessionToken, user } = result.data?.authenticateWithGoogle ?? {
+            sessionToken: "",
+            user: { id: "" },
+        }
 
         const session = await testPrisma.session.findUnique({ where: { sessionToken } })
         expect(session).toBeDefined()

@@ -17,7 +17,6 @@
 
 import type { AuthenticatedSocket } from "../middleware"
 import { setTypingIndicator, clearTypingIndicator } from "@/lib/redis"
-import { prisma } from "@/lib/prisma"
 
 /** Payload sent by the client for both typing:start and typing:stop. */
 interface TypingEventData {
@@ -32,24 +31,11 @@ interface TypingUpdatePayload {
 }
 
 /**
- * Check whether userId is a participant of conversationId.
- *
- * @param conversationId - Conversation to check
- * @param userId - User to verify
- * @returns true if the user is a participant
- */
-async function isParticipant(conversationId: string, userId: string): Promise<boolean> {
-    const record = await prisma.conversationParticipant.findUnique({
-        where: { conversationId_userId: { conversationId, userId } },
-        select: { userId: true },
-    })
-    return record !== null
-}
-
-/**
  * Handle typing:start event.
  *
- * 1. Verify the sender is a conversation participant (silent ignore if not).
+ * 1. Verify the sender has joined the conversation room (O(1), no DB hit).
+ *    The room was joined at connect time after DB-level participation was confirmed,
+ *    so room membership is a valid authorization proxy.
  * 2. Set typing:{conversationId}:{userId} in Redis with 8s TTL.
  * 3. Broadcast typing:update { isTyping: true } to all room members except sender.
  *
@@ -67,13 +53,12 @@ export async function handleTypingStart(
         return
     }
 
-    try {
-        // Authorization: silent ignore for non-participants
-        const allowed = await isParticipant(conversationId, userId)
-        if (!allowed) {
-            return
-        }
+    // Authorization: room membership is proof of participation (joined at connect)
+    if (!socket.rooms.has(conversationId)) {
+        return
+    }
 
+    try {
         // Persist typing indicator in Redis
         await setTypingIndicator(conversationId, userId)
 
@@ -88,7 +73,7 @@ export async function handleTypingStart(
 /**
  * Handle typing:stop event.
  *
- * 1. Verify the sender is a conversation participant (silent ignore if not).
+ * 1. Verify the sender has joined the conversation room (O(1), no DB hit).
  * 2. Delete typing:{conversationId}:{userId} from Redis.
  * 3. Broadcast typing:update { isTyping: false } to all room members except sender.
  *
@@ -106,13 +91,12 @@ export async function handleTypingStop(
         return
     }
 
-    try {
-        // Authorization: silent ignore for non-participants
-        const allowed = await isParticipant(conversationId, userId)
-        if (!allowed) {
-            return
-        }
+    // Authorization: room membership is proof of participation (joined at connect)
+    if (!socket.rooms.has(conversationId)) {
+        return
+    }
 
+    try {
         // Remove typing indicator from Redis
         await clearTypingIndicator(conversationId, userId)
 

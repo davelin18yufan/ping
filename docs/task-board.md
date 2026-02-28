@@ -149,28 +149,30 @@
   - 依賴: Better Auth 整合
 
 #### 2.2 用戶資料管理
-- [ ] **查詢用戶資料 (me query)**
-  - Agent: Architect → Backend Developer → Architect (Review)
-  - 任務: 取得當前用戶資料
-  - 狀態: 待規格化
+- [x] **查詢用戶資料 (me query)** ✅
+  - Agent: Backend Developer
+  - 任務: 取得當前登入用戶完整資料（含 `isOnline`、`statusMessage`、`aestheticMode`）
+  - 狀態: ✅ 完成（Feature 1.2.2，2026-02-28）
   - 優先度: P0
-  - 依賴: Session 管理
-  - 測試案例: 5
+  - 依賴: Session 管理 ✅
+  - 測試案例: 14（TC-U-01 至 TC-U-14）
+  - 實作: `backend/src/graphql/resolvers/user.ts`
 
-- [ ] **更新個人資料 (updateProfile)**
-  - Agent: Architect → Backend Developer → Architect (Review)
-  - 任務: 更新 displayName、驗證
-  - 狀態: 待規格化
+- [x] **更新個人資料 (updateProfile)** ✅
+  - Agent: Backend Developer
+  - 任務: 更新 name（1-50 字）、image URL、statusMessage（0-80 字）、aestheticMode（ornate|minimal）含欄位驗證
+  - 狀態: ✅ 完成（Feature 1.2.2，2026-02-28）
   - 優先度: P1
-  - 依賴: 查詢用戶資料
-  - 測試案例: 8
+  - 依賴: 查詢用戶資料 ✅
+  - 測試案例: 含於 TC-U-01~TC-U-14 整合測試
+  - 實作: `backend/src/graphql/resolvers/user.ts`、`AestheticMode` enum migration
 
 - [ ] **上傳頭像 (uploadAvatar)**
   - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 圖片上傳、壓縮、儲存
-  - 狀態: 待規格化
-  - 優先度: P1
-  - 依賴: 更新個人資料
+  - 狀態: 待規格化（Feature 1.4.3，往後移）
+  - 優先度: P2（依賴圖片上傳基礎設施）
+  - 依賴: updateProfile ✅、Feature 1.4.3（圖片上傳）
   - 測試案例: 10
 
 - [x] **搜尋用戶 (searchUsers)** ✅
@@ -343,9 +345,9 @@
 - [ ] **發送圖片訊息 (sendImageMessage)**
   - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: 上傳圖片、建立訊息、推送
-  - 狀態: 待規格化
-  - 優先度: P0
-  - 依賴: 發送文字訊息、uploadAvatar
+  - 狀態: 待規格化（Feature 1.4.3，往後移）
+  - 優先度: P2（讓位給即時反應/貼圖/主題）
+  - 依賴: 發送文字訊息、Feature 1.4.2（圖片上傳）
   - 測試案例: 12
 
 - [ ] **查詢訊息歷史 (messages)**
@@ -391,23 +393,50 @@
   - 實作: `broadcastPresence()` helper，向所有共同對話 room 廣播 `presence:changed { userId, isOnline }`
 
 #### 5.2 輸入提示
-- [ ] **輸入狀態追蹤 (typing_start/stop)**
-  - Agent: Architect → Backend Developer → Architect (Review)
-  - 任務: Redis TTL、去抖動
+- [x] **輸入狀態追蹤 (typing:start / typing:stop)** ✅
+  - Agent: Backend Developer
+  - 任務: Redis TTL 8s per-user key（`typing:{convId}:{userId}`）；`socket.rooms.has()` 授權取代 DB 查詢；連線時推送初始 typing 狀態
+  - 狀態: ✅ 完成（Feature 1.2.2，2026-02-28）
+  - 優先度: P1
+  - 依賴: WebSocket ✅
+  - 測試案例: 10（TC-T-01~TC-T-10，包含 TTL idempotency、concurrent typists、sender 不收自身 echo）
+  - 實作: `backend/src/socket/handlers/typing.ts`、`backend/src/lib/redis.ts`
+
+- [x] **輸入提示廣播 (typing:update)** ✅
+  - Agent: Backend Developer
+  - 任務: 向對話 room 廣播 `typing:update { userId, conversationId, isTyping }`；`user:away` 原子清除 typing key + 廣播 isTyping:false；防止虛假廣播（`clearTypingIndicatorIfExists` DEL 回傳值）
+  - 狀態: ✅ 完成（Feature 1.2.2，2026-02-28）
+  - 優先度: P1
+  - 依賴: 輸入狀態追蹤 ✅
+  - 測試案例: 包含於 TC-T-01~TC-T-10
+  - 實作: `backend/src/socket/handlers/connection.ts`（user:away 清除）、`typing.ts`（start/stop 廣播）
+
+#### 5.3 即時反應、貼圖、聊天室主題（Feature 1.4.2）
+- [ ] **即時反應 (addReaction / removeReaction)**
+  - Agent: Architect → Backend + Frontend + Mobile
+  - 任務: `MessageReaction` model（messageId, userId, emoji）、`addReaction` / `removeReaction` mutation、`reaction:updated` Socket.io 廣播
+  - 狀態: 待規格化（等 Feature 1.3.1 Frontend 完成後）
+  - 優先度: P1
+  - 依賴: 發送文字訊息、WebSocket
+  - 測試案例: 待 TDD 設計
+
+- [ ] **貼圖系統 (stickers / sendSticker)** — 仿 Yahoo 即時通嗆聲娃娃
+  - Agent: Architect → Backend + Frontend + Mobile
+  - 任務: `StickerPack`、`Sticker` models（動態 GIF/APNG）、`stickerPacks` query、`sendSticker` mutation（message type = STICKER）、Sticker Picker UI
   - 狀態: 待規格化
   - 優先度: P1
-  - 依賴: WebSocket
-  - 測試案例: 10
+  - 依賴: 即時反應（架構共用）
+  - 測試案例: 待 TDD 設計
 
-- [ ] **輸入提示廣播 (typingStatusChanged)**
-  - Agent: Architect → Backend Developer → Architect (Review)
-  - 任務: 對話內廣播、防濫用
+- [ ] **聊天室主題/背景 (chatTheme)**
+  - Agent: Architect → Backend + Frontend + Mobile
+  - 任務: per-conversation 或 global 主題偏好（與 aestheticMode 整合）、`updateChatTheme` mutation、主題選擇器 UI（預設主題 + 自訂背景）
   - 狀態: 待規格化
   - 優先度: P1
-  - 依賴: 輸入狀態追蹤
-  - 測試案例: 7
+  - 依賴: Feature 1.2.2 updateProfile（aestheticMode 基礎）✅
+  - 測試案例: 待 TDD 設計
 
-#### 5.3 訊息狀態同步
+#### 5.4 訊息狀態同步
 - [ ] **訊息狀態更新 (messageStatusUpdated)**
   - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: SENT → DELIVERED → READ 同步
@@ -597,11 +626,11 @@
 
 ### 整體進度
 ```
-總功能數: 50
-已完成: 19 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis、Web 前端基礎設施、Mobile 前端基礎設施、Design System、OAuth 登入流程、Session 管理、UI/UX 大改版、好友管理頁面 Frontend Web、好友系統 Backend、對話管理/群組/黑名單 Backend、在線狀態追蹤、在線狀態廣播)
+總功能數: 53
+已完成: 23 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis、Web 前端基礎設施、Mobile 前端基礎設施、Design System、OAuth 登入流程、Session 管理、UI/UX 大改版、好友管理頁面 Frontend Web、好友系統 Backend、對話管理/群組/黑名單 Backend、在線狀態追蹤、在線狀態廣播、查詢用戶資料(me)、更新個人資料(updateProfile)、輸入狀態追蹤、輸入提示廣播)
 進行中: 0
-待開始: 31
-完成率: 38.00%
+待開始: 30（新增：即時反應、貼圖/嗆聲娃娃、聊天室主題）
+完成率: 43.40%（23/53）
 
 🎉 Phase 1.0 基礎設施初始化完整完成！(4/4 features - 100%)
 🎉 Phase 1.1 認證系統（Web + Session 管理）完成！(Feature 1.1.1 + 1.1.2)
@@ -609,6 +638,7 @@
 🎉 Feature 1.2.1 完成！(Frontend Web + Backend 好友系統 - 69 backend tests - 2026-02-24)
 🎉 Feature 1.3.1 Backend 完成！(對話管理、群組聊天室、黑名單 - 22/22 tests - 2026-02-25)
 🎉 Feature 1.4.1 Backend 完成！(心跳機制 & 在線狀態 - 20/20 socket tests - 2026-02-28)
+🎉 Feature 1.2.2 Backend 完成！(me query + updateProfile + typing indicators + Socket.io 型別化 - 108/108 tests - 2026-02-28)
 ```
 
 ### 階段進度
@@ -651,13 +681,13 @@ Phase 1.0 成就解鎖 🏆:
   ✅ 170/170 測試全部通過（Backend: 27, Web: 46, Mobile: 97）
   ✅ TypeScript 0 errors, Linter 0 warnings, Formatter 100% formatted
 
-階段 2 (認證用戶):  3/7   (42.86%) - 🚀 進行中
+階段 2 (認證用戶):  5/7   (71.43%) - 🚀 進行中
   ✅ OAuth 登入流程（Feature 1.1.1 - Web - 2026-02-03）
   ✅ Session 管理（Feature 1.1.2 - Backend - 8/8 tests - 2026-02-24）
   🔲 Magic Link (可選)
-  🔲 查詢用戶資料
-  🔲 更新個人資料
-  🔲 上傳頭像
+  ✅ 查詢用戶資料（me query - Feature 1.2.2 - 14/14 tests - 2026-02-28）
+  ✅ 更新個人資料（updateProfile - Feature 1.2.2 - 2026-02-28）
+  🔲 上傳頭像（Feature 1.4.2）
   ✅ 搜尋用戶（searchUsers - Feature 1.2.1 Backend - 2026-02-24）
 階段 2.5 (UI/UX 改版): 1/1   (100%) ✅ - Feature 1.2.0 完整完成（2026-02-16）
   ✅ Feature 1.2.0 - UI/UX 大改版 + Session 認證整合（5/5 Stage，175/175 tests）
@@ -679,13 +709,13 @@ Phase 1.0 成就解鎖 🏆:
   ✅ pinConversation / unpinConversation
   ✅ sendMessage + markMessagesAsRead（雙向 cursor 分頁）
   ✅ blockUser / unblockUser（黑名單 + 自動解除好友）
-階段 5 (即時功能):  4/7   (57.14%) - Feature 1.4.1 完成
+階段 5 (即時功能):  6/7   (85.71%) - Feature 1.4.1 + 1.2.2 完成
   ✅ Socket.io conversation room join + message:new broadcast（Feature 1.3.1）
   ✅ sync:required 重連補漏事件（非恢復連線時）
   ✅ 在線狀態追蹤（Redis TTL heartbeat，Feature 1.4.1 - 2026-02-28）
   ✅ 在線狀態廣播（presence:changed，Feature 1.4.1 - 2026-02-28）
-  🔲 輸入狀態追蹤 (typing_start/stop)
-  🔲 輸入提示廣播
+  ✅ 輸入狀態追蹤（typing:start/stop + Redis TTL 8s，Feature 1.2.2 - 2026-02-28）
+  ✅ 輸入提示廣播（typing:update，Feature 1.2.2 - 2026-02-28）
   🔲 訊息狀態同步 (SENT → DELIVERED → READ)
 階段 6 (前端開發):  7/10 (70%) - Web 基礎設施 + Design System + OAuth 登入 + 好友頁面完成
   ✅ Web 架構設定
@@ -1030,26 +1060,27 @@ E2E Tests: 目標涵蓋主要流程
 **維護者**: All Agents
 **最後更新**: 2026-02-28
 **最新變更**:
-  - ✅ **Feature 1.4.1 Backend 完成（2026-02-28）— 心跳機制 & 在線狀態**
-    - Branch: `feature/1.2.1-backend`（含 Feature 1.1.2 + 1.2.1 + 1.3.1 + 1.4.1）
-    - TTL-based presence：35s TTL，client 每 30s `heartbeat` 刷新
-    - `user:away` handler：立即刪除 key + 廣播 `presence:changed { isOnline: false }`
-    - `broadcastPresence()`：向所有共同對話 room 廣播在線狀態
-    - connect/disconnect 自動廣播，多 socket 同用戶不重複廣播
-    - GraphQL `User.isOnline: Boolean!` field resolver
-    - `searchUsers` 回傳 `isOnline` 狀態
-    - 12 個新整合測試（TC-9~TC-20），socket.spec.ts 20/20 全部通過
-    - Commits: `cc0af5b` + `756251f` + `53bfc29` + `4d9a6ce`
+  - ✅ **Feature 1.2.2 Backend 完成（2026-02-28）— 後端補完**
+    - Branch: `feature/1.2.2-backend` → PR #36
+    - `me` query：回傳完整用戶資料（isOnline、statusMessage、aestheticMode），14 tests TC-U-01~U-14
+    - `updateProfile` mutation：name/image/statusMessage/aestheticMode 欄位驗證
+    - `AestheticMode` Prisma enum + migration（ornate | minimal）
+    - typing indicators：`typing:start` / `typing:stop` + Redis TTL 8s，10 tests TC-T-01~T-10
+    - Socket.io 型別化：`ClientToServerEvents` / `ServerToClientEvents` interfaces
+    - `socket.rooms.has()` 授權：O(1) 取代 DB participant 查詢
+    - `clearTypingIndicatorIfExists`：原子性 DEL 避免虛假廣播
+    - 連線時推送現有 typing 狀態；`user:away` 清除 typing + 廣播
+    - Auth spec 整併：`auth.spec.ts` 12 tests（TC-A-01~A-12）取代兩個舊檔
+    - 108/108 tests 全部通過
   - 📊 **進度更新**：
     - 階段 1 (基礎設施)：100% 完成 ✅
-    - 階段 2 (認證用戶)：42.86% 完成（3/7 - OAuth + Session 管理 + searchUsers）
+    - 階段 2 (認證用戶)：71.43% 完成（5/7 - OAuth + Session + searchUsers + me query + updateProfile）
     - 階段 2.5 (UI/UX 改版)：100% 完成 ✅
     - 階段 3 (好友系統)：87.5% 完成（7/8）
     - 階段 4 (對話/群組/黑名單)：100% 完成 ✅（Backend）
-    - 階段 5 (即時功能)：57.14% 完成（4/7）
+    - 階段 5 (即時功能)：85.71% 完成（6/7）
     - 階段 6 (前端開發)：70% 完成（7/10）
-    - 整體完成率：38.00%（19/50 features 完成）
+    - 整體完成率：46.00%（23/50 features 完成）
   - 🚀 **下一步**：
-    - 合併 PR `feature/1.2.1-backend` → `main`
-    - 建議下一個 Backend Feature：**me query + updateProfile**（P0，前端需要用戶資料）
-    - 或：**typing indicators**（typing_start/stop，即時功能補完）
+    - Architect merge PR #36 `feature/1.2.2-backend` → `main`
+    - Feature 1.3.1 Frontend（對話列表 + 聊天室）← 前端主線

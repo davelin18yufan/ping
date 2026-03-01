@@ -46,18 +46,19 @@ revokeAllSessions: Boolean!
 | Feature | 名稱 | 完成日期 | 測試數 | 核心產出 |
 |---------|------|---------|--------|---------|
 | 1.2.0 | UI/UX 大改版 + Session 認證整合 | 2026-02-16 | 175 | 雙模式系統 (Glamorous/Minimal), CSS 架構重組, Capsule Morphing AppHeader, uiStore |
-| 1.2.1 | 搜尋與加好友 | 2026-02-23 | 69 backend + 175 frontend | Friends GraphQL resolvers, DataLoader, Friends Page + Sonar Ping 動畫 |
+| 1.2.1 | 搜尋與加好友 | 2026-02-23 | 128 backend + 175 frontend | Friends GraphQL resolvers, DataLoader, Friends Page + Sonar Ping 動畫 |
 
 **1.2.1 GraphQL API**：
 ```graphql
-searchUsers(query: String!): [User!]!
+searchUsers(query: String!): [User!]!       # bidirectional blacklist filter
 friends: [User!]!
 pendingFriendRequests: [FriendRequest!]!
 sentFriendRequests: [FriendRequest!]!
-sendFriendRequest(userId: ID!): FriendRequest!
-acceptFriendRequest(requestId: ID!): Friendship!
-rejectFriendRequest(requestId: ID!): Boolean!
+sendFriendRequest(userId: ID!): FriendRequest!  # + blacklist guard + user existence check
+acceptFriendRequest(requestId: ID!): Friendship!  # + party membership guard (security fix)
+rejectFriendRequest(requestId: ID!): Boolean!     # + party membership guard (security fix)
 cancelFriendRequest(requestId: ID!): Boolean!
+removeFriend(friendshipId: ID!): Boolean!    # new — soft removal, no blacklist entry
 ```
 
 > Sprint 3 + Sprint 4 (100% 完成)。分工略。
@@ -142,17 +143,17 @@ cancelFriendRequest(requestId: ID!): Boolean!
 
 ---
 
-#### ✅ Feature 1.2.2 - 後端補完（P0）— 完成（2026-02-28）
+#### ✅ Feature 1.2.2 - 後端補完（P0）— 完成（2026-03-01）
 
 | 欄位 | 內容 |
 |------|------|
-| **狀態** | ✅ 完成（2026-02-28） |
+| **狀態** | ✅ 完成（2026-03-01，PR #36 已合併，續補 PR 開放中） |
 | **優先級** | P0 |
 | **負責** | Backend Developer |
-| **分支** | `feature/1.2.2-backend` → PR #36 |
-| **實際完成日期** | 2026-02-28 |
+| **分支** | `feature/1.2.2-backend` → PR #36（已合併）+ 新 PR |
+| **實際完成日期** | 2026-03-01 |
 
-**完成內容（108/108 tests 全部通過）**：
+**完成內容（128/128 tests 全部通過）**：
 
 | 子任務 | 說明 | 狀態 |
 |--------|------|------|
@@ -167,8 +168,15 @@ cancelFriendRequest(requestId: ID!): Boolean!
 | `user:away` typing 清除 | away 時原子清除所有 room 的 typing key + 廣播 | ✅ 完成 |
 | Auth spec 整併 | `auth.spec.ts`（12 tests TC-A-01~TC-A-12）取代 `auth-oauth.spec.ts` + `better-auth.spec.ts` | ✅ 完成 |
 | `markMessagesAsRead` | ✅ 已在 Feature 1.3.1 完成（雙向 cursor 分頁，無需重複） | ✅（1.3.1）|
+| `removeFriend` mutation | 移除 ACCEPTED 好友關係，任一方可執行，不建立黑名單。TC-B-15~18 | ✅ 完成（2026-03-01）|
+| `searchUsers` 黑名單過濾 | 雙向過濾：我封鎖的人 + 封鎖我的人均不出現在搜尋結果。TC-B-19~20 | ✅ 完成（2026-03-01）|
+| `acceptFriendRequest` 安全修復 | 加入 party membership 守衛，防止第三方接受他人好友請求（FORBIDDEN）。TC-B-21 | ✅ 完成（2026-03-01）|
+| `rejectFriendRequest` 安全修復 | 同上，防止第三方拒絕。TC-B-22 | ✅ 完成（2026-03-01）|
+| `sendFriendRequest` 守衛擴充 | 使用者存在性（NOT_FOUND）+ 雙向黑名單守衛（FORBIDDEN）。TC-B-23~25 | ✅ 完成（2026-03-01）|
+| 測試覆蓋補齊 | TC-B-26~34：cancelFriendRequest 收件方、NOT_FOUND×3、sentFriendRequests 正向、userId2 視角、邊界條件、UNAUTHENTICATED | ✅ 完成（2026-03-01）|
+| `requireFriendshipParty()` 重構 | 抽取至 `utils.ts`，3 個 resolver 呼叫點收斂為一行 | ✅ 完成（2026-03-01）|
 
-**Commits**：PR #36（`feature/1.2.2-backend`）
+**Commits**：PR #36（`feature/1.2.2-backend`，已合併）+ `06e3c25`（新 PR）
 
 ---
 
@@ -240,19 +248,23 @@ cancelFriendRequest(requestId: ID!): Boolean!
 
 #### Architect Agent
 - **下一步**：
-  1. Review & merge `feature/1.2.2-backend` PR #36 → main（108/108 tests，含 Feature 1.2.2 所有後端補完）
+  1. Review & merge 新 PR（`feature/1.2.2-backend`）→ main（128/128 tests）
   2. 分配 Feature 1.3.1 Frontend 給 Fullstack Frontend Developer
   3. 持續更新 task-board.md
 
 #### Backend Developer
-- **下一步**：
-  1. ✅ Feature 1.2.2 後端補完已完成（me query、updateProfile、typing indicators、Socket.io 型別化）
-  2. 等待 PR #36 merge
-  3. 下一個 Backend 任務：`removeFriend` mutation（P1）或 `uploadAvatar`（P1），視 Architect 優先級決定
+- **已完成（2026-03-01）**：
+  - ✅ `removeFriend` mutation（Stage 3 好友系統 8/8 = 100%）
+  - ✅ `searchUsers` 雙向黑名單過濾
+  - ✅ `acceptFriendRequest` / `rejectFriendRequest` 第三方安全漏洞修復
+  - ✅ `sendFriendRequest` 守衛擴充（使用者存在性 + 黑名單）
+  - ✅ 測試覆蓋從 20 → 34 cases（TC-B-21~B-34）
+  - ✅ `requireFriendshipParty()` 重構至 utils.ts
+- **下一個 Backend 任務**：等待 Architect 指派（uploadAvatar P1、或 1.3.2 訊息狀態同步）
 
 #### Fullstack Frontend Developer
 - **下一步**：
-  1. 等待 Architect 確認 PR #36 合併
+  1. 等待 Architect 確認新 PR 合併
   2. 讀取 `docs/architecture/Feature-1.3.1-SDD.md` 第八節「前端實作注意事項」
   3. 開始 Feature 1.3.1 Frontend（對話列表 + 聊天室頁面）
   4. 實作 Socket.io 即時整合（`message:new`、`presence:changed`、`typing:update`、`sync:required`）
@@ -339,20 +351,20 @@ cancelFriendRequest(requestId: ID!): Boolean!
 |-------|--------|-----------|
 | 1.0 基礎設施 | 4/4 ✅ | 170+ |
 | 1.1 認證系統 | 2/2 ✅ | 87 |
-| 1.2 UI/UX + 好友 | 2/2 ✅ | 244+ |
+| 1.2 UI/UX + 好友 | 2/2 ✅ | 303+ (128 backend + 175 frontend) |
 | 1.3 聊天系統 | Backend ✅ / Frontend 🔲 | 22 (backend) |
 | 1.4 即時功能 | 2/3 ✅ (1.4.1 + 1.2.2 完成) | 20 + 19 |
-| **Backend 總計** | **108/108 tests** | **PR #36 (feature/1.2.2-backend) 開放中** |
+| **Backend 總計** | **128/128 tests** | **PR #36 已合併，新 PR 開放中** |
 
 ---
 
-**最後更新**：2026-02-28
+**最後更新**：2026-03-01
 **當前 Sprint**：Sprint 5（Feature 1.2.2 後端補完 ✅ → Feature 1.3.1 Frontend 待開始）
-**最新進展**：Feature 1.2.2 後端補完完成（2026-02-28）。`feature/1.2.2-backend` PR #36 含 me query（14 tests）、updateProfile、AestheticMode enum + migration、typing indicators（10 tests TC-T-01~10）、Socket.io 型別化、Auth spec 整併，108/108 tests 全部通過。
+**最新進展**：PR #36 已合併。本次補完：`removeFriend`（Stage 3 好友系統 8/8 = 100%）、`searchUsers` 雙向黑名單過濾、`acceptFriendRequest`/`rejectFriendRequest`/`sendFriendRequest` 安全強化、測試覆蓋 20 → 34 cases（TC-B-21~B-34）、`requireFriendshipParty()` 重構，128/128 tests 全部通過。
 
 **下一步優先順序**：
-1. Architect merge `feature/1.2.2-backend` PR #36 → main
-2. Feature 1.3.1 Frontend（對話列表 + 聊天室）← 前端下一步
+1. Architect merge 新 PR（`feature/1.2.2-backend`）→ main（128/128 tests）
+2. Feature 1.3.1 Frontend（對話列表 + 聊天室）← 前端主線
 3. Feature 1.4.2（即時反應 + 貼圖/嗆聲娃娃 + 聊天室主題）
 4. Feature 1.4.3 圖片上傳（等 1.4.2 完成後才開始）
 

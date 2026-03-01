@@ -288,13 +288,14 @@
   - 依賴: 發送好友邀請
   - 測試案例: 5
 
-- [ ] **移除好友 (removeFriend)**
-  - Agent: Architect → Backend Developer → Architect (Review)
-  - 任務: 刪除好友關係、通知
-  - 狀態: 待規格化
+- [x] **移除好友 (removeFriend)** ✅
+  - Agent: Backend Developer
+  - 任務: 刪除 ACCEPTED 好友關係（不建立黑名單），任一方皆可執行
+  - 狀態: ✅ 完成（2026-03-01）
   - 優先度: P1
-  - 依賴: 查詢好友列表
-  - 測試案例: 8
+  - 依賴: 查詢好友列表 ✅
+  - 測試案例: 4（TC-B-15 至 TC-B-18：success、NOT_FOUND、FORBIDDEN、CONFLICT）
+  - 實作: `backend/src/graphql/resolvers/friends.ts`（`removeFriend` resolver）
 
 ---
 
@@ -627,10 +628,10 @@
 ### 整體進度
 ```
 總功能數: 53
-已完成: 23 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis、Web 前端基礎設施、Mobile 前端基礎設施、Design System、OAuth 登入流程、Session 管理、UI/UX 大改版、好友管理頁面 Frontend Web、好友系統 Backend、對話管理/群組/黑名單 Backend、在線狀態追蹤、在線狀態廣播、查詢用戶資料(me)、更新個人資料(updateProfile)、輸入狀態追蹤、輸入提示廣播)
+已完成: 24 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis、Web 前端基礎設施、Mobile 前端基礎設施、Design System、OAuth 登入流程、Session 管理、UI/UX 大改版、好友管理頁面 Frontend Web、好友系統 Backend、對話管理/群組/黑名單 Backend、在線狀態追蹤、在線狀態廣播、查詢用戶資料(me)、更新個人資料(updateProfile)、輸入狀態追蹤、輸入提示廣播、移除好友(removeFriend))
 進行中: 0
-待開始: 30（新增：即時反應、貼圖/嗆聲娃娃、聊天室主題）
-完成率: 43.40%（23/53）
+待開始: 29（新增：即時反應、貼圖/嗆聲娃娃、聊天室主題）
+完成率: 45.28%（24/53）
 
 🎉 Phase 1.0 基礎設施初始化完整完成！(4/4 features - 100%)
 🎉 Phase 1.1 認證系統（Web + Session 管理）完成！(Feature 1.1.1 + 1.1.2)
@@ -639,6 +640,7 @@
 🎉 Feature 1.3.1 Backend 完成！(對話管理、群組聊天室、黑名單 - 22/22 tests - 2026-02-25)
 🎉 Feature 1.4.1 Backend 完成！(心跳機制 & 在線狀態 - 20/20 socket tests - 2026-02-28)
 🎉 Feature 1.2.2 Backend 完成！(me query + updateProfile + typing indicators + Socket.io 型別化 - 108/108 tests - 2026-02-28)
+🎉 removeFriend mutation 補完！(Stage 3 好友系統 8/8 100% - 112/112 tests - 2026-03-01)
 ```
 
 ### 階段進度
@@ -691,7 +693,7 @@ Phase 1.0 成就解鎖 🏆:
   ✅ 搜尋用戶（searchUsers - Feature 1.2.1 Backend - 2026-02-24）
 階段 2.5 (UI/UX 改版): 1/1   (100%) ✅ - Feature 1.2.0 完整完成（2026-02-16）
   ✅ Feature 1.2.0 - UI/UX 大改版 + Session 認證整合（5/5 Stage，175/175 tests）
-階段 3 (好友系統):  7/8   (87.5%) ✅ - Feature 1.2.1 Backend 完成（2026-02-24）
+階段 3 (好友系統):  8/8   (100%) ✅ - Feature 1.2.1 Backend + removeFriend 全部完成（2026-03-01）
   ✅ 發送好友邀請 (sendFriendRequest)
   ✅ 接受好友邀請 (acceptFriendRequest)
   ✅ 拒絕好友邀請 (rejectFriendRequest)
@@ -699,7 +701,7 @@ Phase 1.0 成就解鎖 🏆:
   ✅ 查詢好友列表 (friends)
   ✅ 查詢待處理邀請 (pendingFriendRequests)
   ✅ 查詢已發送邀請 (sentFriendRequests)
-  🔲 移除好友 (removeFriend) - 後續實作
+  ✅ 移除好友 (removeFriend) - 完成（2026-03-01）
 階段 4 (對話/群組/黑名單): 8/8 (100%) ✅ - Feature 1.3.1 Backend 完成（2026-02-25）
   ✅ getOrCreateConversation（好友才能建立 1-on-1）
   ✅ createGroupConversation（creator=OWNER，好友限制）
@@ -1058,8 +1060,15 @@ E2E Tests: 目標涵蓋主要流程
 
 **更新頻率**: 每日更新
 **維護者**: All Agents
-**最後更新**: 2026-02-28
+**最後更新**: 2026-03-01
 **最新變更**:
+  - ✅ **removeFriend mutation 補完（2026-03-01）— 好友系統 8/8 100%**
+    - Branch: `feature/1.2.2-backend`
+    - `removeFriend(friendshipId: ID!): Boolean!` mutation 新增至 schema
+    - Resolver 實作：身份驗證、ownership 驗證、ACCEPTED 狀態檢查、Friendship 刪除
+    - 4 個整合測試（TC-B-15~B-18）：success、NOT_FOUND(404)、FORBIDDEN(403)、CONFLICT(409)
+    - 112/112 後端測試全部通過，Linter 0 warnings
+    - 設計邊界：removeFriend 不建立黑名單（blockUser 才建立），僅解除 ACCEPTED 關係
   - ✅ **Feature 1.2.2 Backend 完成（2026-02-28）— 後端補完**
     - Branch: `feature/1.2.2-backend` → PR #36
     - `me` query：回傳完整用戶資料（isOnline、statusMessage、aestheticMode），14 tests TC-U-01~U-14

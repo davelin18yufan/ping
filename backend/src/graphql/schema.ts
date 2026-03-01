@@ -457,6 +457,13 @@ export const schema = createSchema({
         cancelFriendRequest(requestId: ID!): Boolean!
 
         """
+        Remove an accepted friendship.
+        Does NOT create a blacklist entry - use blockUser for that.
+        Either party may remove. Returns true on success.
+        """
+        removeFriend(friendshipId: ID!): Boolean!
+
+        """
         Revoke a specific session by its ID.
         Cannot revoke the currently active session (FORBIDDEN).
         Returns true on success.

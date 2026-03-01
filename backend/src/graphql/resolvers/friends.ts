@@ -21,7 +21,7 @@
 import { GraphQLError } from "graphql"
 import type { GraphQLContext } from "../context"
 import type { FriendRequestParent, FriendshipParent } from "../types"
-import { requireAuth, toISO, normalizeFriendshipIds } from "./utils"
+import { requireAuth, toISO, normalizeFriendshipIds, requireFriendshipParty } from "./utils"
 import { FriendshipStatus } from "@generated/prisma/enums"
 
 /**
@@ -41,10 +41,21 @@ const Query = {
             return []
         }
 
+        // Bidirectional blacklist: exclude users I've blocked AND users who've blocked me.
+        // This prevents either party from discovering the block via search results.
+        const blocks = await context.prisma.blacklist.findMany({
+            where: { OR: [{ blockerId: userId }, { blockedId: userId }] },
+            select: { blockerId: true, blockedId: true },
+        })
+        const blockedUserIds = blocks.map((b) =>
+            b.blockerId === userId ? b.blockedId : b.blockerId
+        )
+
         const users = await context.prisma.user.findMany({
             where: {
                 AND: [
                     { id: { not: userId } },
+                    ...(blockedUserIds.length > 0 ? [{ id: { notIn: blockedUserIds } }] : []),
                     {
                         OR: [
                             { name: { contains: query, mode: "insensitive" } },
@@ -199,6 +210,36 @@ const Mutation = {
             })
         }
 
+        // Verify target user exists before any further checks
+        const targetUser = await context.prisma.user.findUnique({
+            where: { id: targetUserId },
+            select: { id: true },
+        })
+        if (!targetUser) {
+            throw new GraphQLError("User not found", {
+                extensions: { code: "NOT_FOUND", status: 404 },
+            })
+        }
+
+        // Bidirectional block guard: cannot send FR if either party has blocked the other
+        const block = await context.prisma.blacklist.findFirst({
+            where: {
+                OR: [
+                    { blockerId: myId, blockedId: targetUserId },
+                    { blockerId: targetUserId, blockedId: myId },
+                ],
+            },
+            select: { id: true },
+        })
+        if (block) {
+            throw new GraphQLError(
+                "Cannot send friend request: a block exists between you and this user",
+                {
+                    extensions: { code: "FORBIDDEN", status: 403 },
+                }
+            )
+        }
+
         const { userId1, userId2 } = normalizeFriendshipIds(myId, targetUserId)
 
         const existing = await context.prisma.friendship.findUnique({
@@ -265,6 +306,8 @@ const Mutation = {
             })
         }
 
+        requireFriendshipParty(friendship, myId)
+
         if (friendship.requestedBy === myId) {
             throw new GraphQLError("Cannot accept your own friend request", {
                 extensions: { code: "FORBIDDEN", status: 403 },
@@ -298,7 +341,7 @@ const Mutation = {
 
         const friendship = await context.prisma.friendship.findUnique({
             where: { id: args.requestId },
-            select: { requestedBy: true },
+            select: { requestedBy: true, userId1: true, userId2: true },
         })
 
         if (!friendship) {
@@ -306,6 +349,8 @@ const Mutation = {
                 extensions: { code: "NOT_FOUND", status: 404 },
             })
         }
+
+        requireFriendshipParty(friendship, myId)
 
         if (friendship.requestedBy === myId) {
             throw new GraphQLError("Cannot reject your own friend request", {
@@ -352,6 +397,46 @@ const Mutation = {
 
         await context.prisma.friendship.delete({
             where: { id: args.requestId },
+        })
+
+        return true
+    },
+
+    /**
+     * Remove an accepted friendship.
+     * Soft removal: deletes Friendship only, does NOT create a Blacklist entry.
+     * Either party (userId1 or userId2) may remove.
+     * Only ACCEPTED friendships can be removed (blockUser handles PENDING removal via block flow).
+     */
+    removeFriend: async (
+        _parent: unknown,
+        args: { friendshipId: string },
+        context: GraphQLContext
+    ): Promise<boolean> => {
+        const myId = requireAuth(context)
+
+        const friendship = await context.prisma.friendship.findUnique({
+            where: { id: args.friendshipId },
+            select: { userId1: true, userId2: true, status: true },
+        })
+
+        if (!friendship) {
+            throw new GraphQLError("Friendship not found", {
+                extensions: { code: "NOT_FOUND", status: 404 },
+            })
+        }
+
+        requireFriendshipParty(friendship, myId)
+
+        if (friendship.status !== FriendshipStatus.ACCEPTED) {
+            throw new GraphQLError(
+                "Can only remove accepted friendships. Use cancelFriendRequest for pending ones.",
+                { extensions: { code: "CONFLICT", status: 409 } }
+            )
+        }
+
+        await context.prisma.friendship.delete({
+            where: { id: args.friendshipId },
         })
 
         return true

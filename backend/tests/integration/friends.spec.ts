@@ -80,6 +80,17 @@ async function createPendingFriendship(
     })
 }
 
+/** Create a Blacklist entry: blocker blocks blocked. */
+async function createBlacklist(
+    prisma: PrismaClient,
+    blockerId: string,
+    blockedId: string
+): Promise<void> {
+    await prisma.blacklist.create({
+        data: { blockerId, blockedId },
+    })
+}
+
 /** Create an ACCEPTED friendship. */
 async function createAcceptedFriendship(
     prisma: PrismaClient,
@@ -135,6 +146,7 @@ describe("Feature 1.2.1 - Friends (Backend)", () => {
 
     afterEach(async () => {
         // Clean up in FK-safe order
+        await prisma.blacklist.deleteMany()
         await prisma.friendship.deleteMany()
         await prisma.session.deleteMany()
         await prisma.account.deleteMany()
@@ -406,6 +418,377 @@ describe("Feature 1.2.1 - Friends (Backend)", () => {
     // -----------------------------------------------------------------------
     test("TC-B-14: friends query returns UNAUTHENTICATED error when no session", async () => {
         const result = await query(`query { friends { id } }`)
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("UNAUTHENTICATED")
+        expect(result.errors?.[0]?.extensions?.status).toBe(401)
+    })
+
+    // -----------------------------------------------------------------------
+    // TC-B-15: removeFriend removes ACCEPTED friendship
+    // -----------------------------------------------------------------------
+    test("TC-B-15: removeFriend removes an ACCEPTED friendship and returns true", async () => {
+        const friendship = await createAcceptedFriendship(prisma, USER_ALICE.id, USER_BOB.id)
+        const token = await createSession(prisma, USER_ALICE.id)
+
+        const result = await mutation(
+            `mutation RemoveFriend($friendshipId: ID!) {
+              removeFriend(friendshipId: $friendshipId)
+            }`,
+            { friendshipId: friendship.id },
+            token
+        )
+
+        expect(result.errors).toBeUndefined()
+        expect(result.data?.removeFriend).toBe(true)
+
+        const deleted = await prisma.friendship.findUnique({ where: { id: friendship.id } })
+        expect(deleted).toBeNull()
+    })
+
+    // -----------------------------------------------------------------------
+    // TC-B-16: removeFriend with non-existent friendshipId → NOT_FOUND
+    // -----------------------------------------------------------------------
+    test("TC-B-16: removeFriend returns NOT_FOUND for a non-existent friendshipId", async () => {
+        const token = await createSession(prisma, USER_ALICE.id)
+
+        const result = await mutation(
+            `mutation RemoveFriend($friendshipId: ID!) {
+              removeFriend(friendshipId: $friendshipId)
+            }`,
+            { friendshipId: "non-existent-id" },
+            token
+        )
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("NOT_FOUND")
+        expect(result.errors?.[0]?.extensions?.status).toBe(404)
+    })
+
+    // -----------------------------------------------------------------------
+    // TC-B-17: removeFriend by non-party user → FORBIDDEN
+    // -----------------------------------------------------------------------
+    test("TC-B-17: removeFriend returns FORBIDDEN when caller is not a party to the friendship", async () => {
+        const friendship = await createAcceptedFriendship(prisma, USER_ALICE.id, USER_BOB.id)
+        const token = await createSession(prisma, USER_CAROL.id)
+
+        const result = await mutation(
+            `mutation RemoveFriend($friendshipId: ID!) {
+              removeFriend(friendshipId: $friendshipId)
+            }`,
+            { friendshipId: friendship.id },
+            token
+        )
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("FORBIDDEN")
+        expect(result.errors?.[0]?.extensions?.status).toBe(403)
+    })
+
+    // -----------------------------------------------------------------------
+    // TC-B-19: searchUsers excludes users I have blocked
+    // -----------------------------------------------------------------------
+    test("TC-B-19: searchUsers excludes users that the current user has blocked", async () => {
+        // Alice blocks Bob → Alice should not see Bob in search results
+        await createBlacklist(prisma, USER_ALICE.id, USER_BOB.id)
+        const token = await createSession(prisma, USER_ALICE.id)
+
+        const result = await query(`query { searchUsers(query: "Bob") { id name } }`, token)
+
+        expect(result.errors).toBeUndefined()
+        const users = result.data?.searchUsers as Array<{ id: string }>
+        expect(users.find((u) => u.id === USER_BOB.id)).toBeUndefined()
+    })
+
+    // -----------------------------------------------------------------------
+    // TC-B-20: searchUsers excludes users who have blocked the current user
+    // -----------------------------------------------------------------------
+    test("TC-B-20: searchUsers excludes users who have blocked the current user", async () => {
+        // Carol blocks Alice → Alice should not see Carol in search results (bidirectional)
+        await createBlacklist(prisma, USER_CAROL.id, USER_ALICE.id)
+        const token = await createSession(prisma, USER_ALICE.id)
+
+        const result = await query(`query { searchUsers(query: "Carol") { id name } }`, token)
+
+        expect(result.errors).toBeUndefined()
+        const users = result.data?.searchUsers as Array<{ id: string }>
+        expect(users.find((u) => u.id === USER_CAROL.id)).toBeUndefined()
+    })
+
+    // -----------------------------------------------------------------------
+    // TC-B-18: removeFriend on PENDING friendship → CONFLICT
+    // -----------------------------------------------------------------------
+    test("TC-B-18: removeFriend returns CONFLICT when called on a PENDING friendship", async () => {
+        const friendship = await createPendingFriendship(prisma, USER_ALICE.id, USER_BOB.id)
+        const token = await createSession(prisma, USER_ALICE.id)
+
+        const result = await mutation(
+            `mutation RemoveFriend($friendshipId: ID!) {
+              removeFriend(friendshipId: $friendshipId)
+            }`,
+            { friendshipId: friendship.id },
+            token
+        )
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("CONFLICT")
+        expect(result.errors?.[0]?.extensions?.status).toBe(409)
+    })
+
+    // =======================================================================
+    // P0 Security Bug Fixes
+    // =======================================================================
+
+    // -----------------------------------------------------------------------
+    // TC-B-21: acceptFriendRequest by third party → FORBIDDEN
+    // -----------------------------------------------------------------------
+    test("TC-B-21: acceptFriendRequest returns FORBIDDEN when called by a non-party user", async () => {
+        const friendship = await createPendingFriendship(prisma, USER_ALICE.id, USER_BOB.id)
+        const token = await createSession(prisma, USER_CAROL.id) // Carol is not Alice or Bob
+
+        const result = await mutation(
+            `mutation { acceptFriendRequest(requestId: "${friendship.id}") { id } }`,
+            {},
+            token
+        )
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("FORBIDDEN")
+        expect(result.errors?.[0]?.extensions?.status).toBe(403)
+    })
+
+    // -----------------------------------------------------------------------
+    // TC-B-22: rejectFriendRequest by third party → FORBIDDEN
+    // -----------------------------------------------------------------------
+    test("TC-B-22: rejectFriendRequest returns FORBIDDEN when called by a non-party user", async () => {
+        const friendship = await createPendingFriendship(prisma, USER_ALICE.id, USER_BOB.id)
+        const token = await createSession(prisma, USER_CAROL.id) // Carol is not Alice or Bob
+
+        const result = await mutation(
+            `mutation { rejectFriendRequest(requestId: "${friendship.id}") }`,
+            {},
+            token
+        )
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("FORBIDDEN")
+        expect(result.errors?.[0]?.extensions?.status).toBe(403)
+    })
+
+    // =======================================================================
+    // P1 sendFriendRequest Guards
+    // =======================================================================
+
+    // -----------------------------------------------------------------------
+    // TC-B-23: sendFriendRequest to a user who blocked you → FORBIDDEN
+    // -----------------------------------------------------------------------
+    test("TC-B-23: sendFriendRequest returns FORBIDDEN when target has blocked the caller", async () => {
+        await createBlacklist(prisma, USER_BOB.id, USER_ALICE.id) // Bob blocked Alice
+        const token = await createSession(prisma, USER_ALICE.id)
+
+        const result = await mutation(
+            `mutation { sendFriendRequest(userId: "${USER_BOB.id}") { id } }`,
+            {},
+            token
+        )
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("FORBIDDEN")
+        expect(result.errors?.[0]?.extensions?.status).toBe(403)
+    })
+
+    // -----------------------------------------------------------------------
+    // TC-B-24: sendFriendRequest to a user you have blocked → FORBIDDEN
+    // -----------------------------------------------------------------------
+    test("TC-B-24: sendFriendRequest returns FORBIDDEN when caller has blocked the target", async () => {
+        await createBlacklist(prisma, USER_ALICE.id, USER_BOB.id) // Alice blocked Bob
+        const token = await createSession(prisma, USER_ALICE.id)
+
+        const result = await mutation(
+            `mutation { sendFriendRequest(userId: "${USER_BOB.id}") { id } }`,
+            {},
+            token
+        )
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("FORBIDDEN")
+        expect(result.errors?.[0]?.extensions?.status).toBe(403)
+    })
+
+    // -----------------------------------------------------------------------
+    // TC-B-25: sendFriendRequest to non-existent user → NOT_FOUND
+    // -----------------------------------------------------------------------
+    test("TC-B-25: sendFriendRequest returns NOT_FOUND for a non-existent target user", async () => {
+        const token = await createSession(prisma, USER_ALICE.id)
+
+        const result = await mutation(
+            `mutation { sendFriendRequest(userId: "non-existent-user-id") { id } }`,
+            {},
+            token
+        )
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("NOT_FOUND")
+        expect(result.errors?.[0]?.extensions?.status).toBe(404)
+    })
+
+    // -----------------------------------------------------------------------
+    // TC-B-26: cancelFriendRequest by receiver (non-sender) → FORBIDDEN
+    // -----------------------------------------------------------------------
+    test("TC-B-26: cancelFriendRequest returns FORBIDDEN when called by the receiver", async () => {
+        const friendship = await createPendingFriendship(prisma, USER_ALICE.id, USER_BOB.id)
+        const token = await createSession(prisma, USER_BOB.id) // Bob is the receiver, not the sender
+
+        const result = await mutation(
+            `mutation { cancelFriendRequest(requestId: "${friendship.id}") }`,
+            {},
+            token
+        )
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("FORBIDDEN")
+        expect(result.errors?.[0]?.extensions?.status).toBe(403)
+    })
+
+    // =======================================================================
+    // P2 Missing NOT_FOUND Tests
+    // =======================================================================
+
+    // -----------------------------------------------------------------------
+    // TC-B-27: acceptFriendRequest with non-existent requestId → NOT_FOUND
+    // -----------------------------------------------------------------------
+    test("TC-B-27: acceptFriendRequest returns NOT_FOUND for a non-existent requestId", async () => {
+        const token = await createSession(prisma, USER_BOB.id)
+
+        const result = await mutation(
+            `mutation { acceptFriendRequest(requestId: "non-existent-id") { id } }`,
+            {},
+            token
+        )
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("NOT_FOUND")
+        expect(result.errors?.[0]?.extensions?.status).toBe(404)
+    })
+
+    // -----------------------------------------------------------------------
+    // TC-B-28: rejectFriendRequest with non-existent requestId → NOT_FOUND
+    // -----------------------------------------------------------------------
+    test("TC-B-28: rejectFriendRequest returns NOT_FOUND for a non-existent requestId", async () => {
+        const token = await createSession(prisma, USER_BOB.id)
+
+        const result = await mutation(
+            `mutation { rejectFriendRequest(requestId: "non-existent-id") }`,
+            {},
+            token
+        )
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("NOT_FOUND")
+        expect(result.errors?.[0]?.extensions?.status).toBe(404)
+    })
+
+    // -----------------------------------------------------------------------
+    // TC-B-29: cancelFriendRequest with non-existent requestId → NOT_FOUND
+    // -----------------------------------------------------------------------
+    test("TC-B-29: cancelFriendRequest returns NOT_FOUND for a non-existent requestId", async () => {
+        const token = await createSession(prisma, USER_ALICE.id)
+
+        const result = await mutation(
+            `mutation { cancelFriendRequest(requestId: "non-existent-id") }`,
+            {},
+            token
+        )
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("NOT_FOUND")
+        expect(result.errors?.[0]?.extensions?.status).toBe(404)
+    })
+
+    // -----------------------------------------------------------------------
+    // TC-B-30: sentFriendRequests returns actual sent requests
+    // -----------------------------------------------------------------------
+    test("TC-B-30: sentFriendRequests returns the requests sent by the current user", async () => {
+        await createPendingFriendship(prisma, USER_ALICE.id, USER_BOB.id)
+        await createPendingFriendship(prisma, USER_ALICE.id, USER_CAROL.id)
+        const token = await createSession(prisma, USER_ALICE.id)
+
+        const result = await query(`query { sentFriendRequests { id receiver { id } } }`, token)
+
+        expect(result.errors).toBeUndefined()
+        const sent = result.data?.sentFriendRequests as Array<{
+            id: string
+            receiver: { id: string }
+        }>
+        expect(sent).toHaveLength(2)
+        const receiverIds = sent.map((r) => r.receiver.id)
+        expect(receiverIds).toContain(USER_BOB.id)
+        expect(receiverIds).toContain(USER_CAROL.id)
+    })
+
+    // =======================================================================
+    // P3 Coverage Completeness
+    // =======================================================================
+
+    // -----------------------------------------------------------------------
+    // TC-B-31: removeFriend succeeds when called by the userId2 party
+    // -----------------------------------------------------------------------
+    test("TC-B-31: removeFriend succeeds when called by the userId2 party (non-requester)", async () => {
+        // user-bob < user-carol alphabetically, so Bob=userId1, Carol=userId2
+        const friendship = await createAcceptedFriendship(prisma, USER_BOB.id, USER_CAROL.id)
+        const token = await createSession(prisma, USER_CAROL.id) // Carol is userId2
+
+        const result = await mutation(
+            `mutation RemoveFriend($friendshipId: ID!) {
+              removeFriend(friendshipId: $friendshipId)
+            }`,
+            { friendshipId: friendship.id },
+            token
+        )
+
+        expect(result.errors).toBeUndefined()
+        expect(result.data?.removeFriend).toBe(true)
+
+        const deleted = await prisma.friendship.findUnique({ where: { id: friendship.id } })
+        expect(deleted).toBeNull()
+    })
+
+    // -----------------------------------------------------------------------
+    // TC-B-32: searchUsers with exactly 2 characters returns results
+    // -----------------------------------------------------------------------
+    test("TC-B-32: searchUsers with exactly 2 characters returns matching users", async () => {
+        const token = await createSession(prisma, USER_ALICE.id)
+
+        // "Bo" matches "Bob Wang"
+        const result = await query(`query { searchUsers(query: "Bo") { id name } }`, token)
+
+        expect(result.errors).toBeUndefined()
+        const users = result.data?.searchUsers as Array<{ id: string }>
+        expect(users.length).toBeGreaterThan(0)
+        expect(users.find((u) => u.id === USER_BOB.id)).toBeDefined()
+    })
+
+    // -----------------------------------------------------------------------
+    // TC-B-33: searchUsers with whitespace-only query returns empty array
+    // -----------------------------------------------------------------------
+    test("TC-B-33: searchUsers returns empty array for a whitespace-only query", async () => {
+        const token = await createSession(prisma, USER_ALICE.id)
+
+        const result = await query(`query { searchUsers(query: "   ") { id } }`, token)
+
+        expect(result.errors).toBeUndefined()
+        const users = result.data?.searchUsers as unknown[]
+        expect(users).toHaveLength(0)
+    })
+
+    // -----------------------------------------------------------------------
+    // TC-B-34: sendFriendRequest without authentication → UNAUTHENTICATED
+    // -----------------------------------------------------------------------
+    test("TC-B-34: sendFriendRequest returns UNAUTHENTICATED when no session", async () => {
+        const result = await mutation(
+            `mutation { sendFriendRequest(userId: "${USER_BOB.id}") { id } }`,
+            {}
+        )
 
         expect(result.errors).toBeDefined()
         expect(result.errors?.[0]?.extensions?.code).toBe("UNAUTHENTICATED")

@@ -57,6 +57,25 @@ export function normalizeFriendshipIds(
     return idA < idB ? { userId1: idA, userId2: idB } : { userId1: idB, userId2: idA }
 }
 
+/**
+ * Assert the caller is one of the two parties in a friendship/friend-request record.
+ * Throws FORBIDDEN (HTTP 403) if myId matches neither userId1 nor userId2.
+ *
+ * Usage:
+ *   requireFriendshipParty(friendship, myId)
+ */
+export function requireFriendshipParty(
+    friendship: { userId1: string; userId2: string },
+    myId: string,
+    errorMessage = "You are not a party to this friendship"
+): void {
+    if (friendship.userId1 !== myId && friendship.userId2 !== myId) {
+        throw new GraphQLError(errorMessage, {
+            extensions: { code: "FORBIDDEN", status: 403 },
+        })
+    }
+}
+
 // ---------------------------------------------------------------------------
 // Conversation participant helper
 // ---------------------------------------------------------------------------

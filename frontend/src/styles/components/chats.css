@@ -1,0 +1,577 @@
+/**
+ * Chats — Conversation List + Chat Room
+ *
+ * Steel Frost Resonance: breathing sidebar, sonic EQ bars,
+ * fluid bubbles, energy input, paper-plane send.
+ *
+ * All animations use transform/opacity only (no height/width).
+ * prefers-reduced-motion: reduce overrides silence all motion.
+ * [data-aesthetic="minimal"] overrides strip decorative animation.
+ */
+
+/* ============================================================
+   Keyframes
+   ============================================================ */
+
+/**
+ * sidebar-breathe — left border pulses between dim and vivid primary.
+ * Applied to .conversation-item--unread via the .sidebar-breathe class.
+ */
+@keyframes sidebar-breathe {
+    0%,
+    100% {
+        border-left-color: oklch(from var(--primary) l c h / 0.3);
+    }
+    50% {
+        border-left-color: oklch(from var(--primary) l c h / 0.9);
+    }
+}
+
+/**
+ * eq-bar-scale — each bar scales from near-zero to full height, staggered.
+ * Used on .contact-avatar__eq-bar when .contact-avatar--active is set.
+ */
+@keyframes eq-bar-scale {
+    0%,
+    100% {
+        transform: scaleY(0.2);
+    }
+    50% {
+        transform: scaleY(1);
+    }
+}
+
+/**
+ * waveform-slide — energy input gradient wave scrolls horizontally.
+ * Applied to .energy-waveform pseudo-element or wrapper.
+ */
+@keyframes waveform-slide {
+    0% {
+        background-position: 0% 50%;
+    }
+    100% {
+        background-position: 100% 50%;
+    }
+}
+
+/**
+ * ping-ripple — send button ripple circle expands and fades.
+ * Applied via .ping-ripple span on button click.
+ */
+@keyframes ping-ripple {
+    0% {
+        transform: scale(0);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(2.5);
+        opacity: 0;
+    }
+}
+
+/**
+ * paper-plane-fly — icon shoots to top-right on send.
+ * Applied to the icon inside the send button.
+ */
+@keyframes paper-plane-fly {
+    0% {
+        transform: translate(0, 0) rotate(0deg);
+        opacity: 1;
+    }
+    100% {
+        transform: translate(40px, -40px) rotate(45deg);
+        opacity: 0;
+    }
+}
+
+/* ============================================================
+   Chats Page Layout
+   ============================================================ */
+
+@layer components {
+    .chats-page {
+        max-width: 640px;
+        margin: 0 auto;
+        /*
+         * padding-top: top-offset(16px) + header-height(48px) + gap(8px) = 72px
+         * matches friends-page padding convention.
+         */
+        padding: 4.5rem 1rem 2rem;
+        display: flex;
+        flex-direction: column;
+        gap: 1.5rem;
+        position: relative;
+    }
+
+    /* Override glass-card hover lift — page sections are static */
+    .chats-page__section {
+        transition: none;
+        position: relative;
+        z-index: 1;
+    }
+
+    .chats-page__section:hover {
+        transform: none;
+        box-shadow:
+            0 8px 32px oklch(0 0 0 / 0.08),
+            0 16px 64px oklch(0 0 0 / 0.12),
+            0 24px 96px oklch(0 0 0 / 0.15);
+        background: oklch(from var(--card) l c h / 0.5);
+    }
+
+    .chats-page__header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 1rem;
+    }
+
+    .chats-page__title {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--foreground);
+    }
+
+    .chats-page__list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    .chats-page__empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 2rem 1rem;
+        color: var(--muted-foreground);
+        font-size: 0.875rem;
+        text-align: center;
+    }
+
+    /* ============================================================
+       Conversation Item (row in list)
+       ============================================================ */
+
+    .conversation-item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.75rem;
+        cursor: pointer;
+        padding: 0.75rem;
+        border-radius: var(--radius-lg, 0.75rem);
+        border: 1px solid oklch(1 0 0 / 0.03);
+        border-left: 3px solid transparent;
+        background: oklch(from var(--card) l c h / 0.4);
+        transition:
+            background var(--duration-fast, 150ms) var(--ease-out, ease-out),
+            border-left-color var(--duration-fast, 150ms) var(--ease-out, ease-out);
+        /* Override glass-card hover — no vertical lift on rows */
+        transform: none;
+    }
+
+    .conversation-item:hover {
+        background: oklch(from var(--card) calc(l + 0.03) c h / 0.6);
+        transform: none;
+    }
+
+    .conversation-item:focus-visible {
+        outline: 2px solid var(--ring, var(--primary));
+        outline-offset: 2px;
+    }
+
+    .conversation-item:active {
+        background: oklch(from var(--card) calc(l + 0.01) c h / 0.5);
+        transform: none;
+    }
+
+    /* Pinned conversation — subtle gold/amber left accent */
+    .conversation-item--pinned {
+        border-left-color: oklch(0.78 0.15 85 / 0.5);
+    }
+
+    /* Unread conversation — primary left border highlight */
+    .conversation-item--unread {
+        border-left-color: oklch(from var(--primary) l c h / 0.6);
+    }
+
+    /* Breathing pulse on unread items (ornate mode only) */
+    .conversation-item--unread.sidebar-breathe {
+        animation: sidebar-breathe 2s ease-in-out infinite;
+    }
+
+    .conversation-item__avatar {
+        flex-shrink: 0;
+        position: relative;
+    }
+
+    .conversation-item__content {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    .conversation-item__header {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: space-between;
+        gap: 0.5rem;
+    }
+
+    .conversation-item__name {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--foreground);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+    }
+
+    .conversation-item__meta {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 0.25rem;
+        flex-shrink: 0;
+    }
+
+    .conversation-item__time {
+        font-size: 0.6875rem;
+        color: var(--muted-foreground);
+        flex-shrink: 0;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    .conversation-item__preview {
+        font-size: 0.75rem;
+        color: var(--muted-foreground);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        min-width: 0;
+        overflow-wrap: break-word;
+    }
+
+    /* ============================================================
+       Unread Badge
+       ============================================================ */
+
+    .unread-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 1.25rem;
+        height: 1.25rem;
+        padding: 0 0.25rem;
+        border-radius: 9999px;
+        background: var(--primary);
+        color: oklch(1 0 0);
+        font-size: 0.625rem;
+        font-weight: 700;
+        line-height: 1;
+        flex-shrink: 0;
+    }
+
+    /* ============================================================
+       Contact Avatar Wrapper (EQ bars + stranger badge)
+       ============================================================ */
+
+    .contact-avatar {
+        position: relative;
+        display: inline-flex;
+        flex-shrink: 0;
+    }
+
+    /* EQ bars container — floats above avatar, centered horizontally */
+    .contact-avatar__eq-bars {
+        position: absolute;
+        bottom: 100%;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        flex-direction: row;
+        align-items: flex-end;
+        gap: 2px;
+        height: 12px;
+        pointer-events: none;
+        margin-bottom: 2px;
+    }
+
+    /* Individual EQ bar */
+    .contact-avatar__eq-bar {
+        width: 3px;
+        height: 100%;
+        border-radius: 2px;
+        background: var(--primary);
+        transform: scaleY(0.2);
+        transform-origin: bottom center;
+    }
+
+    /* Per-bar animation delays for a natural stagger */
+    .contact-avatar__eq-bar:nth-child(1) {
+        --animation-delay: 0s;
+        animation-delay: 0s;
+    }
+    .contact-avatar__eq-bar:nth-child(2) {
+        --animation-delay: 0.1s;
+        animation-delay: 0.1s;
+    }
+    .contact-avatar__eq-bar:nth-child(3) {
+        --animation-delay: 0.2s;
+        animation-delay: 0.2s;
+    }
+    .contact-avatar__eq-bar:nth-child(4) {
+        --animation-delay: 0.1s;
+        animation-delay: 0.1s;
+    }
+    .contact-avatar__eq-bar:nth-child(5) {
+        --animation-delay: 0s;
+        animation-delay: 0s;
+    }
+
+    /* Activate EQ bars when contact-avatar--active is present (3 iterations then stops) */
+    .contact-avatar--active .contact-avatar__eq-bar {
+        animation: eq-bar-scale 0.6s ease-in-out var(--animation-delay, 0s) 3;
+    }
+
+    /* Stranger badge — amber dot at bottom-right of avatar */
+    .contact-avatar__stranger-badge {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        width: 1rem;
+        height: 1rem;
+        border-radius: 9999px;
+        background: oklch(0.78 0.15 85);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1.5px solid var(--background, oklch(0.1 0 0));
+    }
+
+    /* ============================================================
+       Energy Waveform Input Decoration
+       ============================================================ */
+
+    .energy-waveform {
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: linear-gradient(
+            90deg,
+            oklch(from var(--primary) l c h / 0),
+            oklch(from var(--primary) l c h / 0.08),
+            oklch(from var(--primary) l c h / 0)
+        );
+        background-size: 200% 100%;
+        pointer-events: none;
+        animation: waveform-slide 2s linear infinite;
+    }
+
+    /* ============================================================
+       Ping Ripple (send button click effect)
+       ============================================================ */
+
+    .ping-ripple {
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        pointer-events: none;
+        overflow: hidden;
+    }
+
+    .ping-ripple span {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 100%;
+        height: 100%;
+        translate: -50% -50%;
+        border-radius: 9999px;
+        background: oklch(from var(--primary) l c h / 0.3);
+        animation: ping-ripple 0.6s var(--ease-out, ease-out) forwards;
+    }
+}
+
+/* ============================================================
+   Accessibility: Reduced Motion
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .sidebar-breathe,
+    .conversation-item--unread.sidebar-breathe {
+        animation: none !important;
+    }
+
+    .contact-avatar__eq-bar,
+    .contact-avatar--active .contact-avatar__eq-bar {
+        animation: none !important;
+    }
+
+    .energy-waveform {
+        animation: none !important;
+    }
+
+    .ping-ripple {
+        animation: none !important;
+    }
+}
+
+/* ============================================================
+   [data-aesthetic="minimal"] — strip all decorative animation
+   ============================================================ */
+
+[data-aesthetic="minimal"] .contact-avatar__eq-bars {
+    display: none;
+}
+
+[data-aesthetic="minimal"] .energy-waveform {
+    display: none;
+}
+
+[data-aesthetic="minimal"] .sidebar-breathe,
+[data-aesthetic="minimal"] .conversation-item--unread.sidebar-breathe {
+    animation: none;
+}
+
+[data-aesthetic="minimal"] .ping-ripple {
+    display: none;
+}
+
+[data-aesthetic="minimal"] .animate-paper-plane {
+    animation: none;
+}
+
+/* ============================================================
+   animate-paper-plane — send icon flies to top-right on send
+   ============================================================ */
+
+@layer components {
+    .animate-paper-plane {
+        animation: paper-plane-fly 0.4s var(--ease-out, ease-out) forwards;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .animate-paper-plane {
+            animation: none !important;
+        }
+    }
+
+    /* ============================================================
+       Chat Room Layout
+       ============================================================ */
+
+    .chat-room {
+        display: flex;
+        flex-direction: column;
+        height: calc(100vh - 4rem);
+        position: relative;
+    }
+
+    .chat-room__messages {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    .chat-room__input {
+        flex-shrink: 0;
+    }
+
+    /* ============================================================
+       Message Input
+       ============================================================ */
+
+    .message-input {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem;
+        border-top: 1px solid var(--border);
+    }
+
+    .message-input__field {
+        flex: 1;
+        position: relative;
+    }
+
+    .message-input__send {
+        width: 2.5rem;
+        height: 2.5rem;
+        padding: 0;
+        border-radius: 9999px;
+        flex-shrink: 0;
+    }
+
+    /* ============================================================
+       Message List
+       ============================================================ */
+
+    .message-list {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+    }
+
+    .message-list__loading {
+        display: flex;
+        justify-content: center;
+        padding: 0.5rem 0;
+    }
+
+    /* ============================================================
+       Group Info Panel
+       ============================================================ */
+
+    .group-info-panel__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid var(--border);
+        flex-shrink: 0;
+    }
+
+    .group-info-panel__members {
+        flex: 1;
+        overflow-y: auto;
+        padding: 0.75rem 1rem;
+    }
+
+    .group-info-panel__member {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 0.25rem;
+    }
+
+    .group-info-panel__actions {
+        padding: 0.75rem 1rem;
+        border-top: 1px solid var(--border);
+        flex-shrink: 0;
+    }
+
+    /* ============================================================
+       Group Create Modal
+       ============================================================ */
+
+    .group-create-modal__particle {
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0.5rem;
+        height: 0.5rem;
+        border-radius: 9999px;
+        transform: rotate(var(--particle-angle, 0deg)) translateY(-3rem);
+        opacity: 0;
+        animation: ping-ripple 0.8s var(--ease-out, ease-out) forwards;
+    }
+}

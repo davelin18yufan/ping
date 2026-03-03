@@ -67,17 +67,18 @@ removeFriend(friendshipId: ID!): Boolean!    # new — soft removal, no blacklis
 
 ### Phase 1.3：聊天系統
 
-#### ⏳ Feature 1.3.1 - 對話管理、群組聊天室、黑名單
+#### ✅ Feature 1.3.1 - 對話管理、群組聊天室、黑名單
 
 | 欄位 | 內容 |
 |------|------|
-| **狀態** | ⏳ Backend ✅ 完成 → Frontend 🔲 待開始 |
+| **狀態** | ✅ Backend ✅ 完成 → Frontend ✅ 完成（Web）|
 | **優先級** | P0 |
-| **負責** | Backend（已完成）→ Fullstack Frontend Developer（下一步）|
+| **負責** | Backend ✅ / Frontend Web ✅ |
 | **依賴** | Feature 1.2.1（好友系統，已合併 PR #32）|
 | **SDD 參考** | `docs/architecture/Feature-1.3.1-SDD.md`（v2.0.0）|
-| **分支** | Backend: `feature/1.2.1-backend` ✅ 待 PR |
+| **分支** | `feature/1.3.1-frontend-web` |
 | **實際完成日期（Backend）** | 2026-02-25 |
+| **實際完成日期（Frontend Web）** | 2026-03-03 |
 
 **Backend 已完成（22 個整合測試 TC-B-01 ~ TC-B-22，77/77 全部通過）**：
 
@@ -88,16 +89,15 @@ removeFriend(friendshipId: ID!): Boolean!    # new — soft removal, no blacklis
 5. ✅ Socket.io：`joinConversationRooms`、`sync:required` 重連補漏事件
 6. ✅ 後端改善：集中型別（`types.ts`）、共享工具（`resolvers/utils.ts`）、統一錯誤代碼 `UNAUTHENTICATED`、雙向游標分頁
 
-**Frontend 待開始子任務**：
+**Frontend Web 已完成（63 個 Vitest 測試 TC-F-01 ~ TC-F-30，238/238 全部通過）**：
 
-> ⚠️ 開始前必須先讀 `docs/architecture/Feature-1.3.1-SDD.md` 第八節「前端實作注意事項」
-
-1. 🔲 對話列表頁（`conversations` query + stagger 動畫）
-2. 🔲 對話室頁面（`messages` query + 雙向 `useInfiniteQuery` sliding window）
-3. 🔲 Socket.io 整合（`message:new`、`participant:changed`、`sync:required`）
-4. 🔲 群組管理 UI（邀請 / 踢除 / 離群 / 設定）
-5. 🔲 黑名單管理（封鎖 / 解除封鎖）
-6. 🔲 Mobile（React Native + NativeWind）版本
+1. ✅ 對話列表頁（`/chats` route + stagger 動畫 + breathing sidebar）
+2. ✅ 對話室頁面（`/chats/$conversationId` + virtua VList + dual-cursor pagination）
+3. ✅ Socket.io 整合（`useSocket` singleton + `message:new`、`presence:changed`、`typing:update`、`sync:required`）
+4. ✅ 群組管理 UI（`GroupCreateModal` + `GroupInfoPanel` kick/leave/successor flow）
+5. ✅ Hooks：`useHeartbeat`、`useConversations`、`useMessages`、`useTyping`
+6. ✅ Animation：Steel Frost Resonance（`sidebar-breathe`、`eq-bar-scale`、`waveform-slide`、`ping-ripple`、`paper-plane-fly`）
+7. 🔲 Mobile（React Native + NativeWind）版本 → 下一個 sprint
 
 ---
 

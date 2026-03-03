@@ -628,10 +628,10 @@
 ### 整體進度
 ```
 總功能數: 53
-已完成: 24 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis、Web 前端基礎設施、Mobile 前端基礎設施、Design System、OAuth 登入流程、Session 管理、UI/UX 大改版、好友管理頁面 Frontend Web、好友系統 Backend、對話管理/群組/黑名單 Backend、在線狀態追蹤、在線狀態廣播、查詢用戶資料(me)、更新個人資料(updateProfile)、輸入狀態追蹤、輸入提示廣播、移除好友(removeFriend))
+已完成: 25 (專案初始化、Web/Mobile 架構、Backend 基礎建設、Better Auth、Prisma Schema、GraphQL Yoga、Socket.io、Redis、Web 前端基礎設施、Mobile 前端基礎設施、Design System、OAuth 登入流程、Session 管理、UI/UX 大改版、好友管理頁面 Frontend Web、好友系統 Backend、對話管理/群組/黑名單 Backend、在線狀態追蹤、在線狀態廣播、查詢用戶資料(me)、更新個人資料(updateProfile)、輸入狀態追蹤、輸入提示廣播、移除好友(removeFriend)、對話列表+聊天室 Frontend Web)
 進行中: 0
-待開始: 29（新增：即時反應、貼圖/嗆聲娃娃、聊天室主題）
-完成率: 45.28%（24/53）
+待開始: 28（新增：即時反應、貼圖/嗆聲娃娃、聊天室主題）
+完成率: 47.17%（25/53）
 
 🎉 Phase 1.0 基礎設施初始化完整完成！(4/4 features - 100%)
 🎉 Phase 1.1 認證系統（Web + Session 管理）完成！(Feature 1.1.1 + 1.1.2)
@@ -641,6 +641,7 @@
 🎉 Feature 1.4.1 Backend 完成！(心跳機制 & 在線狀態 - 20/20 socket tests - 2026-02-28)
 🎉 Feature 1.2.2 Backend 完成！(me query + updateProfile + typing indicators + Socket.io 型別化 - 108/108 tests - 2026-02-28)
 🎉 removeFriend mutation 補完！(Stage 3 好友系統 8/8 100% - 112/112 tests - 2026-03-01)
+🎉 Feature 1.3.1 Frontend Web 完成！(對話列表+聊天室+群組管理+Socket.io real-time - 63 tests, 238/238 - 2026-03-03)
 ```
 
 ### 階段進度
@@ -719,7 +720,7 @@ Phase 1.0 成就解鎖 🏆:
   ✅ 輸入狀態追蹤（typing:start/stop + Redis TTL 8s，Feature 1.2.2 - 2026-02-28）
   ✅ 輸入提示廣播（typing:update，Feature 1.2.2 - 2026-02-28）
   🔲 訊息狀態同步 (SENT → DELIVERED → READ)
-階段 6 (前端開發):  7/10 (70%) - Web 基礎設施 + Design System + OAuth 登入 + 好友頁面完成
+階段 6 (前端開發):  9/10 (90%) - Web 基礎設施 + Design System + OAuth 登入 + 好友頁面 + 聊天系統完成
   ✅ Web 架構設定
   ✅ Web 前端基礎設施（Feature 1.0.2）
   ✅ Mobile 架構設定
@@ -727,9 +728,9 @@ Phase 1.0 成就解鎖 🏆:
   ✅ Design System 設定（Feature 1.0.4 - 2026-01-26 完成）
   ✅ 登入頁面（Web）（Feature 1.1.1 - 2026-02-03 完成）
   ✅ 好友管理頁面（Web）（Feature 1.2.1 - 2026-02-23 完成）
+  ✅ 對話列表頁面（Web）（Feature 1.3.1 Frontend - 2026-03-03 完成）
+  ✅ 聊天室頁面（Web）（Feature 1.3.1 Frontend - 2026-03-03 完成）
   🔲 登入畫面（Mobile）（後續階段）
-  🔲 對話列表頁面/畫面（Feature 1.3.1 Frontend - 下一步）
-  🔲 聊天室頁面/畫面（Feature 1.3.1 Frontend - 下一步）
 ```
 
 ### 當前 Sprint 狀態

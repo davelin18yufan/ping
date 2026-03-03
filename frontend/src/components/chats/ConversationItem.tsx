@@ -1,0 +1,171 @@
+/**
+ * ConversationItem — single row in the conversation list.
+ *
+ * Displays the contact avatar, display name, last message preview, timestamp,
+ * unread badge, and pin indicator.
+ *
+ * Timestamp formatting (zh-TW locale):
+ *  - Same day   → "14:30" (HH:mm, 24h)
+ *  - Yesterday  → "昨天"
+ *  - Older      → "2/28" (M/D)
+ *
+ * For ONE_TO_ONE conversations the display name and avatar are derived from
+ * the participant whose id differs from `currentUserId`. For GROUP
+ * conversations the group name and a letter-initial avatar are used.
+ */
+
+import { Pin } from "lucide-react"
+
+import { cn, formatMessageTime } from "@/lib/utils"
+import type { Conversation } from "@/types/conversations"
+
+import { ContactAvatar } from "./ContactAvatar"
+import { UnreadBadge } from "./UnreadBadge"
+
+interface ConversationItemProps {
+    conversation: Conversation
+    currentUserId: string
+    onClick: () => void
+}
+
+// ─── Timestamp helpers ────────────────────────────────────────────────────────
+
+const dateFormatter = new Intl.DateTimeFormat("zh-TW", {
+    month: "numeric",
+    day: "numeric",
+})
+
+function formatConversationTime(isoString: string): string {
+    const date = new Date(isoString)
+    const now = new Date()
+
+    const isToday =
+        date.getFullYear() === now.getFullYear() &&
+        date.getMonth() === now.getMonth() &&
+        date.getDate() === now.getDate()
+
+    if (isToday) {
+        return formatMessageTime(isoString)
+    }
+
+    const yesterday = new Date(now)
+    yesterday.setDate(yesterday.getDate() - 1)
+    const isYesterday =
+        date.getFullYear() === yesterday.getFullYear() &&
+        date.getMonth() === yesterday.getMonth() &&
+        date.getDate() === yesterday.getDate()
+
+    if (isYesterday) {
+        return "昨天"
+    }
+
+    return dateFormatter.format(date)
+}
+
+// ─── Preview truncation ───────────────────────────────────────────────────────
+
+const MAX_PREVIEW_LENGTH = 30
+
+function truncatePreview(text: string | null): string {
+    if (!text) return ""
+    if (text.length <= MAX_PREVIEW_LENGTH) return text
+    return `${text.slice(0, MAX_PREVIEW_LENGTH)}\u2026`
+}
+
+// ─── Component ────────────────────────────────────────────────────────────────
+
+export function ConversationItem({ conversation, currentUserId, onClick }: ConversationItemProps) {
+    const isGroup = conversation.type === "GROUP"
+    const isPinned = conversation.pinnedAt !== null
+    const hasUnread = conversation.unreadCount > 0
+
+    // Resolve display name and other-participant metadata
+    let displayName: string
+    let avatarImage: string | null
+    let avatarName: string
+    let isOnline: boolean
+    let isFriend: boolean
+
+    const other = !isGroup
+        ? conversation.participants.find((p) => p.user.id !== currentUserId)
+        : undefined
+
+    if (isGroup) {
+        displayName = conversation.name ?? "Group"
+        avatarImage = null
+        avatarName = displayName
+        isOnline = false
+        isFriend = true // Groups have no stranger concept
+    } else {
+        displayName = other?.user.name ?? "Unknown"
+        avatarImage = other?.user.image ?? null
+        avatarName = displayName
+        isOnline = other?.user.isOnline ?? false
+        isFriend = other?.isFriend ?? false
+    }
+
+    // Timestamp — prefer lastMessage.createdAt, fall back to conversation.createdAt
+    const timestampSource = conversation.lastMessage?.createdAt ?? conversation.createdAt
+    const formattedTime = formatConversationTime(timestampSource)
+
+    // Message preview — handle image-only messages gracefully
+    const rawPreview =
+        conversation.lastMessage?.messageType === "IMAGE"
+            ? "[Image]"
+            : (conversation.lastMessage?.content ?? "")
+    const truncatedPreview = truncatePreview(rawPreview)
+
+    return (
+        <div
+            className={cn(
+                "conversation-item",
+                isPinned && "conversation-item--pinned",
+                hasUnread && "conversation-item--unread sidebar-breathe"
+            )}
+            onClick={onClick}
+            onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault()
+                    onClick()
+                }
+            }}
+            role="button"
+            tabIndex={0}
+            aria-label={`${displayName}${hasUnread ? `, ${conversation.unreadCount} unread` : ""}`}
+        >
+            {/* Avatar */}
+            <div className="conversation-item__avatar">
+                <ContactAvatar
+                    userId={isGroup ? conversation.id : (other?.user.id ?? conversation.id)}
+                    name={avatarName}
+                    image={avatarImage}
+                    isOnline={isOnline}
+                    isFriend={isFriend}
+                    size="md"
+                />
+            </div>
+
+            {/* Content */}
+            <div className="conversation-item__content">
+                <div className="conversation-item__header">
+                    <span className="conversation-item__name">{displayName}</span>
+                    <div className="conversation-item__meta">
+                        {isPinned && (
+                            <Pin
+                                size={12}
+                                aria-hidden="true"
+                                className="text-muted-foreground flex-shrink-0"
+                            />
+                        )}
+                        <span className="conversation-item__time">{formattedTime}</span>
+                    </div>
+                </div>
+
+                <div className="flex items-center justify-between min-w-0 gap-1">
+                    <p className="conversation-item__preview">{truncatedPreview}</p>
+                    <UnreadBadge count={conversation.unreadCount} />
+                </div>
+            </div>
+        </div>
+    )
+}

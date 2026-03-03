@@ -11,10 +11,12 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as FriendsIndexRouteImport } from './routes/friends/index'
+import { Route as ChatsIndexRouteImport } from './routes/chats/index'
 import { Route as AuthIndexRouteImport } from './routes/auth/index'
 import { Route as DemoTanstackQueryRouteImport } from './routes/demo/tanstack-query'
 import { Route as DemoStoreRouteImport } from './routes/demo/store'
 import { Route as DemoApolloClientRouteImport } from './routes/demo.apollo-client'
+import { Route as ChatsConversationIdRouteImport } from './routes/chats/$conversationId'
 import { Route as DemoStartServerFuncsRouteImport } from './routes/demo/start.server-funcs'
 import { Route as DemoStartApiRequestRouteImport } from './routes/demo/start.api-request'
 import { Route as DemoSentryTestingRouteImport } from './routes/demo/sentry.testing'
@@ -35,6 +37,11 @@ const FriendsIndexRoute = FriendsIndexRouteImport.update({
   path: '/friends/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ChatsIndexRoute = ChatsIndexRouteImport.update({
+  id: '/chats/',
+  path: '/chats/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthIndexRoute = AuthIndexRouteImport.update({
   id: '/auth/',
   path: '/auth/',
@@ -53,6 +60,11 @@ const DemoStoreRoute = DemoStoreRouteImport.update({
 const DemoApolloClientRoute = DemoApolloClientRouteImport.update({
   id: '/demo/apollo-client',
   path: '/demo/apollo-client',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ChatsConversationIdRoute = ChatsConversationIdRouteImport.update({
+  id: '/chats/$conversationId',
+  path: '/chats/$conversationId',
   getParentRoute: () => rootRouteImport,
 } as any)
 const DemoStartServerFuncsRoute = DemoStartServerFuncsRouteImport.update({
@@ -103,10 +115,12 @@ const DemoStartSsrDataOnlyRoute = DemoStartSsrDataOnlyRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/chats/$conversationId': typeof ChatsConversationIdRoute
   '/demo/apollo-client': typeof DemoApolloClientRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/auth/': typeof AuthIndexRoute
+  '/chats/': typeof ChatsIndexRoute
   '/friends/': typeof FriendsIndexRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
@@ -120,10 +134,12 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/chats/$conversationId': typeof ChatsConversationIdRoute
   '/demo/apollo-client': typeof DemoApolloClientRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/auth': typeof AuthIndexRoute
+  '/chats': typeof ChatsIndexRoute
   '/friends': typeof FriendsIndexRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
@@ -138,10 +154,12 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/chats/$conversationId': typeof ChatsConversationIdRoute
   '/demo/apollo-client': typeof DemoApolloClientRoute
   '/demo/store': typeof DemoStoreRoute
   '/demo/tanstack-query': typeof DemoTanstackQueryRoute
   '/auth/': typeof AuthIndexRoute
+  '/chats/': typeof ChatsIndexRoute
   '/friends/': typeof FriendsIndexRoute
   '/demo/api/names': typeof DemoApiNamesRoute
   '/demo/api/tq-todos': typeof DemoApiTqTodosRoute
@@ -157,10 +175,12 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/chats/$conversationId'
     | '/demo/apollo-client'
     | '/demo/store'
     | '/demo/tanstack-query'
     | '/auth/'
+    | '/chats/'
     | '/friends/'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
@@ -174,10 +194,12 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/chats/$conversationId'
     | '/demo/apollo-client'
     | '/demo/store'
     | '/demo/tanstack-query'
     | '/auth'
+    | '/chats'
     | '/friends'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
@@ -191,10 +213,12 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/chats/$conversationId'
     | '/demo/apollo-client'
     | '/demo/store'
     | '/demo/tanstack-query'
     | '/auth/'
+    | '/chats/'
     | '/friends/'
     | '/demo/api/names'
     | '/demo/api/tq-todos'
@@ -209,10 +233,12 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ChatsConversationIdRoute: typeof ChatsConversationIdRoute
   DemoApolloClientRoute: typeof DemoApolloClientRoute
   DemoStoreRoute: typeof DemoStoreRoute
   DemoTanstackQueryRoute: typeof DemoTanstackQueryRoute
   AuthIndexRoute: typeof AuthIndexRoute
+  ChatsIndexRoute: typeof ChatsIndexRoute
   FriendsIndexRoute: typeof FriendsIndexRoute
   DemoApiNamesRoute: typeof DemoApiNamesRoute
   DemoApiTqTodosRoute: typeof DemoApiTqTodosRoute
@@ -241,6 +267,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof FriendsIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/chats/': {
+      id: '/chats/'
+      path: '/chats'
+      fullPath: '/chats/'
+      preLoaderRoute: typeof ChatsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth/': {
       id: '/auth/'
       path: '/auth'
@@ -267,6 +300,13 @@ declare module '@tanstack/react-router' {
       path: '/demo/apollo-client'
       fullPath: '/demo/apollo-client'
       preLoaderRoute: typeof DemoApolloClientRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/chats/$conversationId': {
+      id: '/chats/$conversationId'
+      path: '/chats/$conversationId'
+      fullPath: '/chats/$conversationId'
+      preLoaderRoute: typeof ChatsConversationIdRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/demo/start/server-funcs': {
@@ -337,10 +377,12 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ChatsConversationIdRoute: ChatsConversationIdRoute,
   DemoApolloClientRoute: DemoApolloClientRoute,
   DemoStoreRoute: DemoStoreRoute,
   DemoTanstackQueryRoute: DemoTanstackQueryRoute,
   AuthIndexRoute: AuthIndexRoute,
+  ChatsIndexRoute: ChatsIndexRoute,
   FriendsIndexRoute: FriendsIndexRoute,
   DemoApiNamesRoute: DemoApiNamesRoute,
   DemoApiTqTodosRoute: DemoApiTqTodosRoute,

@@ -55,6 +55,41 @@ if (typeof window !== "undefined") {
     })
 }
 
+/**
+ * Mock IntersectionObserver for scroll/visibility tests.
+ * jsdom does not implement IntersectionObserver, so we provide a no-op class
+ * that satisfies the `new IntersectionObserver(cb, opts)` constructor contract.
+ * Individual tests can override window.IntersectionObserver with a spy that
+ * captures the callback and invokes it manually.
+ */
+if (typeof window !== "undefined" && !("IntersectionObserver" in window)) {
+    class MockIntersectionObserver {
+        readonly root: Element | Document | null = null
+        readonly rootMargin: string = "0px"
+        readonly thresholds: ReadonlyArray<number> = []
+
+        constructor(_callback: IntersectionObserverCallback) {}
+
+        observe(_target: Element) {
+            // no-op by default; override per-test to fire the callback
+        }
+
+        unobserve(_target: Element) {}
+
+        disconnect() {}
+
+        takeRecords(): IntersectionObserverEntry[] {
+            return []
+        }
+    }
+
+    Object.defineProperty(window, "IntersectionObserver", {
+        writable: true,
+        configurable: true,
+        value: MockIntersectionObserver,
+    })
+}
+
 // ============================================================================
 // CSS Injection for View Transition Tests
 // ============================================================================

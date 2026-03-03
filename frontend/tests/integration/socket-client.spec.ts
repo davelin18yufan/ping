@@ -1,9 +1,9 @@
+import { createServer } from "node:http"
 /**
  * @vitest-environment node
  */
 import type { AddressInfo } from "node:net"
 
-import { createServer } from "node:http"
 import { Server } from "socket.io"
 import { describe, it, expect, beforeEach, afterEach, vi } from "vitest"
 

@@ -17,6 +17,7 @@ import { AcousticField } from "@/components/ui/acoustic-field"
 import { AnimatedCard } from "@/components/ui/animated-card"
 import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
 import { requireGuestServer } from "@/middleware/auth.middleware.server"
+
 import "@/styles/auth-login.css"
 
 export const Route = createFileRoute("/auth/")({

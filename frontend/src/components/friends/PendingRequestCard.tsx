@@ -11,6 +11,7 @@ import { useState } from "react"
 
 import { SoundWaveLoader } from "@/components/shared/SoundWaveLoader"
 import { useFriendActions } from "@/hooks/useFriendActions"
+
 import "@/styles/components/friends.css"
 
 interface PendingRequestSender {

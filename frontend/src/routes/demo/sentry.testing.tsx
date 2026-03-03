@@ -6,10 +6,11 @@
  * @ai_context: Demonstrates Sentry features through interactive examples with educational context
  */
 
+import * as fs from "node:fs/promises"
+
 import * as Sentry from "@sentry/tanstackstart-react"
 import { createFileRoute } from "@tanstack/react-router"
 import { createServerFn } from "@tanstack/react-start"
-import * as fs from "node:fs/promises"
 import { useState, useEffect } from "react"
 
 export const Route = createFileRoute("/demo/sentry/testing")({

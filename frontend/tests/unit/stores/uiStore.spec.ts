@@ -7,6 +7,9 @@ describe("uiStore", () => {
         uiStore.setState(() => ({
             headerExpanded: false,
             isViewTransitioning: false,
+            activeConversationId: null,
+            typingMap: {},
+            presenceMap: {},
         }))
     })
 
@@ -45,9 +48,15 @@ describe("uiStore", () => {
 
     // ── State isolation ──────────────────────────────────────────────────────
 
-    test("should contain headerExpanded and isViewTransitioning in state shape", () => {
+    test("should contain all required fields in state shape", () => {
         const state = uiStore.state
-        expect(Object.keys(state)).toEqual(["headerExpanded", "isViewTransitioning"])
+        expect(Object.keys(state)).toEqual([
+            "headerExpanded",
+            "isViewTransitioning",
+            "activeConversationId",
+            "typingMap",
+            "presenceMap",
+        ])
     })
 
     test("should preserve state after spread update", () => {

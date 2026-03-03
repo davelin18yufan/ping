@@ -10,8 +10,6 @@
 
 import { useMutation, useMutationState, useQueryClient } from "@tanstack/react-query"
 
-import type { FriendRequest, Friendship } from "@/types/friends"
-
 import {
     ACCEPT_FRIEND_REQUEST_MUTATION,
     CANCEL_FRIEND_REQUEST_MUTATION,
@@ -19,6 +17,7 @@ import {
     SEND_FRIEND_REQUEST_MUTATION,
 } from "@/graphql/options/friends"
 import { graphqlFetch } from "@/lib/graphql-client"
+import type { FriendRequest, Friendship } from "@/types/friends"
 
 interface UseFriendActionsReturn {
     sendRequest: (userId: string) => Promise<FriendRequest>

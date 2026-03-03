@@ -12,11 +12,11 @@
 import { Search, UserX } from "lucide-react"
 import { useEffect } from "react"
 
-import type { FriendshipStatus } from "@/types/friends"
-
 import { SoundWaveLoader } from "@/components/shared/SoundWaveLoader"
-import "@/styles/components/friends.css"
 import { useSearchUsers } from "@/hooks/useSearchUsers"
+
+import "@/styles/components/friends.css"
+import type { FriendshipStatus } from "@/types/friends"
 
 import { UserCard } from "./UserCard"
 

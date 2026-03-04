@@ -56,6 +56,7 @@
         "require-yield": "warn",
         "use-isnan": "warn",
         "valid-typeof": "warn",
+        "oxc/no-barrel-file": "error",
         "oxc/bad-array-method-on-arguments": "warn",
         "oxc/bad-char-at-comparison": "warn",
         "oxc/bad-comparison-sequence": "warn",
@@ -113,9 +114,6 @@
             "polymorphicPropName": null,
             "components": {},
             "attributes": {}
-        },
-        "next": {
-            "rootDir": []
         },
         "react": {
             "formComponents": [],

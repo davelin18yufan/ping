@@ -5,7 +5,7 @@
  * for type-safe, reusable cache configurations.
  *
  * Follows TanStack Query v5 best practices with proper staleTime and gcTime.
- * All mutations are imported from the mutations module for useMutation hooks.
+ * All operations (queries + mutations) are imported from operations/conversations.
  */
 
 import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query"
@@ -13,7 +13,11 @@ import { infiniteQueryOptions, queryOptions } from "@tanstack/react-query"
 import { graphqlFetch } from "@/lib/graphql-client"
 import type { Conversation, MessagePage, MessagePageParam } from "@/types/conversations"
 
-import { CONVERSATION_QUERY, CONVERSATIONS_QUERY, MESSAGES_QUERY } from "../queries/conversations"
+import {
+    CONVERSATION_QUERY,
+    CONVERSATIONS_QUERY,
+    MESSAGES_QUERY,
+} from "../operations/conversations"
 
 // Re-export mutations so useMutation hooks import from one place
 export {
@@ -29,7 +33,7 @@ export {
     UNBLOCK_USER_MUTATION,
     UNPIN_CONVERSATION_MUTATION,
     UPDATE_GROUP_SETTINGS_MUTATION,
-} from "../mutations/conversations"
+} from "../operations/conversations"
 
 // ============================================================================
 // Query Options Factories (v5 pattern with queryOptions())

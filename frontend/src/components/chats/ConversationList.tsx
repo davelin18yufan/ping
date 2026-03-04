@@ -72,8 +72,6 @@ function sortConversations(conversations: Conversation[]): Conversation[] {
     })
 }
 
-// ─── Component ────────────────────────────────────────────────────────────────
-
 export function ConversationList({
     conversations,
     currentUserId,

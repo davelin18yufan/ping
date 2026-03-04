@@ -20,19 +20,11 @@ import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
 import { useTyping } from "@/hooks/useTyping"
 import { cn } from "@/lib/utils"
 
-// ============================================================================
-// Types
-// ============================================================================
-
 interface MessageInputProps {
     conversationId: string
     onSend: (content: string) => void
     disabled?: boolean
 }
-
-// ============================================================================
-// Component
-// ============================================================================
 
 export function MessageInput({ conversationId, onSend, disabled = false }: MessageInputProps) {
     const { isMinimal } = useAestheticMode()
@@ -83,7 +75,7 @@ export function MessageInput({ conversationId, onSend, disabled = false }: Messa
                     onKeyDown={handleKeyDown}
                     onFocus={() => setIsFocused(true)}
                     onBlur={() => setIsFocused(false)}
-                    placeholder="輸入訊息\u2026"
+                    placeholder="Type a message\u2026"
                     aria-label="Type a message"
                     className="glass-input w-full"
                     autoComplete="off"
@@ -100,7 +92,7 @@ export function MessageInput({ conversationId, onSend, disabled = false }: Messa
                 aria-label="Send message"
                 className={cn(
                     "glass-button relative overflow-hidden",
-                    "w-10 h-10 p-0 rounded-full flex-shrink-0"
+                    "w-10 h-10 p-0 rounded-full shrink-0"
                 )}
                 onClick={handleSendClick}
             >

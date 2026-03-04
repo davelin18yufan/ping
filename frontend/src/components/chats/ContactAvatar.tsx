@@ -9,6 +9,7 @@
  * and the online status dot.
  */
 
+import { Facehash } from "facehash"
 import { UserX } from "lucide-react"
 
 import { Avatar } from "@/components/ui/avatar"
@@ -25,8 +26,14 @@ interface ContactAvatarProps {
     showEqBars?: boolean
 }
 
+const SIZE_PX: Record<"sm" | "md" | "lg", number> = {
+    sm: 32,
+    md: 40,
+    lg: 48,
+}
+
 export function ContactAvatar({
-    userId: _userId,
+    userId,
     name,
     image,
     isOnline,
@@ -34,6 +41,7 @@ export function ContactAvatar({
     size = "md",
     showEqBars = false,
 }: ContactAvatarProps) {
+    const sizePx = SIZE_PX[size]
     return (
         <div
             className={cn("contact-avatar", showEqBars && "contact-avatar--active")}
@@ -50,14 +58,38 @@ export function ContactAvatar({
                 </div>
             )}
 
-            <Avatar
-                src={image ?? undefined}
-                alt={name}
-                fallback={name.charAt(0).toUpperCase()}
-                size={size}
-                showOnlineStatus
-                onlineStatus={isOnline ? "online" : "offline"}
-            />
+            {image ? (
+                <Avatar
+                    src={image}
+                    alt={name}
+                    size={size}
+                    showOnlineStatus
+                    onlineStatus={isOnline ? "online" : "offline"}
+                />
+            ) : (
+                <div className="relative" style={{ width: sizePx, height: sizePx }}>
+                    <div className="overflow-hidden rounded-full" style={{ width: sizePx, height: sizePx }}>
+                        <Facehash
+                            name={userId}
+                            size={sizePx}
+                            showInitial={true}
+                            interactive={false}
+                            enableBlink={false}
+                            intensity3d="subtle"
+                            variant="gradient"
+                        />
+                    </div>
+                    {/* Online status dot */}
+                    <span
+                        className={cn(
+                            "absolute bottom-0 right-0 rounded-full border-2 border-background",
+                            size === "sm" ? "h-2 w-2" : size === "md" ? "h-2.5 w-2.5" : "h-3 w-3",
+                            isOnline ? "bg-green-500" : "bg-gray-400"
+                        )}
+                        aria-label={`Status: ${isOnline ? "online" : "offline"}`}
+                    />
+                </div>
+            )}
 
             {/* Stranger badge — shown when the contact is not a friend */}
             {!isFriend && (

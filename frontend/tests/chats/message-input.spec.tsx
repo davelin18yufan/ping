@@ -623,7 +623,7 @@ describe("TC-F-21: GroupCreateModal fires createGroupConversation mutation", () 
         )
 
         // Fill in group name
-        const nameInput = screen.getByLabelText(/群組名稱/i)
+        const nameInput = screen.getByLabelText(/Group Name/i)
         fireEvent.change(nameInput, { target: { value: "Test Group" } })
 
         // Select Bob Wang from the friend picker (rendered as role=checkbox)
@@ -634,8 +634,8 @@ describe("TC-F-21: GroupCreateModal fires createGroupConversation mutation", () 
         const bobCheckbox = screen.getByRole("checkbox", { name: /Bob Wang/i })
         fireEvent.click(bobCheckbox)
 
-        // Submit by clicking "建立群組"
-        const createBtn = screen.getByRole("button", { name: /建立群組/i })
+        // Submit by clicking "Create Group"
+        const createBtn = screen.getByRole("button", { name: /Create Group/i })
         fireEvent.click(createBtn)
 
         await waitFor(() => {
@@ -660,7 +660,7 @@ describe("TC-F-21: GroupCreateModal fires createGroupConversation mutation", () 
         )
 
         // No name filled in — button should be disabled
-        const createBtn = screen.getByRole("button", { name: /建立群組/i })
+        const createBtn = screen.getByRole("button", { name: /Create Group/i })
         expect(createBtn).toBeDisabled()
     })
 })
@@ -777,13 +777,13 @@ describe("TC-F-24: OWNER leaving shows successor selection dialog", () => {
             </Wrapper>
         )
 
-        // Click "離開群組"
+        // Click "Leave Group"
         const leaveBtn = screen.getByRole("button", { name: /leave this group/i })
         fireEvent.click(leaveBtn)
 
-        // The confirm dialog should appear — for OWNER with other members, it shows "請選擇新群主後離開"
+        // The confirm dialog should appear — for OWNER with other members, it shows "Select a new owner before leaving"
         await waitFor(() => {
-            expect(screen.getByText(/請選擇新群主後離開/)).toBeInTheDocument()
+            expect(screen.getByText(/Select a new owner before leaving/)).toBeInTheDocument()
         })
 
         // Successor select should be rendered
@@ -810,11 +810,11 @@ describe("TC-F-24: OWNER leaving shows successor selection dialog", () => {
         fireEvent.click(screen.getByRole("button", { name: /leave this group/i }))
 
         await waitFor(() => {
-            expect(screen.getByText(/請選擇新群主後離開/)).toBeInTheDocument()
+            expect(screen.getByText(/Select a new owner before leaving/)).toBeInTheDocument()
         })
 
-        // The "離開" confirm button is disabled until a successor is chosen
-        const confirmLeaveBtn = screen.getByRole("button", { name: /^離開$/ })
+        // The "Leave" confirm button is disabled until a successor is chosen
+        const confirmLeaveBtn = screen.getByRole("button", { name: /^Leave$/ })
         expect(confirmLeaveBtn).toBeDisabled()
     })
 })
@@ -842,7 +842,7 @@ describe("TC-F-25: FORBIDDEN GraphQL error shows permission error", () => {
             </QueryClientProvider>
         )
 
-        fireEvent.change(screen.getByLabelText(/群組名稱/i), {
+        fireEvent.change(screen.getByLabelText(/Group Name/i), {
             target: { value: "Forbidden Group" },
         })
 
@@ -851,12 +851,12 @@ describe("TC-F-25: FORBIDDEN GraphQL error shows permission error", () => {
         })
         fireEvent.click(screen.getByRole("checkbox", { name: /Bob Wang/i }))
 
-        const submitBtn = screen.getByRole("button", { name: /建立群組/i })
+        const submitBtn = screen.getByRole("button", { name: /Create Group/i })
         fireEvent.click(submitBtn)
 
         // While pending, the submit button shows loading text and onCreated is not called yet
         await waitFor(() => {
-            expect(screen.getByRole("button", { name: /建立中/i })).toBeInTheDocument()
+            expect(screen.getByRole("button", { name: /Creating/i })).toBeInTheDocument()
         })
 
         // graphqlFetch was called with the correct mutation
@@ -892,7 +892,7 @@ describe("TC-F-26: BAD_REQUEST GraphQL error prevents success callback", () => {
             </QueryClientProvider>
         )
 
-        fireEvent.change(screen.getByLabelText(/群組名稱/i), {
+        fireEvent.change(screen.getByLabelText(/Group Name/i), {
             target: { value: "Bad Group" },
         })
 
@@ -901,11 +901,11 @@ describe("TC-F-26: BAD_REQUEST GraphQL error prevents success callback", () => {
         })
         fireEvent.click(screen.getByRole("checkbox", { name: /Bob Wang/i }))
 
-        fireEvent.click(screen.getByRole("button", { name: /建立群組/i }))
+        fireEvent.click(screen.getByRole("button", { name: /Create Group/i }))
 
         // Mutation is pending — button reflects loading state
         await waitFor(() => {
-            expect(screen.getByRole("button", { name: /建立中/i })).toBeInTheDocument()
+            expect(screen.getByRole("button", { name: /Creating/i })).toBeInTheDocument()
         })
 
         // onCreated must not be called when no success response has arrived

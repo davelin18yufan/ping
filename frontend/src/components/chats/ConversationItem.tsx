@@ -6,7 +6,7 @@
  *
  * Timestamp formatting (zh-TW locale):
  *  - Same day   → "14:30" (HH:mm, 24h)
- *  - Yesterday  → "昨天"
+ *  - Yesterday  → "Yesterday"
  *  - Older      → "2/28" (M/D)
  *
  * For ONE_TO_ONE conversations the display name and avatar are derived from
@@ -29,7 +29,6 @@ interface ConversationItemProps {
 }
 
 // ─── Timestamp helpers ────────────────────────────────────────────────────────
-
 const dateFormatter = new Intl.DateTimeFormat("zh-TW", {
     month: "numeric",
     day: "numeric",
@@ -56,7 +55,7 @@ function formatConversationTime(isoString: string): string {
         date.getDate() === yesterday.getDate()
 
     if (isYesterday) {
-        return "昨天"
+        return "Yesterday"
     }
 
     return dateFormatter.format(date)
@@ -71,8 +70,6 @@ function truncatePreview(text: string | null): string {
     if (text.length <= MAX_PREVIEW_LENGTH) return text
     return `${text.slice(0, MAX_PREVIEW_LENGTH)}\u2026`
 }
-
-// ─── Component ────────────────────────────────────────────────────────────────
 
 export function ConversationItem({ conversation, currentUserId, onClick }: ConversationItemProps) {
     const isGroup = conversation.type === "GROUP"
@@ -95,7 +92,11 @@ export function ConversationItem({ conversation, currentUserId, onClick }: Conve
         avatarImage = null
         avatarName = displayName
         isOnline = false
-        isFriend = true // Groups have no stranger concept
+        // A group may contain members invited by others who are not your friends.
+        // Show the stranger badge if any non-self participant is not a friend.
+        isFriend = conversation.participants
+            .filter((p) => p.user.id !== currentUserId)
+            .every((p) => p.isFriend)
     } else {
         displayName = other?.user.name ?? "Unknown"
         avatarImage = other?.user.image ?? null
@@ -154,7 +155,7 @@ export function ConversationItem({ conversation, currentUserId, onClick }: Conve
                             <Pin
                                 size={12}
                                 aria-hidden="true"
-                                className="text-muted-foreground flex-shrink-0"
+                                className="text-muted-foreground shrink-0"
                             />
                         )}
                         <span className="conversation-item__time">{formattedTime}</span>

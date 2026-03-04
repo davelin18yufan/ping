@@ -25,19 +25,11 @@ import type { ConversationType, Message } from "@/types/conversations"
 import { MessageBubble } from "./MessageBubble"
 import { TypingIndicator } from "./TypingIndicator"
 
-// ============================================================================
-// Types
-// ============================================================================
-
 interface MessageListProps {
     conversationId: string
     currentUserId: string
     conversationType: ConversationType
 }
-
-// ============================================================================
-// Component
-// ============================================================================
 
 export function MessageList({ conversationId, currentUserId, conversationType }: MessageListProps) {
     const { messages, fetchNextPage, hasNextPage, isFetchingNextPage } = useMessages(conversationId)

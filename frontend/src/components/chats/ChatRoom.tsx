@@ -28,18 +28,10 @@ import { GroupInfoPanel } from "./GroupInfoPanel"
 import { MessageInput } from "./MessageInput"
 import { MessageList } from "./MessageList"
 
-// ============================================================================
-// Types
-// ============================================================================
-
 interface ChatRoomProps {
     conversationId: string
     currentUserId: string
 }
-
-// ============================================================================
-// Component
-// ============================================================================
 
 export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
     const navigate = useNavigate()
@@ -58,9 +50,7 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
         }
     }, [conversationId])
 
-    // -------------------------------------------------------------------------
     // Send message mutation (mutationKey powers useMutationState in MessageList)
-    // -------------------------------------------------------------------------
     const sendMutation = useMutation({
         mutationKey: ["sendMessage", conversationId],
         mutationFn: (content: string) =>
@@ -72,13 +62,10 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
             setSendError(null)
         },
         onError: () => {
-            setSendError("訊息傳送失敗，請稍後再試。")
+            setSendError("Failed to send message. Please try again.")
         },
     })
 
-    // -------------------------------------------------------------------------
-    // Display name helpers
-    // -------------------------------------------------------------------------
     const isOneToOne = conversation?.type === "ONE_TO_ONE"
 
     const otherParticipant = isOneToOne
@@ -86,20 +73,17 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
         : null
 
     const displayName = isOneToOne
-        ? (otherParticipant?.user.name ?? "對話")
-        : (conversation?.name ?? "群組")
+        ? (otherParticipant?.user.name ?? "Chat")
+        : (conversation?.name ?? "Group")
 
     const conversationType = conversation?.type ?? "ONE_TO_ONE"
 
-    // -------------------------------------------------------------------------
-    // Render
-    // -------------------------------------------------------------------------
     return (
         <div className="flex flex-col" style={{ height: "calc(100vh - 4rem)" }}>
             {/* Header */}
             <div
                 className={cn(
-                    "glass-card flex items-center gap-3 px-4 py-3 flex-shrink-0",
+                    "glass-card flex items-center gap-3 px-4 py-3 shrink-0",
                     "rounded-none border-x-0 border-t-0"
                 )}
             >
@@ -116,7 +100,7 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                     <h2 className="font-semibold text-sm truncate min-w-0">{displayName}</h2>
                     {isOneToOne && otherParticipant && (
                         <span className="text-xs text-muted-foreground">
-                            {otherParticipant.user.isOnline ? "線上" : "離線"}
+                            {otherParticipant.user.isOnline ? "Online" : "Offline"}
                         </span>
                     )}
                 </div>
@@ -160,7 +144,7 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
             </div>
 
             {/* Message input */}
-            <div className="flex-shrink-0">
+            <div className="shrink-0">
                 <MessageInput
                     conversationId={conversationId}
                     onSend={(content) => sendMutation.mutate(content)}

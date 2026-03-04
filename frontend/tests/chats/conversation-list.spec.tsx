@@ -5,7 +5,7 @@
  * - TC-F-01: Renders conversation list from MSW-mocked API
  * - TC-F-02: unreadCount > 0 shows red badge
  * - TC-F-03: pinnedAt != null shows pin icon / CSS class
- * - TC-F-04: Timestamp formats — today HH:mm, yesterday "昨天", older M/D
+ * - TC-F-04: Timestamp formats — today HH:mm, yesterday "Yesterday", older M/D
  * - TC-F-05: Last message preview > 30 chars is truncated to 30 + "…"
  * - TC-F-06: Clicking conversation row calls onSelect with conversation id
  * - TC-F-07: Empty conversations list shows empty state
@@ -452,7 +452,7 @@ describe("TC-F-04: timestamp formatting", () => {
         expect(timeEl?.textContent).toMatch(/^\d{2}:\d{2}$/)
     })
 
-    it("formats yesterday's message as '昨天'", () => {
+    it("formats yesterday's message as 'Yesterday'", () => {
         vi.useFakeTimers()
         vi.setSystemTime(new Date("2026-03-03T14:30:00.000Z"))
 
@@ -472,7 +472,7 @@ describe("TC-F-04: timestamp formatting", () => {
             </Wrapper>
         )
 
-        expect(screen.getByText("昨天")).toBeInTheDocument()
+        expect(screen.getByText("Yesterday")).toBeInTheDocument()
     })
 
     it("formats an older message as M/D (numeric)", () => {
@@ -495,10 +495,10 @@ describe("TC-F-04: timestamp formatting", () => {
             </Wrapper>
         )
 
-        // Should NOT show "昨天" or a HH:mm pattern — should show a date like "2/28"
+        // Should NOT show "Yesterday" or a HH:mm pattern — should show a date like "2/28"
         const timeEl = document.querySelector(".conversation-item__time")
         expect(timeEl).toBeInTheDocument()
-        expect(timeEl?.textContent).not.toBe("昨天")
+        expect(timeEl?.textContent).not.toBe("Yesterday")
         expect(timeEl?.textContent).not.toMatch(/^\d{2}:\d{2}$/)
         // Should contain a slash separator for M/D format
         expect(timeEl?.textContent).toMatch(/\d+\/\d+/)

@@ -20,10 +20,6 @@ import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
 import { cn, formatMessageTime } from "@/lib/utils"
 import type { Message, MessageStatusType } from "@/types/conversations"
 
-// ============================================================================
-// Types
-// ============================================================================
-
 interface MessageBubbleProps {
     message: Message
     isOwn: boolean
@@ -31,14 +27,8 @@ interface MessageBubbleProps {
     isPending?: boolean
 }
 
-// ============================================================================
-// Helpers
-// ============================================================================
 
-// ============================================================================
 // Status icon (own messages only)
-// ============================================================================
-
 function StatusIcon({ status }: { status: MessageStatusType }) {
     if (status === "SENT") {
         return <Check size={12} aria-hidden="true" className="text-muted-foreground" />
@@ -50,10 +40,6 @@ function StatusIcon({ status }: { status: MessageStatusType }) {
     return <CheckCheck size={12} aria-hidden="true" style={{ color: "var(--primary)" }} />
 }
 
-// ============================================================================
-// Component
-// ============================================================================
-
 export function MessageBubble({ message, isOwn, isPending = false }: MessageBubbleProps) {
     const { isMinimal } = useAestheticMode()
 
@@ -64,7 +50,7 @@ export function MessageBubble({ message, isOwn, isPending = false }: MessageBubb
                 isOwn ? "bubble-card--send" : "bubble-card--receive"
             )}
         >
-            <p className="text-sm min-w-0 break-words overflow-wrap-break-word">
+            <p className="text-sm min-w-0 wrap-break-word overflow-wrap-break-word">
                 {message.content}
             </p>
             {isOwn && (

@@ -46,12 +46,12 @@ const dotVariants = {
 
 function buildLabel(usernames: string[]): string {
     if (usernames.length === 1) {
-        return `${usernames[0]} 正在輸入\u2026`
+        return `${usernames[0]} is typing\u2026`
     }
     if (usernames.length === 2) {
-        return `${usernames[0]} 和 ${usernames[1]} 正在輸入\u2026`
+        return `${usernames[0]} and ${usernames[1]} are typing\u2026`
     }
-    return "多人正在輸入\u2026"
+    return "Several people are typing\u2026"
 }
 
 // ============================================================================

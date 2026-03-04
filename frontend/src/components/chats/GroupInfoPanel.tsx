@@ -25,19 +25,11 @@ import { LEAVE_GROUP_MUTATION, REMOVE_FROM_GROUP_MUTATION } from "@/graphql/opti
 import { graphqlFetch } from "@/lib/graphql-client"
 import type { Conversation } from "@/types/conversations"
 
-// ============================================================================
-// Types
-// ============================================================================
-
 interface GroupInfoPanelProps {
     conversation: Conversation
     currentUserId: string
     onClose: () => void
 }
-
-// ============================================================================
-// Component
-// ============================================================================
 
 export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupInfoPanelProps) {
     const queryClient = useQueryClient()
@@ -52,9 +44,7 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
     const [kickError, setKickError] = useState<string | null>(null)
     const [leaveError, setLeaveError] = useState<string | null>(null)
 
-    // -------------------------------------------------------------------------
     // Remove from group mutation
-    // -------------------------------------------------------------------------
     const kickMutation = useMutation({
         mutationFn: (userId: string) =>
             graphqlFetch<{ removeFromGroup: boolean }>(REMOVE_FROM_GROUP_MUTATION, {
@@ -70,13 +60,11 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
             setKickError(null)
         },
         onError: () => {
-            setKickError("移除成員失敗，請稍後再試。")
+            setKickError("Failed to remove member. Please try again.")
         },
     })
 
-    // -------------------------------------------------------------------------
     // Leave group mutation
-    // -------------------------------------------------------------------------
     const leaveMutation = useMutation({
         mutationFn: () =>
             graphqlFetch<{ leaveGroup: boolean }>(LEAVE_GROUP_MUTATION, {
@@ -89,7 +77,7 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
             void navigate({ to: "/chats" })
         },
         onError: () => {
-            setLeaveError("離開群組失敗，請稍後再試。")
+            setLeaveError("Failed to leave group. Please try again.")
         },
     })
 
@@ -113,8 +101,8 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
             style={{ overscrollBehavior: "contain" }}
         >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border flex-shrink-0">
-                <h3 className="text-sm font-semibold">群組資訊</h3>
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
+                <h3 className="text-sm font-semibold">Group Info</h3>
                 <button
                     type="button"
                     onClick={onClose}
@@ -128,7 +116,7 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
             {/* Members list */}
             <div className="flex-1 overflow-y-auto px-4 py-3">
                 <p className="text-xs text-muted-foreground mb-2">
-                    成員 ({conversation.participants.length})
+                    Members ({conversation.participants.length})
                 </p>
                 <div className="flex flex-col gap-1">
                     {conversation.participants.map((participant) => (
@@ -139,9 +127,9 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                             <span className="text-sm min-w-0 truncate flex-1">
                                 {participant.user.name}
                             </span>
-                            <div className="flex items-center gap-1 flex-shrink-0">
+                            <div className="flex items-center gap-1 shrink-0">
                                 {participant.role === "OWNER" && (
-                                    <span className="text-xs text-muted-foreground">群主</span>
+                                    <span className="text-xs text-muted-foreground">Owner</span>
                                 )}
                                 {isOwner && participant.user.id !== currentUserId && (
                                     <button
@@ -164,7 +152,7 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
             </div>
 
             {/* Leave group button */}
-            <div className="px-4 py-3 border-t border-border flex-shrink-0">
+            <div className="px-4 py-3 border-t border-border shrink-0">
                 <button
                     type="button"
                     onClick={() => setConfirmLeave(true)}
@@ -172,7 +160,7 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                     className="glass-button glass-button--destructive w-full flex items-center justify-center gap-2"
                 >
                     <LogOut size={14} aria-hidden="true" />
-                    <span>離開群組</span>
+                    <span>Leave Group</span>
                 </button>
             </div>
 
@@ -185,7 +173,7 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                     className="absolute inset-x-0 bottom-0 glass-card glass-card--modal rounded-b-none p-4 z-30"
                 >
                     <p id="confirm-kick-title" className="text-sm font-medium">
-                        確定要移除此成員嗎？
+                        Remove this member?
                     </p>
                     {kickError && (
                         <p role="alert" className="text-xs mt-1" style={{ color: "var(--destructive)" }}>
@@ -198,7 +186,7 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                             className="glass-button flex-1"
                             onClick={() => setConfirmKick(null)}
                         >
-                            取消
+                            Cancel
                         </button>
                         <button
                             type="button"
@@ -206,7 +194,7 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                             disabled={kickMutation.isPending}
                             onClick={() => handleKick(confirmKick)}
                         >
-                            移除
+                            Remove
                         </button>
                     </div>
                 </div>
@@ -222,8 +210,8 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                 >
                     <p id="confirm-leave-title" className="text-sm font-medium">
                         {isOwner && conversation.participants.length > 1
-                            ? "請選擇新群主後離開"
-                            : "確定要離開此群組嗎？"}
+                            ? "Select a new owner before leaving"
+                            : "Leave this group?"}
                     </p>
                     {leaveError && (
                         <p role="alert" className="text-xs mt-1" style={{ color: "var(--destructive)" }}>
@@ -239,7 +227,7 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                                 className="glass-input w-full text-sm"
                                 aria-label="Select new group owner"
                             >
-                                <option value="">選擇繼承人\u2026</option>
+                                <option value="">Select successor\u2026</option>
                                 {conversation.participants
                                     .filter((p) => p.user.id !== currentUserId)
                                     .map((p) => (
@@ -257,7 +245,7 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                             className="glass-button flex-1"
                             onClick={() => setConfirmLeave(false)}
                         >
-                            取消
+                            Cancel
                         </button>
                         <button
                             type="button"
@@ -268,7 +256,7 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                             }
                             onClick={handleLeave}
                         >
-                            離開
+                            Leave
                         </button>
                     </div>
                 </div>

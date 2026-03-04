@@ -490,8 +490,8 @@ describe("TC-F-11: typing indicator shows when typingMap has users", () => {
             </QueryClientProvider>
         )
 
-        // TypingIndicator should show the label "Bob Wang 正在輸入…"
-        expect(screen.getByText(/Bob Wang 正在輸入/)).toBeInTheDocument()
+        // TypingIndicator should show the label "Bob Wang is typing…"
+        expect(screen.getByText(/Bob Wang is typing/)).toBeInTheDocument()
     })
 
     it("does not render TypingIndicator when typingMap is empty for the conversation", async () => {
@@ -519,7 +519,7 @@ describe("TC-F-11: typing indicator shows when typingMap has users", () => {
             </QueryClientProvider>
         )
 
-        expect(screen.queryByText(/正在輸入/)).not.toBeInTheDocument()
+        expect(screen.queryByText(/is typing/)).not.toBeInTheDocument()
     })
 
     it("TypingIndicator standalone: buildLabel with one user", () => {
@@ -528,16 +528,16 @@ describe("TC-F-11: typing indicator shows when typingMap has users", () => {
                 <TypingIndicator usernames={["Carol Lin"]} />
             </QueryClientProvider>
         )
-        expect(screen.getByText(/Carol Lin 正在輸入/)).toBeInTheDocument()
+        expect(screen.getByText(/Carol Lin is typing/)).toBeInTheDocument()
     })
 
-    it("TypingIndicator standalone: buildLabel with multiple users shows 多人正在輸入", () => {
+    it("TypingIndicator standalone: buildLabel with multiple users shows Several people are typing", () => {
         render(
             <QueryClientProvider client={createTestQueryClient()}>
                 <TypingIndicator usernames={["Bob Wang", "Carol Lin", "Dave"]} />
             </QueryClientProvider>
         )
-        expect(screen.getByText(/多人正在輸入/)).toBeInTheDocument()
+        expect(screen.getByText(/Several people are typing/)).toBeInTheDocument()
     })
 })
 

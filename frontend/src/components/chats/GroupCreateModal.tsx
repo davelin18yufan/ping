@@ -25,18 +25,10 @@ import { graphqlFetch } from "@/lib/graphql-client"
 import { cn } from "@/lib/utils"
 import type { Conversation } from "@/types/conversations"
 
-// ============================================================================
-// Types
-// ============================================================================
-
 interface GroupCreateModalProps {
     onClose: () => void
     onCreated: (conversationId: string) => void
 }
-
-// ============================================================================
-// Component
-// ============================================================================
 
 export function GroupCreateModal({ onClose, onCreated }: GroupCreateModalProps) {
     const { isMinimal } = useAestheticMode()
@@ -60,7 +52,7 @@ export function GroupCreateModal({ onClose, onCreated }: GroupCreateModalProps) 
             setCreateError(null)
         },
         onError: () => {
-            setCreateError("建立群組失敗，請稍後再試。")
+            setCreateError("Failed to create group. Please try again.")
         },
     })
 
@@ -98,13 +90,13 @@ export function GroupCreateModal({ onClose, onCreated }: GroupCreateModalProps) 
                 onClick={(e) => e.stopPropagation()}
             >
                 <h2 id="group-create-title" className="text-lg font-semibold mb-4">
-                    建立群組
+                    Create Group
                 </h2>
 
                 {/* Group name input */}
                 <div className="mb-4">
                     <label htmlFor="group-name" className="text-sm font-medium mb-1 block">
-                        群組名稱
+                        Group Name
                     </label>
                     <input
                         id="group-name"
@@ -112,7 +104,7 @@ export function GroupCreateModal({ onClose, onCreated }: GroupCreateModalProps) 
                         value={groupName}
                         onChange={(e) => setGroupName(e.target.value)}
                         className="glass-input w-full"
-                        placeholder="輸入群組名稱\u2026"
+                        placeholder="Group name\u2026"
                         autoComplete="off"
                         spellCheck={false}
                         maxLength={50}
@@ -121,7 +113,7 @@ export function GroupCreateModal({ onClose, onCreated }: GroupCreateModalProps) 
 
                 {/* Friend picker */}
                 <div className="mb-4">
-                    <p className="text-sm font-medium mb-2">選擇成員</p>
+                    <p className="text-sm font-medium mb-2">Select Members</p>
                     <div
                         className="flex flex-col gap-1 max-h-48 overflow-y-auto"
                         style={{ overscrollBehavior: "contain" }}
@@ -135,8 +127,8 @@ export function GroupCreateModal({ onClose, onCreated }: GroupCreateModalProps) 
                                         "flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer",
                                         "transition-colors",
                                         isSelected
-                                            ? "bg-[oklch(from_var(--primary)_l_c_h_/_0.15)] border border-[oklch(from_var(--primary)_l_c_h_/_0.3)]"
-                                            : "bg-[oklch(from_var(--card)_l_c_h_/_0.4)] border border-transparent hover:bg-[oklch(from_var(--card)_l_c_h_/_0.6)]"
+                                            ? "bg-[oklch(from_var(--primary)_l_c_h/0.15)] border border-[oklch(from_var(--primary)_l_c_h/0.3)]"
+                                            : "bg-[oklch(from_var(--card)_l_c_h/0.4)] border border-transparent hover:bg-[oklch(from_var(--card)_l_c_h/0.6)]"
                                     )}
                                     onClick={() => toggleUser(friend.id)}
                                     onKeyDown={(e) => {
@@ -163,7 +155,7 @@ export function GroupCreateModal({ onClose, onCreated }: GroupCreateModalProps) 
                         })}
                         {friends.length === 0 && (
                             <p className="text-sm text-muted-foreground text-center py-4">
-                                尚無好友
+                                No friends yet
                             </p>
                         )}
                     </div>
@@ -203,7 +195,7 @@ export function GroupCreateModal({ onClose, onCreated }: GroupCreateModalProps) 
                 {/* Action buttons */}
                 <div className="flex gap-2 justify-end mt-4">
                     <button type="button" className="glass-button" onClick={onClose}>
-                        取消
+                        Cancel
                     </button>
                     <button
                         type="button"
@@ -225,7 +217,7 @@ export function GroupCreateModal({ onClose, onCreated }: GroupCreateModalProps) 
                         }
                         onClick={() => void handleCreate()}
                     >
-                        {createMutation.isPending ? "建立中\u2026" : "建立群組"}
+                        {createMutation.isPending ? "Creating\u2026" : "Create Group"}
                     </button>
                 </div>
             </div>

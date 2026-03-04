@@ -11,8 +11,6 @@ import { useSessionGuard } from "@/hooks/useSessionGuard"
 import TanStackQueryDevtools from "@/integrations/tanstack-query/devtools"
 import * as TanstackQuery from "@/integrations/tanstack-query/root-provider"
 import type { AuthSession } from "@/lib/auth"
-import StoreDevtools from "@/lib/demo-store-devtools"
-
 import appCss from "../styles.css?url"
 
 interface PingContext {
@@ -134,7 +132,6 @@ function RootComponent() {
                             name: "Tanstack Router",
                             render: <TanStackRouterDevtoolsPanel />,
                         },
-                        StoreDevtools,
                         TanStackQueryDevtools,
                     ]}
                 />

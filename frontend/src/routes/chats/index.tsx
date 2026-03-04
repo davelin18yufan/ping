@@ -29,9 +29,6 @@ import { requireAuthServer } from "@/middleware/auth.middleware.server"
 
 import "@styles/components/chats.css"
 
-// Default export for test imports
-export default ChatsPage
-
 export const Route = createFileRoute("/chats/")({
     loader: ({ context: { queryClient } }) =>
         queryClient.ensureQueryData(conversationsQueryOptions),

@@ -19,9 +19,6 @@ import { requireAuthServer } from "@/middleware/auth.middleware.server"
 
 import "@styles/components/chats.css"
 
-// Default export for test imports
-export default ChatRoomPage
-
 export const Route = createFileRoute("/chats/$conversationId")({
     loader: ({ context: { queryClient }, params }) =>
         Promise.all([

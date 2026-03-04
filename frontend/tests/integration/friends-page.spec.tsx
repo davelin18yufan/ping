@@ -171,8 +171,8 @@ let AppHeader: React.ComponentType
 beforeEach(async () => {
     // Attempt dynamic imports — will throw in RED phase (no module yet)
     try {
-        const friendsModule = await import("@/routes/friends/index")
-        FriendsPage = friendsModule.default
+        const friendsModule = await import("@/components/friends/FriendsPage")
+        FriendsPage = friendsModule.FriendsPage
     } catch {
         FriendsPage = () => <div data-testid="not-implemented">Not implemented</div>
     }

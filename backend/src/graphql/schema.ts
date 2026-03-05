@@ -37,9 +37,9 @@ export const schema = createSchema({
         email: String!
 
         """
-        Timestamp when email was verified (null if not verified)
+        Whether the email has been verified
         """
-        emailVerified: String
+        emailVerified: Boolean
 
         """
         User's display name (optional)

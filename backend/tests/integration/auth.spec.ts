@@ -232,10 +232,10 @@ describe("Authentication", () => {
             user: { id: "" },
         }
 
-        const session = await testPrisma.session.findUnique({ where: { sessionToken } })
+        const session = await testPrisma.session.findUnique({ where: { token: sessionToken } })
         expect(session).toBeDefined()
         expect(session?.userId).toBe(user.id)
-        expect(session?.expires.getTime()).toBeGreaterThan(Date.now())
+        expect(session?.expiresAt.getTime()).toBeGreaterThan(Date.now())
     })
 
     // =========================================================================
@@ -277,7 +277,7 @@ describe("Authentication", () => {
             data: {
                 email: `auth-expired-${Date.now()}@example.com`,
                 name: "Expired Session User",
-                emailVerified: new Date(),
+                emailVerified: true,
             },
         })
 
@@ -285,8 +285,8 @@ describe("Authentication", () => {
         await testPrisma.session.create({
             data: {
                 userId: user.id,
-                sessionToken: expiredToken,
-                expires: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+                token: expiredToken,
+                expiresAt: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
             },
         })
 

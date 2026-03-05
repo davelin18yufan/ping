@@ -78,7 +78,7 @@ const Query = {
 
         return users.map((u) => ({
             ...u,
-            emailVerified: toISO(u.emailVerified),
+            emailVerified: u.emailVerified,
             createdAt: u.createdAt.toISOString(),
             updatedAt: u.updatedAt.toISOString(),
         }))

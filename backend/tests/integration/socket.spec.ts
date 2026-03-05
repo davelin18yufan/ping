@@ -107,14 +107,14 @@ async function createTwoUsersInConversation(prisma: PrismaClient) {
         data: {
             email: `heartbeat-a-${ts}@example.com`,
             name: "Heartbeat User A",
-            emailVerified: new Date(),
+            emailVerified: true,
         },
     })
     const userB = await prisma.user.create({
         data: {
             email: `heartbeat-b-${ts}@example.com`,
             name: "Heartbeat User B",
-            emailVerified: new Date(),
+            emailVerified: true,
         },
     })
 
@@ -122,8 +122,8 @@ async function createTwoUsersInConversation(prisma: PrismaClient) {
     const tokenB = `heartbeat-sess-b-${ts}`
     await prisma.session.createMany({
         data: [
-            { userId: userA.id, sessionToken: tokenA, expires: expiresAt },
-            { userId: userB.id, sessionToken: tokenB, expires: expiresAt },
+            { userId: userA.id, token: tokenA, expiresAt },
+            { userId: userB.id, token: tokenB, expiresAt },
         ],
     })
 
@@ -352,7 +352,7 @@ describe("Socket.io Integration", () => {
             data: {
                 email: `test-expired-socket-${Date.now()}@example.com`,
                 name: "Expired Socket User",
-                emailVerified: new Date(),
+                emailVerified: true,
             },
         })
 
@@ -360,8 +360,8 @@ describe("Socket.io Integration", () => {
         await testPrisma.session.create({
             data: {
                 userId: user.id,
-                sessionToken: expiredToken,
-                expires: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+                token: expiredToken,
+                expiresAt: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
             },
         })
 
@@ -587,14 +587,14 @@ describe("Socket.io Integration", () => {
                 data: {
                     email: `heartbeat-solo-a-${ts}@example.com`,
                     name: "Solo A",
-                    emailVerified: new Date(),
+                    emailVerified: true,
                 },
             })
             const userC = await testPrisma.user.create({
                 data: {
                     email: `heartbeat-solo-c-${ts}@example.com`,
                     name: "Solo C",
-                    emailVerified: new Date(),
+                    emailVerified: true,
                 },
             })
 
@@ -602,8 +602,8 @@ describe("Socket.io Integration", () => {
             const tokenC = `heartbeat-solo-sess-c-${ts}`
             await testPrisma.session.createMany({
                 data: [
-                    { userId: userA.id, sessionToken: tokenA, expires: expiresAt },
-                    { userId: userC.id, sessionToken: tokenC, expires: expiresAt },
+                    { userId: userA.id, token: tokenA, expiresAt },
+                    { userId: userC.id, token: tokenC, expiresAt },
                 ],
             })
 
@@ -678,7 +678,7 @@ describe("Socket.io Integration", () => {
                 data: {
                     email: `search-online-${ts}@example.com`,
                     name: `OnlineTarget${ts}`,
-                    emailVerified: new Date(),
+                    emailVerified: true,
                 },
             })
             await redis.setex(`user:online:${onlineUser.id}`, 35, "true")
@@ -687,7 +687,7 @@ describe("Socket.io Integration", () => {
                 data: {
                     email: `search-offline-${ts}@example.com`,
                     name: `OfflineTarget${ts}`,
-                    emailVerified: new Date(),
+                    emailVerified: true,
                 },
             })
             // No Redis key → offline
@@ -829,12 +829,12 @@ describe("Socket.io Integration", () => {
                 data: {
                     email: `typing-outsider-${ts}@example.com`,
                     name: "Outsider C",
-                    emailVerified: new Date(),
+                    emailVerified: true,
                 },
             })
             const tokenC = `typing-outsider-sess-${ts}`
             await testPrisma.session.create({
-                data: { userId: userC.id, sessionToken: tokenC, expires: expiresAt },
+                data: { userId: userC.id, token: tokenC, expiresAt },
             })
 
             const socketB = createAuthenticatedSocketClient(tokenB)

@@ -59,7 +59,7 @@ export type MessageCursor = Brand<string, "MessageCursor">
 export type UserRecord = {
     id: string
     email: string
-    emailVerified: string | null
+    emailVerified: boolean
     name: string | null
     image: string | null
     createdAt: string

@@ -165,7 +165,7 @@ export async function verifySession(
         if (process.env.NODE_ENV === "test") {
             const session = await prisma.session.findUnique({
                 where: {
-                    sessionToken: sessionToken,
+                    token: sessionToken,
                 },
                 include: {
                     user: true,
@@ -173,7 +173,7 @@ export async function verifySession(
             })
 
             // Check if session exists and is not expired
-            if (!session || session.expires < new Date()) {
+            if (!session || session.expiresAt < new Date()) {
                 return null
             }
 
@@ -236,7 +236,7 @@ export async function verifySessionFromCookie(cookieHeader: string): Promise<str
         if (process.env.NODE_ENV === "test") {
             const session = await prisma.session.findUnique({
                 where: {
-                    sessionToken: sessionToken,
+                    token: sessionToken,
                 },
                 include: {
                     user: true,
@@ -244,7 +244,7 @@ export async function verifySessionFromCookie(cookieHeader: string): Promise<str
             })
 
             // Check if session exists and is not expired
-            if (!session || session.expires < new Date()) {
+            if (!session || session.expiresAt < new Date()) {
                 return null
             }
 

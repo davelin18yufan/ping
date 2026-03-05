@@ -87,17 +87,17 @@ export async function createTestUserForSocket(prisma: PrismaClient): Promise<{
     user: {
         id: string
         email: string
-        name: string | null
+        name: string
         image: string | null
-        emailVerified: Date | null
+        emailVerified: boolean
         createdAt: Date
         updatedAt: Date
     }
     session: {
         id: string
-        sessionToken: string
+        token: string
         userId: string
-        expires: Date
+        expiresAt: Date
     }
     sessionToken: string
 }> {
@@ -106,7 +106,7 @@ export async function createTestUserForSocket(prisma: PrismaClient): Promise<{
         data: {
             email: `test-socket-${Date.now()}@example.com`,
             name: "Socket Test User",
-            emailVerified: new Date(),
+            emailVerified: true,
         },
     })
 
@@ -115,8 +115,8 @@ export async function createTestUserForSocket(prisma: PrismaClient): Promise<{
     const session = await prisma.session.create({
         data: {
             userId: user.id,
-            sessionToken: sessionToken,
-            expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
+            token: sessionToken,
+            expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
         },
     })
 

@@ -49,7 +49,7 @@ function createUserLoader(prisma: PrismaClient): DataLoader<string, UserRecord |
                 if (!u) return null
                 return {
                     ...u,
-                    emailVerified: u.emailVerified ? u.emailVerified.toISOString() : null,
+                    emailVerified: u.emailVerified,
                     createdAt: u.createdAt.toISOString(),
                     updatedAt: u.updatedAt.toISOString(),
                 }

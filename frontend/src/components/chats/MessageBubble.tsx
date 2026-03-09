@@ -74,7 +74,7 @@ export function MessageBubble({ message, isOwn, isPending = false }: MessageBubb
                     {bubbleContent}
                 </motion.div>
             )}
-            <span className="text-[0.625rem] text-muted-foreground mt-0.5 tabular-nums">
+            <span className="text-[0.625rem] text-muted-foreground mt-0.5 tabular-nums" suppressHydrationWarning>
                 {formatMessageTime(message.createdAt)}
             </span>
         </div>

@@ -16,7 +16,7 @@
 
 import { Pin } from "lucide-react"
 
-import { cn, formatMessageTime } from "@/lib/utils"
+import { cn, formatConversationDate, formatMessageTime, toLocalDateKey } from "@/lib/utils"
 import type { Conversation } from "@/types/conversations"
 
 import { ContactAvatar } from "./ContactAvatar"
@@ -29,36 +29,21 @@ interface ConversationItemProps {
 }
 
 // ─── Timestamp helpers ────────────────────────────────────────────────────────
-const dateFormatter = new Intl.DateTimeFormat("zh-TW", {
-    month: "numeric",
-    day: "numeric",
-})
-
 function formatConversationTime(isoString: string): string {
     const date = new Date(isoString)
     const now = new Date()
 
-    const isToday =
-        date.getFullYear() === now.getFullYear() &&
-        date.getMonth() === now.getMonth() &&
-        date.getDate() === now.getDate()
-
-    if (isToday) {
+    if (toLocalDateKey(date) === toLocalDateKey(now)) {
         return formatMessageTime(isoString)
     }
 
     const yesterday = new Date(now)
     yesterday.setDate(yesterday.getDate() - 1)
-    const isYesterday =
-        date.getFullYear() === yesterday.getFullYear() &&
-        date.getMonth() === yesterday.getMonth() &&
-        date.getDate() === yesterday.getDate()
-
-    if (isYesterday) {
+    if (toLocalDateKey(date) === toLocalDateKey(yesterday)) {
         return "Yesterday"
     }
 
-    return dateFormatter.format(date)
+    return formatConversationDate(isoString)
 }
 
 // ─── Preview truncation ───────────────────────────────────────────────────────
@@ -158,7 +143,7 @@ export function ConversationItem({ conversation, currentUserId, onClick }: Conve
                                 className="text-muted-foreground shrink-0"
                             />
                         )}
-                        <span className="conversation-item__time">{formattedTime}</span>
+                        <span className="conversation-item__time" suppressHydrationWarning>{formattedTime}</span>
                     </div>
                 </div>
 

@@ -168,8 +168,8 @@ let UserCard: React.ComponentType<{
 }>
 let AppHeader: React.ComponentType
 
-beforeEach(async () => {
-    // Attempt dynamic imports — will throw in RED phase (no module yet)
+beforeAll(async () => {
+    // Import once for all tests — modules are cached after first load
     try {
         const friendsModule = await import("@/components/friends/FriendsPage")
         FriendsPage = friendsModule.FriendsPage

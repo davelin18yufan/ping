@@ -36,10 +36,10 @@ describe("Socket.io Client Module", () => {
         vi.stubEnv("VITE_SOCKET_URL", `http://localhost:${serverPort}`)
 
         // Reset socket store
-        socketStore.setState({
+        socketStore.setState(() => ({
             isConnected: false,
             connectionError: null,
-        })
+        }))
     })
 
     afterEach(() => {

@@ -21,7 +21,7 @@
 import { GraphQLError } from "graphql"
 import type { GraphQLContext } from "../context"
 import type { FriendRequestParent, FriendshipParent } from "../types"
-import { requireAuth, toISO, normalizeFriendshipIds, requireFriendshipParty } from "./utils"
+import { requireAuth, normalizeFriendshipIds, requireFriendshipParty } from "./utils"
 import { FriendshipStatus } from "@generated/prisma/enums"
 
 /**

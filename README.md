@@ -142,7 +142,7 @@ Run all services in separate terminal windows:
 cd backend
 bun run dev
 
-# Terminal 2 - Frontend (http://localhost:3001)
+# Terminal 2 - Frontend (http://localhost:5173)
 cd frontend
 pnpm dev
 

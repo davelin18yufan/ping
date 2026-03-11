@@ -68,7 +68,10 @@ export function ContactAvatar({
                 />
             ) : (
                 <div className="relative" style={{ width: sizePx, height: sizePx }}>
-                    <div className="overflow-hidden rounded-full" style={{ width: sizePx, height: sizePx }}>
+                    <div
+                        className="overflow-hidden rounded-full"
+                        style={{ width: sizePx, height: sizePx }}
+                    >
                         <Facehash
                             name={userId}
                             size={sizePx}

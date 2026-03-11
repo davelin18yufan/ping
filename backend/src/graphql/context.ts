@@ -11,6 +11,16 @@ import type { YogaInitialContext } from "graphql-yoga"
 import { createLoaders, type GraphQLLoaders } from "./loaders"
 
 /**
+ * Server context passed from Hono middleware to GraphQL Yoga via yoga.fetch(req, serverContext).
+ * These values are set by sessionMiddleware and withPrisma before the request reaches Yoga.
+ */
+export interface HonoServerContext {
+    userId: string | null
+    sessionId: string | null
+    prisma: PrismaClient
+}
+
+/**
  * GraphQL Context Interface
  *
  * Available in all resolvers via the `context` parameter.
@@ -60,28 +70,24 @@ export interface GraphQLContext {
 }
 
 /**
- * Build GraphQL context from request
+ * Build GraphQL context from Yoga's initial context + Hono server context.
  *
- * Extracts authentication data attached to the request object.
- * The Hono sessionMiddleware attaches _userId and _sessionId
- * to the request before passing it to GraphQL Yoga.
+ * Auth data is passed via yoga.fetch(request, serverContext) — the serverContext
+ * fields are merged into yogaContext by Yoga and available here directly.
+ * This avoids mutating the native Bun Request object (which may not be extensible).
  *
- * @param yogaContext - GraphQL Yoga initial context (contains request)
+ * @param yogaContext - Merged Yoga initial context + Hono server context
  * @returns GraphQL context with auth, Prisma, and DataLoaders
  */
-export function buildGraphQLContext(yogaContext: YogaInitialContext): GraphQLContext {
-    const request = yogaContext.request as Request & {
-        _userId?: string | null
-        _sessionId?: string | null
-        _prisma?: PrismaClient
-    }
-
-    const prisma = request._prisma! // oxlint-disable-line typescript/no-non-null-assertion
-    const userId = request._userId ?? null
+export function buildGraphQLContext(
+    yogaContext: YogaInitialContext & HonoServerContext
+): GraphQLContext {
+    const userId = yogaContext.userId ?? null
+    const prisma = yogaContext.prisma
 
     return {
         userId,
-        sessionId: request._sessionId ?? null,
+        sessionId: yogaContext.sessionId ?? null,
         prisma,
         // Pass viewerUserId so friendshipStatus loader can compute isFriend correctly
         loaders: createLoaders(prisma, userId),

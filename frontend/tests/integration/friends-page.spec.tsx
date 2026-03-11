@@ -170,6 +170,7 @@ let AppHeader: React.ComponentType
 
 beforeAll(async () => {
     // Import once for all tests — modules are cached after first load
+    // 30s timeout: parallel test workers compete for module initialization resources
     try {
         const friendsModule = await import("@/components/friends/FriendsPage")
         FriendsPage = friendsModule.FriendsPage
@@ -190,7 +191,7 @@ beforeAll(async () => {
     } catch {
         AppHeader = () => <div data-testid="not-implemented">Not implemented</div>
     }
-})
+}, 30000)
 
 // ---------------------------------------------------------------------------
 // TC-F-01: FriendsPage renders correct initial state

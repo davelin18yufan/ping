@@ -176,7 +176,11 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                         Remove this member?
                     </p>
                     {kickError && (
-                        <p role="alert" className="text-xs mt-1" style={{ color: "var(--destructive)" }}>
+                        <p
+                            role="alert"
+                            className="text-xs mt-1"
+                            style={{ color: "var(--destructive)" }}
+                        >
                             {kickError}
                         </p>
                     )}
@@ -214,7 +218,11 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                             : "Leave this group?"}
                     </p>
                     {leaveError && (
-                        <p role="alert" className="text-xs mt-1" style={{ color: "var(--destructive)" }}>
+                        <p
+                            role="alert"
+                            className="text-xs mt-1"
+                            style={{ color: "var(--destructive)" }}
+                        >
                             {leaveError}
                         </p>
                     )}

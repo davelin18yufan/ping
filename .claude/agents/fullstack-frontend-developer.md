@@ -604,7 +604,7 @@ export const SEND_MESSAGE = gql`
 ```bash
 # Web
 cd frontend
-pnpm dev              # Start TanStack Start dev server (localhost:3001)
+pnpm dev              # Start TanStack Start dev server (localhost:5173)
 pnpm build            # Build for production
 pnpm start            # Start production server
 pnpm lint             # ESLint check

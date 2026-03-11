@@ -10,7 +10,7 @@
         "#styles/animations": "./src/styles/animations/index.css"
     },
     "scripts": {
-        "dev": "cross-env NODE_OPTIONS=--import=./instrument.server.mjs vite dev --port 3000",
+        "dev": "cross-env NODE_OPTIONS=--import=./instrument.server.mjs vite dev",
         "build": "vite build && cp instrument.server.mjs dist/server",
         "preview": "vite preview",
         "test": "vitest run",

@@ -18,7 +18,11 @@
  *   - Blocking                (blockUser, unblockUser)
  */
 
-import { CONVERSATION_BASIC_FIELDS, MESSAGE_FIELDS } from "../fragments/conversations"
+import {
+    CONVERSATION_BASIC_FIELDS,
+    MESSAGE_FIELDS,
+    USER_CONVERSATION_FIELDS,
+} from "../fragments/conversations"
 
 // ============================================================================
 // Queries
@@ -77,6 +81,7 @@ export const MESSAGES_QUERY = `
         }
     }
     ${MESSAGE_FIELDS}
+    ${USER_CONVERSATION_FIELDS}
 `
 
 // ============================================================================
@@ -205,6 +210,7 @@ export const SEND_MESSAGE_MUTATION = `
         }
     }
     ${MESSAGE_FIELDS}
+    ${USER_CONVERSATION_FIELDS}
 `
 
 /**

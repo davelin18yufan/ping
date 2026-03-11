@@ -10,7 +10,7 @@
  * Loader pre-fetches the conversation list server-side so the page
  * renders immediately without a loading spinner on initial navigation.
  *
- * requireAuthServer middleware redirects unauthenticated users to /auth.
+ * Auth is handled by the parent _protected layout route (beforeLoad).
  */
 
 import { useQuery } from "@tanstack/react-query"
@@ -19,21 +19,20 @@ import { Plus } from "lucide-react"
 import { useEffect, useState } from "react"
 
 import { ConversationList } from "@/components/chats/ConversationList"
-// GroupCreateModal is implemented by a parallel agent.
-// TypeScript errors for this import are expected until the file is created.
 import { GroupCreateModal } from "@/components/chats/GroupCreateModal"
 import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
 import { conversationsQueryOptions } from "@/graphql/options/conversations"
 import { useSocket } from "@/hooks/useSocket"
-import { requireAuthServer } from "@/middleware/auth.middleware.server"
 
 import "@styles/components/chats.css"
 
-export const Route = createFileRoute("/chats/")({
-    loader: ({ context: { queryClient } }) =>
-        queryClient.ensureQueryData(conversationsQueryOptions),
-    server: {
-        middleware: [requireAuthServer],
+export const Route = createFileRoute("/_protected/chats/")({
+    // Prefetch on client-side navigation; skip silently during SSR because
+    // graphqlFetch runs server-side without browser cookies (credentials: "include"
+    // is a browser-only API). The client's useQuery handles the actual fetch.
+    loader: async ({ context: { queryClient } }) => {
+        if (import.meta.env.SSR) return
+        await queryClient.ensureQueryData(conversationsQueryOptions)
     },
     component: ChatsPage,
 })
@@ -55,7 +54,7 @@ function ChatsPage() {
         }
     }, [mode])
 
-    // Access session from route context (set by requireAuthServer middleware)
+    // Access session from route context (set by _protected layout beforeLoad)
     const { session } = Route.useRouteContext()
     const currentUserId = session?.user?.id ?? ""
 

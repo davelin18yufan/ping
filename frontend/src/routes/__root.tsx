@@ -10,7 +10,8 @@ import { useHeartbeat } from "@/hooks/useHeartbeat"
 import { useSessionGuard } from "@/hooks/useSessionGuard"
 import TanStackQueryDevtools from "@/integrations/tanstack-query/devtools"
 import * as TanstackQuery from "@/integrations/tanstack-query/root-provider"
-import type { AuthSession } from "@/lib/auth"
+import type { AuthSession } from "@/lib/auth-client"
+
 import appCss from "../styles.css?url"
 
 interface PingContext {

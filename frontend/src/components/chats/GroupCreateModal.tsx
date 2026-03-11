@@ -187,7 +187,11 @@ export function GroupCreateModal({ onClose, onCreated }: GroupCreateModalProps) 
 
                 {/* Error message */}
                 {createError && (
-                    <p role="alert" className="text-xs mb-2" style={{ color: "var(--destructive)" }}>
+                    <p
+                        role="alert"
+                        className="text-xs mb-2"
+                        style={{ color: "var(--destructive)" }}
+                    >
                         {createError}
                     </p>
                 )}

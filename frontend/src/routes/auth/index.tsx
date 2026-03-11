@@ -5,24 +5,29 @@
  * - Google/GitHub/Apple OAuth buttons
  * - Dark Mode glassmorphic design
  * - Acoustic Field interactive background (sound wave theme)
- * - Route-level auth protection with beforeLoad
+ * - Route-level guest protection with beforeLoad
  * - Auto-redirect for logged-in users (no loading flicker)
  */
 
 import { LoginForm } from "@components/auth/LoginForm"
-import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { createFileRoute, redirect } from "@tanstack/react-router"
 import { LogIn } from "lucide-react"
 
 import { AcousticField } from "@/components/ui/acoustic-field"
 import { AnimatedCard } from "@/components/ui/animated-card"
 import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
-import { requireGuestServer } from "@/middleware/auth.middleware.server"
+import { getSession } from "@/lib/getSession"
 
 import "@/styles/auth-login.css"
 
 export const Route = createFileRoute("/auth/")({
-    // Redirect logged-in users to home (server-side protection)
-    server: { middleware: [requireGuestServer] },
+    // Redirect already-authenticated users to home
+    beforeLoad: async () => {
+        const session = await getSession()
+        if (session) {
+            throw redirect({ to: "/" })
+        }
+    },
     ssr: "data-only",
     // Validate search params for redirect URL
     validateSearch: (search: Record<string, unknown>): { redirect?: string } => {
@@ -34,12 +39,11 @@ export const Route = createFileRoute("/auth/")({
 })
 
 function LoginPage() {
-    const navigate = useNavigate()
     const search = Route.useSearch()
     const { isOrnate } = useAestheticMode()
 
-    // Get redirect URL from search params (set by requireAuth)
-    const redirectTo = search.redirect || "/"
+    // Get redirect URL from search params (set by _protected beforeLoad)
+    const redirectTo = search.redirect ?? "/chats"
 
     return (
         <div className="login-container">
@@ -54,13 +58,8 @@ function LoginPage() {
                     <p className="tagline">Instant connection, lasting moments</p>
                 </div>
 
-                <LoginForm
-                    onSuccess={() =>
-                        navigate({
-                            to: redirectTo,
-                        })
-                    }
-                />
+                {/* redirectTo drives the OAuth callbackURL so Google redirects back here */}
+                <LoginForm redirectTo={redirectTo} />
             </AnimatedCard>
         </div>
     )

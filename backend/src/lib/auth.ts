@@ -123,6 +123,8 @@ export const auth = betterAuth({
                   "exp://", // Trust all Expo URLs (prefix matching)
                   "exp://**", // Trust all Expo URLs (wildcard matching)
                   "exp://192.168.*.*:*/**", // Trust 192.168.x.x IP range with any port and path
+                  "http://localhost:5173", // Frontend Web (Vite dev server) — exact origin match
+                  "http://localhost:5173/*", // Frontend Web with path wildcard
               ],
 })
 
@@ -150,6 +152,7 @@ export async function verifySession(
     try {
         // Get session from cookie
         const cookieHeader = request.headers.get("cookie")
+
         if (!cookieHeader) {
             return null
         }

@@ -43,5 +43,6 @@
 		"**/pnpm-lock.yaml": true,
 		"**/package-lock.json": true
 	},
-	"oxc.enable": false
+	"oxc.enable": false,
+	"oxc.enable.oxlint": true
 }

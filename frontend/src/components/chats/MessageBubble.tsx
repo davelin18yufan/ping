@@ -27,7 +27,6 @@ interface MessageBubbleProps {
     isPending?: boolean
 }
 
-
 // Status icon (own messages only)
 function StatusIcon({ status }: { status: MessageStatusType }) {
     if (status === "SENT") {
@@ -74,7 +73,10 @@ export function MessageBubble({ message, isOwn, isPending = false }: MessageBubb
                     {bubbleContent}
                 </motion.div>
             )}
-            <span className="text-[0.625rem] text-muted-foreground mt-0.5 tabular-nums" suppressHydrationWarning>
+            <span
+                className="text-[0.625rem] text-muted-foreground mt-0.5 tabular-nums"
+                suppressHydrationWarning
+            >
                 {formatMessageTime(message.createdAt)}
             </span>
         </div>

@@ -206,7 +206,13 @@ const mockUserBob = {
 function makeMessage(
     id: string,
     content: string,
-    sender: { id: string; name: string; email: string; image: string | null; isOnline: boolean } = mockUserBob,
+    sender: {
+        id: string
+        name: string
+        email: string
+        image: string | null
+        isOnline: boolean
+    } = mockUserBob,
     status: "SENT" | "DELIVERED" | "READ" = "DELIVERED"
 ) {
     return {

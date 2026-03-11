@@ -143,7 +143,9 @@ export function ConversationItem({ conversation, currentUserId, onClick }: Conve
                                 className="text-muted-foreground shrink-0"
                             />
                         )}
-                        <span className="conversation-item__time" suppressHydrationWarning>{formattedTime}</span>
+                        <span className="conversation-item__time" suppressHydrationWarning>
+                            {formattedTime}
+                        </span>
                     </div>
                 </div>
 

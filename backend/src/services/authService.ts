@@ -228,7 +228,10 @@ export async function getUserById(userId: string, prisma: PrismaClient): Promise
  * Only active when NODE_ENV === "test".
  */
 async function verifyGoogleOAuthCodeTest(code: string, prisma: PrismaClient): Promise<User> {
-    const mockUsers: Record<string, { googleId: string; email: string; name: string; picture?: string }> = {
+    const mockUsers: Record<
+        string,
+        { googleId: string; email: string; name: string; picture?: string }
+    > = {
         valid_google_code_xyz123: {
             googleId: "google_user_123",
             email: "test@example.com",

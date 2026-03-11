@@ -134,6 +134,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **輸出物**：Resolvers、Services、Middleware、Socket handlers、Prisma schema、測試實作
 
+**注意**: 要往 DB 查詢資料須使用 docker 指令，因為資料庫運行在容器中
+
 ---
 
 ### Fullstack Frontend Developer（雙平台前端）

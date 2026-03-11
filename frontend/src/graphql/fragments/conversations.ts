@@ -4,17 +4,22 @@
  * Plain template string fragments (no gql tag needed).
  * Consumed via string interpolation in queries and mutations.
  *
- * Fragment dependency order:
- *   CONVERSATION_PARTICIPANT_FIELDS → uses USER_CONVERSATION_FIELDS
- *   MESSAGE_FIELDS                  → uses USER_CONVERSATION_FIELDS
- *   CONVERSATION_BASIC_FIELDS       → uses MESSAGE_FIELDS + CONVERSATION_PARTICIPANT_FIELDS
+ * IMPORTANT: Each fragment must be included ONCE per document.
+ * Sub-fragments do NOT inline their own dependencies here — the
+ * top-level query/mutation is responsible for assembling all fragments.
+ *
+ * Fragment dependency order (for correct interpolation):
+ *   USER_CONVERSATION_FIELDS  (leaf — no dependencies)
+ *   MESSAGE_FIELDS            (uses ...UserConversationFields)
+ *   CONVERSATION_PARTICIPANT_FIELDS (uses ...UserConversationFields)
+ *   CONVERSATION_BASIC_FIELDS (uses all three above)
  */
 
 /**
  * Minimal User fields used within conversation payloads.
  * Includes isOnline for real-time presence display.
  */
-const USER_CONVERSATION_FIELDS = `
+export const USER_CONVERSATION_FIELDS = `
     fragment UserConversationFields on User {
         id
         name
@@ -24,23 +29,8 @@ const USER_CONVERSATION_FIELDS = `
 `
 
 /**
- * Participant entry in a conversation.
- * Includes role, friendship status, and join timestamp.
- */
-export const CONVERSATION_PARTICIPANT_FIELDS = `
-    fragment ConversationParticipantFields on ConversationParticipant {
-        user {
-            ...UserConversationFields
-        }
-        role
-        isFriend
-        joinedAt
-    }
-    ${USER_CONVERSATION_FIELDS}
-`
-
-/**
  * Full message payload including sender identity and delivery status.
+ * Depends on: UserConversationFields (must be included by consumer).
  */
 export const MESSAGE_FIELDS = `
     fragment MessageFields on Message {
@@ -55,13 +45,30 @@ export const MESSAGE_FIELDS = `
         createdAt
         status
     }
-    ${USER_CONVERSATION_FIELDS}
+`
+
+/**
+ * Participant entry in a conversation.
+ * Includes role, friendship status, and join timestamp.
+ * Depends on: UserConversationFields (must be included by consumer).
+ */
+export const CONVERSATION_PARTICIPANT_FIELDS = `
+    fragment ConversationParticipantFields on ConversationParticipant {
+        user {
+            ...UserConversationFields
+        }
+        role
+        isFriend
+        joinedAt
+    }
 `
 
 /**
  * Core conversation payload.
  * Includes the last message (for conversation list previews) and all participants.
  * Group settings are null for ONE_TO_ONE conversations.
+ *
+ * Assembles all three dependency fragments exactly once.
  */
 export const CONVERSATION_BASIC_FIELDS = `
     fragment ConversationBasicFields on Conversation {
@@ -85,4 +92,5 @@ export const CONVERSATION_BASIC_FIELDS = `
     }
     ${MESSAGE_FIELDS}
     ${CONVERSATION_PARTICIPANT_FIELDS}
+    ${USER_CONVERSATION_FIELDS}
 `

@@ -28,7 +28,7 @@ const Query = {
         const sessions = await context.prisma.session.findMany({
             where: {
                 userId,
-                expires: { gt: now },
+                expiresAt: { gt: now },
             },
             orderBy: { createdAt: "desc" },
         })
@@ -38,7 +38,7 @@ const Query = {
             userAgent: null,
             ipAddress: null,
             createdAt: s.createdAt.toISOString(),
-            expiresAt: s.expires.toISOString(),
+            expiresAt: s.expiresAt.toISOString(),
             isCurrent: s.id === context.sessionId,
         }))
     },

@@ -80,9 +80,11 @@ const SoundWaveLoader = ({ provider, children }: { provider: Provider; children:
 interface LoginFormProps {
     onSuccess?: () => void
     onError?: (error: Error) => void
+    /** Destination path after successful OAuth login. Defaults to "/chats". */
+    redirectTo?: string
 }
 
-export function LoginForm({ onSuccess, onError }: LoginFormProps) {
+export function LoginForm({ onSuccess, onError, redirectTo = "/chats" }: LoginFormProps) {
     const [loading, setLoading] = useState<Provider | null>(null)
     const [error, setError] = useState<string>("")
 
@@ -91,8 +93,11 @@ export function LoginForm({ onSuccess, onError }: LoginFormProps) {
         setError("")
 
         try {
-            // Call Better Auth signIn.social
-            await signIn.social({ provider })
+            // Call Better Auth signIn.social — redirect to redirectTo after OAuth success
+            await signIn.social({
+                provider,
+                callbackURL: `${window.location.origin}${redirectTo}`,
+            })
 
             onSuccess?.()
         } catch (err) {

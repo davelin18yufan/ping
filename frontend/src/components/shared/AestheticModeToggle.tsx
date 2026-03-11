@@ -23,6 +23,7 @@ import { Minimize2, Sparkles } from "lucide-react"
 
 import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
 import { useViewTransition } from "@/hooks/use-view-transition"
+
 import "@/styles/components/glass-button.css"
 
 export function AestheticModeToggle() {

@@ -11,10 +11,9 @@
 import { useQuery } from "@tanstack/react-query"
 import { useState } from "react"
 
-import type { User } from "@/types/friends"
-
 import { searchUsersQueryOptions } from "@/graphql/options/friends"
 import { useDebouncedValue } from "@/hooks/useDebounce"
+import type { User } from "@/types/friends"
 
 interface UseSearchUsersReturn {
     query: string

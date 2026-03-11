@@ -32,6 +32,7 @@ import { UserStatusAvatar } from "@/components/shared/UserStatusAvatar"
 import { pendingRequestsQueryOptions } from "@/graphql/options/friends"
 import { useScrollDirection } from "@/hooks/useScrollDirection"
 import { sessionQueryOptions, signOut } from "@/lib/auth-client"
+
 import "@/styles/components/capsule-header.css"
 import "@/styles/components/glass-button.css"
 import "@/styles/components/friends.css"

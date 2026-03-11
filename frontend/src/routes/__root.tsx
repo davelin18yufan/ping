@@ -1,18 +1,16 @@
-import type { QueryClient } from "@tanstack/react-query"
-
 import AppHeader from "@components/shared/AppHeader"
 import { TanStackDevtools } from "@tanstack/react-devtools"
+import type { QueryClient } from "@tanstack/react-query"
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router"
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools"
 import { useEffect } from "react"
 
-import type { AuthSession } from "@/lib/auth"
-
 import { AestheticModeProvider, useAestheticMode } from "@/contexts/aesthetic-mode-context"
+import { useHeartbeat } from "@/hooks/useHeartbeat"
 import { useSessionGuard } from "@/hooks/useSessionGuard"
 import TanStackQueryDevtools from "@/integrations/tanstack-query/devtools"
 import * as TanstackQuery from "@/integrations/tanstack-query/root-provider"
-import StoreDevtools from "@/lib/demo-store-devtools"
+import type { AuthSession } from "@/lib/auth-client"
 
 import appCss from "../styles.css?url"
 
@@ -49,7 +47,8 @@ export const Route = createRootRouteWithContext<PingContext>()({
 
 /**
  * HtmlClassManager
- * Dynamically adds .minimal class to <html> element based on aesthetic mode
+ * Dynamically adds .minimal class to <html> element based on aesthetic mode,
+ * and sets data-aesthetic attribute so CSS selectors like [data-aesthetic="minimal"] work.
  */
 function HtmlClassManager() {
     const { mode } = useAestheticMode()
@@ -60,6 +59,7 @@ function HtmlClassManager() {
         } else {
             document.documentElement.classList.remove("minimal")
         }
+        document.documentElement.dataset.aesthetic = mode
     }, [mode])
 
     return null
@@ -72,6 +72,16 @@ function HtmlClassManager() {
  */
 function SessionGuardMounter() {
     useSessionGuard()
+    return null
+}
+
+/**
+ * HeartbeatMounter
+ * Mounts the useHeartbeat hook as a singleton at the root layout.
+ * Emits Socket.io "heartbeat" every 30 s and "user:away" on tab hide / unload.
+ */
+function HeartbeatMounter() {
+    useHeartbeat()
     return null
 }
 
@@ -111,6 +121,7 @@ function RootComponent() {
             <AestheticModeProvider>
                 <HtmlClassManager />
                 <SessionGuardMounter />
+                <HeartbeatMounter />
                 <AppHeader />
                 <Outlet />
                 <TanStackDevtools
@@ -122,7 +133,6 @@ function RootComponent() {
                             name: "Tanstack Router",
                             render: <TanStackRouterDevtoolsPanel />,
                         },
-                        StoreDevtools,
                         TanStackQueryDevtools,
                     ]}
                 />

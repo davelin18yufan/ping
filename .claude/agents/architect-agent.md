@@ -240,7 +240,7 @@ When designing a new feature, produce:
 
 5. **Port Configuration**:
    - Backend (Bun): `http://localhost:3000`
-   - Frontend (TanStack Start): `http://localhost:3001` (set `PORT=3001`)
+   - Frontend (TanStack Start): `http://localhost:5173` (set `PORT=5173`)
    - Mobile (Expo): Expo Go default
 
 ## Communication Protocol

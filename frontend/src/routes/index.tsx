@@ -1,26 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router"
 import { MessageCircle, Zap, Users, Shield, Sparkles, ArrowRight } from "lucide-react"
 
-import { optionalAuthServer } from "@/middleware/auth.middleware.server"
-
 export const Route = createFileRoute("/")({
-    // Optional auth - server-side session check (no hydration issues)
-    server: { middleware: [optionalAuthServer] },
-    component: App,
+    component: LandingPage,
 })
-
-function App() {
-    // Get session from route context (set by optionalAuth beforeLoad)
-    const { session } = Route.useRouteContext()
-
-    // If user is logged in, show app entry point
-    if (session?.user) {
-        return <AuthenticatedHome user={session.user} />
-    }
-
-    // Public landing page for guests
-    return <LandingPage />
-}
 
 /**
  * Landing page for non-authenticated users
@@ -135,36 +118,6 @@ function LandingPage() {
                     </Link>
                 </div>
             </section>
-        </div>
-    )
-}
-
-/**
- * Authenticated home - entry point to the app
- */
-function AuthenticatedHome({ user }: { user: { name?: string; email?: string } }) {
-    return (
-        <div className="min-h-screen bg-slate-900 flex items-center justify-center px-6">
-            <div className="max-w-2xl mx-auto text-center">
-                <MessageCircle className="w-20 h-20 text-blue-400 mx-auto mb-6" />
-                <h1 className="text-4xl font-bold text-white mb-4">
-                    Welcome back{user.name ? `, ${user.name}` : ""}!
-                </h1>
-                <p className="text-lg text-gray-400 mb-8">
-                    You're logged in as <span className="text-blue-400">{user.email}</span>
-                </p>
-                <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-8">
-                    <p className="text-gray-300 mb-4">
-                        🚧 The main app is under development. Coming soon:
-                    </p>
-                    <ul className="text-gray-400 text-left space-y-2 max-w-md mx-auto">
-                        <li>• Chat rooms and direct messages</li>
-                        <li>• Friend requests and contacts</li>
-                        <li>• Real-time notifications</li>
-                        <li>• File sharing and media</li>
-                    </ul>
-                </div>
-            </div>
         </div>
     )
 }

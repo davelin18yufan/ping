@@ -56,17 +56,17 @@ export async function createTestUserWithSession(prisma: PrismaClient): Promise<{
     user: {
         id: string
         email: string
-        name: string | null
+        name: string
         image: string | null
-        emailVerified: Date | null
+        emailVerified: boolean
         createdAt: Date
         updatedAt: Date
     }
     session: {
         id: string
-        sessionToken: string
+        token: string
         userId: string
-        expires: Date
+        expiresAt: Date
     }
     sessionToken: string
 }> {
@@ -75,7 +75,7 @@ export async function createTestUserWithSession(prisma: PrismaClient): Promise<{
         data: {
             email: `test-graphql-${Date.now()}@example.com`,
             name: "GraphQL Test User",
-            emailVerified: new Date(),
+            emailVerified: true,
         },
     })
 
@@ -84,8 +84,8 @@ export async function createTestUserWithSession(prisma: PrismaClient): Promise<{
     const session = await prisma.session.create({
         data: {
             userId: user.id,
-            sessionToken: sessionToken,
-            expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
+            token: sessionToken,
+            expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7), // 7 days
         },
     })
 
@@ -109,17 +109,17 @@ export async function createTestUserWithExpiredSession(prisma: PrismaClient): Pr
     user: {
         id: string
         email: string
-        name: string | null
+        name: string
         image: string | null
-        emailVerified: Date | null
+        emailVerified: boolean
         createdAt: Date
         updatedAt: Date
     }
     session: {
         id: string
-        sessionToken: string
+        token: string
         userId: string
-        expires: Date
+        expiresAt: Date
     }
     sessionToken: string
 }> {
@@ -128,7 +128,7 @@ export async function createTestUserWithExpiredSession(prisma: PrismaClient): Pr
         data: {
             email: `test-expired-${Date.now()}@example.com`,
             name: "Expired Session User",
-            emailVerified: new Date(),
+            emailVerified: true,
         },
     })
 
@@ -137,8 +137,8 @@ export async function createTestUserWithExpiredSession(prisma: PrismaClient): Pr
     const session = await prisma.session.create({
         data: {
             userId: user.id,
-            sessionToken: sessionToken,
-            expires: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+            token: sessionToken,
+            expiresAt: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
         },
     })
 

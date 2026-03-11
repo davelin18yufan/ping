@@ -134,6 +134,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **輸出物**：Resolvers、Services、Middleware、Socket handlers、Prisma schema、測試實作
 
+**注意**: 要往 DB 查詢資料須使用 docker 指令，因為資料庫運行在容器中
+
 ---
 
 ### Fullstack Frontend Developer（雙平台前端）
@@ -159,7 +161,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 請求主體用 `tanstack-query` 規範
 
 **UI/UX 設計規範**：
-- ✅ 必須執行 `/ui-ux-pro-max` 和 `/frontend-design` Skills
+- ✅ 必須執行 `/web-design-guidelines` 和 `/frontend-design` Skills
 - ✅ 使用 oklch 顏色系統
 - ✅ 使用設計系統 CSS classes（`.glass-button`、`.glass-card`、`.glass-input`）
 - ✅ 複雜樣式用 CSS + CSS 變數（簡單修改用 Tailwind utilities）
@@ -391,7 +393,7 @@ try {
 #### 🔴 強制執行 Skills（BLOCKING REQUIREMENT）
 **在開始任何 UI 工作前，必須先執行以下 Skills，不得跳過**：
 
-1. **`/ui-ux-pro-max`** - UI/UX 專業設計 Skill（必須優先執行）
+1. **`/web-design-guidelines`** - UI/UX 專業設計 Skill（必須優先執行）
    - **何時執行**：任何 UI/UX 的修改、製作、調整、審查、改進
    - **包含**：50 種風格、21 種調色盤、50 種字型配對、20 種圖表、8 種技術棧
    - **涵蓋**：React、Next.js、Vue、Svelte、SwiftUI、React Native、Flutter、Tailwind
@@ -406,7 +408,7 @@ try {
 ```
 1. 收到 UI 任務
    ↓
-2. 執行 /ui-ux-pro-max（檢查設計標準）
+2. 執行 /web-design-guidelines（檢查設計標準）
    ↓
 3. 執行 /frontend-design（產生設計方案）
    ↓
@@ -423,7 +425,7 @@ try {
 **Fullstack Frontend Developer 在實作任何 UI 元件前必須**：
 
 1. **強制執行 Skills**：
-   - ✅ 先執行 `/ui-ux-pro-max` 檢查設計標準
+   - ✅ 先執行 `/web-design-guidelines` 檢查設計標準
    - ✅ 再執行 `/frontend-design` 產生設計方案
    - ❌ 不得跳過，不得自行判斷
 
@@ -447,7 +449,7 @@ try {
    - ✅ 無障礙設計（Reduced Motion、色盲友善、觸控友善）
 
 5. **設計交付檢查**：
-   - [ ] 執行過 `/ui-ux-pro-max` 和 `/frontend-design` Skills
+   - [ ] 執行過 `/web-design-guidelines` 和 `/frontend-design` Skills
    - [ ] 使用設計系統 CSS classes（不得有重複樣式）
    - [ ] 無 emoji 用作圖示（使用 Lucide React / Heroicons）
    - [ ] 所有圖示來自一致的圖示集
@@ -458,7 +460,7 @@ try {
    - [ ] 通過 Linter/Formatter 檢查
 
 #### 禁止事項（嚴格執行）
-- ❌ **未執行 `/ui-ux-pro-max` 和 `/frontend-design` 就開始實作 UI**
+- ❌ **未執行 `/web-design-guidelines` 和 `/frontend-design` 就開始實作 UI**
 - ❌ 未參考設計核心文件就直接實作 UI
 - ❌ 撰寫重複的 CSS 樣式（必須使用設計系統 classes）
 - ❌ 使用硬編碼顏色（例如 `bg-blue-500`），必須使用 Design Tokens

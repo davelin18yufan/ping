@@ -60,7 +60,7 @@ const Query = {
             // Return user with serialized dates
             return {
                 ...user,
-                emailVerified: user.emailVerified?.toISOString() ?? null,
+                emailVerified: user.emailVerified,
                 createdAt: user.createdAt.toISOString(),
                 updatedAt: user.updatedAt.toISOString(),
             }
@@ -218,7 +218,7 @@ const Mutation = {
 
             return {
                 ...user,
-                emailVerified: user.emailVerified?.toISOString() ?? null,
+                emailVerified: user.emailVerified,
                 createdAt: user.createdAt.toISOString(),
                 updatedAt: user.updatedAt.toISOString(),
             }

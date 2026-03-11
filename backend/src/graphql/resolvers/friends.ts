@@ -21,7 +21,7 @@
 import { GraphQLError } from "graphql"
 import type { GraphQLContext } from "../context"
 import type { FriendRequestParent, FriendshipParent } from "../types"
-import { requireAuth, toISO, normalizeFriendshipIds, requireFriendshipParty } from "./utils"
+import { requireAuth, normalizeFriendshipIds, requireFriendshipParty } from "./utils"
 import { FriendshipStatus } from "@generated/prisma/enums"
 
 /**
@@ -78,7 +78,7 @@ const Query = {
 
         return users.map((u) => ({
             ...u,
-            emailVerified: toISO(u.emailVerified),
+            emailVerified: u.emailVerified,
             createdAt: u.createdAt.toISOString(),
             updatedAt: u.updatedAt.toISOString(),
         }))

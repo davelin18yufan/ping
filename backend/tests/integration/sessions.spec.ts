@@ -35,7 +35,7 @@ async function seedUsers(prisma: PrismaClient): Promise<void> {
                 id: u.id,
                 email: u.email,
                 name: u.name,
-                emailVerified: new Date(),
+                emailVerified: true,
             },
         })
     }
@@ -50,8 +50,8 @@ async function createSession(prisma: PrismaClient, userId: string): Promise<stri
     await prisma.session.create({
         data: {
             userId,
-            sessionToken: token,
-            expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+            token,
+            expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
         },
     })
     return token
@@ -63,13 +63,13 @@ async function createSession(prisma: PrismaClient, userId: string): Promise<stri
 async function createSessionRecord(
     prisma: PrismaClient,
     userId: string
-): Promise<{ id: string; sessionToken: string }> {
+): Promise<{ id: string; token: string }> {
     const token = `session-${userId}-${Date.now()}-${Math.random()}`
     return prisma.session.create({
         data: {
             userId,
-            sessionToken: token,
-            expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+            token,
+            expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
         },
     })
 }
@@ -80,8 +80,8 @@ async function createExpiredSession(prisma: PrismaClient, userId: string): Promi
     await prisma.session.create({
         data: {
             userId,
-            sessionToken: token,
-            expires: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+            token,
+            expiresAt: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
         },
     })
     return token
@@ -200,7 +200,7 @@ describe("Feature 1.1.2 - Session Management (Backend)", () => {
     test("TC-B-04: revokeSession returns FORBIDDEN when trying to revoke own current session", async () => {
         const currentToken = await createSession(prisma, USER_ALICE.id)
         const currentSession = await prisma.session.findUnique({
-            where: { sessionToken: currentToken },
+            where: { token: currentToken },
         })
 
         const result = await mutation(
@@ -231,7 +231,7 @@ describe("Feature 1.1.2 - Session Management (Backend)", () => {
             where: { userId: USER_ALICE.id },
         })
         expect(remaining).toHaveLength(1)
-        expect(remaining[0]?.sessionToken).toBe(currentToken)
+        expect(remaining[0]?.token).toBe(currentToken)
     })
 
     // -----------------------------------------------------------------------

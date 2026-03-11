@@ -111,7 +111,13 @@ describe("AppHeader – capsule state binding", () => {
     beforeEach(() => {
         mockScrollDirection.mockReturnValue("up")
         act(() => {
-            uiStore.setState(() => ({ headerExpanded: false, isViewTransitioning: false }))
+            uiStore.setState(() => ({
+                headerExpanded: false,
+                isViewTransitioning: false,
+                activeConversationId: null,
+                typingMap: {},
+                presenceMap: {},
+            }))
         })
         vi.clearAllMocks()
         mockScrollDirection.mockReturnValue("up")

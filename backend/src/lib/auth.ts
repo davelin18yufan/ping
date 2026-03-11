@@ -123,6 +123,8 @@ export const auth = betterAuth({
                   "exp://", // Trust all Expo URLs (prefix matching)
                   "exp://**", // Trust all Expo URLs (wildcard matching)
                   "exp://192.168.*.*:*/**", // Trust 192.168.x.x IP range with any port and path
+                  "http://localhost:5173", // Frontend Web (Vite dev server) — exact origin match
+                  "http://localhost:5173/*", // Frontend Web with path wildcard
               ],
 })
 
@@ -150,6 +152,7 @@ export async function verifySession(
     try {
         // Get session from cookie
         const cookieHeader = request.headers.get("cookie")
+
         if (!cookieHeader) {
             return null
         }
@@ -165,7 +168,7 @@ export async function verifySession(
         if (process.env.NODE_ENV === "test") {
             const session = await prisma.session.findUnique({
                 where: {
-                    sessionToken: sessionToken,
+                    token: sessionToken,
                 },
                 include: {
                     user: true,
@@ -173,7 +176,7 @@ export async function verifySession(
             })
 
             // Check if session exists and is not expired
-            if (!session || session.expires < new Date()) {
+            if (!session || session.expiresAt < new Date()) {
                 return null
             }
 
@@ -236,7 +239,7 @@ export async function verifySessionFromCookie(cookieHeader: string): Promise<str
         if (process.env.NODE_ENV === "test") {
             const session = await prisma.session.findUnique({
                 where: {
-                    sessionToken: sessionToken,
+                    token: sessionToken,
                 },
                 include: {
                     user: true,
@@ -244,7 +247,7 @@ export async function verifySessionFromCookie(cookieHeader: string): Promise<str
             })
 
             // Check if session exists and is not expired
-            if (!session || session.expires < new Date()) {
+            if (!session || session.expiresAt < new Date()) {
                 return null
             }
 

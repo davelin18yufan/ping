@@ -38,8 +38,8 @@ async function createSession(prisma: PrismaClient, userId: string): Promise<stri
     await prisma.session.create({
         data: {
             userId,
-            sessionToken: token,
-            expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
+            token,
+            expiresAt: new Date(Date.now() + 1000 * 60 * 60 * 24 * 7),
         },
     })
     return token
@@ -55,7 +55,7 @@ async function seedUsers(prisma: PrismaClient): Promise<void> {
                 id: u.id,
                 email: u.email,
                 name: u.name,
-                emailVerified: new Date(),
+                emailVerified: true,
             },
         })
     }

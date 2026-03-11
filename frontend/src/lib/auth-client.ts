@@ -34,6 +34,13 @@ export const authClient = createAuthClient()
 export const { signIn, signOut, useSession, getSession } = authClient
 
 /**
+ * Type-safe session types derived from the Better Auth client.
+ * Used as a shared type across route context, server functions, and components.
+ */
+export type AuthSession = typeof authClient.$Infer.Session
+export type AuthUser = AuthSession["user"]
+
+/**
  * TanStack Query options for session fetching.
  *
  * Replaces direct useSession() calls so that auth errors (404, network failures)

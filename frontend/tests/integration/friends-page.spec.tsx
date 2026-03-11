@@ -168,11 +168,12 @@ let UserCard: React.ComponentType<{
 }>
 let AppHeader: React.ComponentType
 
-beforeEach(async () => {
-    // Attempt dynamic imports — will throw in RED phase (no module yet)
+beforeAll(async () => {
+    // Import once for all tests — modules are cached after first load
+    // 30s timeout: parallel test workers compete for module initialization resources
     try {
-        const friendsModule = await import("@/routes/friends/index")
-        FriendsPage = friendsModule.default
+        const friendsModule = await import("@/components/friends/FriendsPage")
+        FriendsPage = friendsModule.FriendsPage
     } catch {
         FriendsPage = () => <div data-testid="not-implemented">Not implemented</div>
     }
@@ -190,7 +191,7 @@ beforeEach(async () => {
     } catch {
         AppHeader = () => <div data-testid="not-implemented">Not implemented</div>
     }
-})
+}, 30000)
 
 // ---------------------------------------------------------------------------
 // TC-F-01: FriendsPage renders correct initial state

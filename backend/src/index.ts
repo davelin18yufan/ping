@@ -23,9 +23,11 @@ import { initializeSocketIO } from "./socket"
 /**
  * Maximum allowed query depth.
  * Prevents deeply nested queries from causing excessive database load.
- * Depth 7 supports: query { pendingFriendRequests { sender { ... } receiver { ... } } }
+ * Depth 10 accommodates nested fragment spreads (each spread counts +1 toward depth):
+ *   query(1) → conversations(2) → ConversationBasicFields(3) → lastMessage(4)
+ *   → MessageFields(5) → sender(6) → UserConversationFields(7) → id(8)
  */
-const MAX_QUERY_DEPTH = 7
+const MAX_QUERY_DEPTH = 10
 
 /**
  * App Context with Prisma and Auth
@@ -83,7 +85,7 @@ if (process.env.NODE_ENV === "development") {
 
 // CORS middleware
 const allowedOrigins = process.env.CORS_ORIGIN?.split(",") ?? [
-    "http://localhost:3001", // Frontend Web
+    "http://localhost:5173", // Frontend Web
     "http://localhost:8081", // Mobile Expo
 ]
 
@@ -186,21 +188,13 @@ app.get("/api/me", sessionMiddleware, (c) => {
  */
 app.use("/graphql", sessionMiddleware)
 app.all("/graphql", async (c) => {
-    // Attach auth data to request for Yoga context builder
-    const request = c.req.raw as Request & {
-        _userId?: string | null
-        _sessionId?: string | null
-        _isAuthenticated?: boolean
-        _prisma?: PrismaClient
-    }
-
-    request._userId = c.get("userId")
-    request._sessionId = c.get("sessionId")
-    request._isAuthenticated = c.get("isAuthenticated")
-    request._prisma = c.get("prisma")
-
-    // Pass request to GraphQL Yoga
-    return yoga.fetch(request)
+    // Pass auth data as serverContext (second arg) rather than mutating the
+    // native Bun Request object, which may not be extensible.
+    return yoga.fetch(c.req.raw, {
+        userId: c.get("userId"),
+        sessionId: c.get("sessionId"),
+        prisma: c.get("prisma"),
+    })
 })
 
 // ============================================================================
@@ -258,27 +252,35 @@ if (process.env.NODE_ENV !== "test") {
     /**
      * Start server with Bun.serve
      *
-     * Supports both HTTP (Hono) and WebSocket (Socket.io) connections.
+     * Do NOT spread engine.handler() — its built-in fetch does a strict path equality
+     * check against engine.opts.path (was "/engine.io/" by default) which would return
+     * 404 for Socket.io requests at "/socket.io/". Instead, explicitly build the config:
+     *  - websocket: Bun WebSocket lifecycle hooks from the engine
+     *  - fetch: our router that delegates /socket.io/* to engine.handleRequest and
+     *           everything else to Hono
      */
     const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000
+    const engineHandler = engine.handler()
 
     Bun.serve({
         port: PORT,
-        // Use Bun Engine handler configuration
-        ...engine.handler(),
+        // WebSocket lifecycle hooks (open/message/close) from the Bun engine
+        websocket: engineHandler.websocket,
+        idleTimeout: engineHandler.idleTimeout,
+        maxRequestBodySize: engineHandler.maxRequestBodySize,
 
         /**
-         * HTTP request handler override
+         * HTTP request handler
          *
          * Routes:
-         * - /socket.io/* -> Socket.io WebSocket handler (via engine.handleRequest)
-         * - All others -> Hono app
+         * - /socket.io/* -> engine.handleRequest (Socket.io + WebSocket upgrades)
+         * - All others   -> Hono app
          */
         async fetch(request, server) {
-            const url = new URL(request.url)
+            const pathname = new URL(request.url).pathname
 
             // Route Socket.io requests to Bun Engine
-            if (url.pathname.startsWith("/socket.io/")) {
+            if (pathname.startsWith("/socket.io")) {
                 return engine.handleRequest(request, server)
             }
 

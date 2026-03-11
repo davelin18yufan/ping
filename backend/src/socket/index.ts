@@ -43,7 +43,12 @@ export function initializeSocketIO(): {
     }
 
     // Create Bun Engine
+    // path must match the Socket.io client default ("/socket.io").
+    // BunEngine inherits from engine.io Server whose default is "/engine.io/".
+    // io.bind(engine) attaches the connection listener but does NOT update the path,
+    // so we set it here explicitly to avoid routing mismatches.
     engine = new BunEngine({
+        path: "/socket.io/",
         pingInterval: 25000, // 25 seconds
         pingTimeout: 20000, // 20 seconds
     })
@@ -53,7 +58,7 @@ export function initializeSocketIO(): {
         // CORS configuration (match Hono settings)
         cors: {
             origin: process.env.CORS_ORIGIN?.split(",") ?? [
-                "http://localhost:3001", // Frontend Web
+                "http://localhost:5173", // Frontend Web
                 "http://localhost:8081", // Mobile Expo
             ],
             credentials: true,
@@ -74,7 +79,7 @@ export function initializeSocketIO(): {
     // Register connection handlers
     registerConnectionHandlers(io)
 
-    console.log("✓ Socket.io initialized with Bun Engine")
+    console.log(`✓ Socket.io initialized with Bun Engine at path ${engine.opts.path}`)
 
     return { io, engine }
 }

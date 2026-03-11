@@ -19,6 +19,7 @@ import { createPortal } from "react-dom"
 import { UserStatusAvatar } from "@/components/shared/UserStatusAvatar"
 import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
 import { useFriendActions } from "@/hooks/useFriendActions"
+
 import "@/styles/components/friends.css"
 
 interface UserCardUser {

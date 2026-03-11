@@ -9,9 +9,8 @@
 
 import { queryOptions } from "@tanstack/react-query"
 
-import type { FriendRequest, User } from "@/types/friends"
-
 import { graphqlFetch } from "@/lib/graphql-client"
+import type { FriendRequest, User } from "@/types/friends"
 
 import {
     GET_FRIENDS_QUERY,

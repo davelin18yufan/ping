@@ -19,6 +19,7 @@ import { sessionMiddleware, getAuthUserId, withPrisma } from "./middleware"
 import { schema } from "./graphql/schema"
 import { buildGraphQLContext } from "./graphql/context"
 import { initializeSocketIO } from "./socket"
+import { Server } from "bun"
 
 /**
  * Maximum allowed query depth.
@@ -233,62 +234,18 @@ app.onError((err, c) => {
 })
 
 // ============================================================================
-// Socket.io Initialization
+// Socket.io + Server Initialization
 // ============================================================================
 
+const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000
+
 /**
- * Initialize Socket.io with Bun Engine
- *
- * Must be called before starting the server to enable WebSocket support.
- * Only initialize if not in test environment which has its own mock initiation.
+ * Initialize Socket.io with Bun Engine (skipped in test environment).
  */
-if (process.env.NODE_ENV !== "test") {
-    const { engine } = initializeSocketIO()
+const socketSetup = process.env.NODE_ENV !== "test" ? initializeSocketIO() : null
+const engineHandler = socketSetup?.engine.handler() ?? null
 
-    // ============================================================================
-    // Server Startup
-    // ============================================================================
-
-    /**
-     * Start server with Bun.serve
-     *
-     * Do NOT spread engine.handler() — its built-in fetch does a strict path equality
-     * check against engine.opts.path (was "/engine.io/" by default) which would return
-     * 404 for Socket.io requests at "/socket.io/". Instead, explicitly build the config:
-     *  - websocket: Bun WebSocket lifecycle hooks from the engine
-     *  - fetch: our router that delegates /socket.io/* to engine.handleRequest and
-     *           everything else to Hono
-     */
-    const PORT = process.env.PORT ? parseInt(process.env.PORT) : 3000
-    const engineHandler = engine.handler()
-
-    Bun.serve({
-        port: PORT,
-        // WebSocket lifecycle hooks (open/message/close) from the Bun engine
-        websocket: engineHandler.websocket,
-        idleTimeout: engineHandler.idleTimeout,
-        maxRequestBodySize: engineHandler.maxRequestBodySize,
-
-        /**
-         * HTTP request handler
-         *
-         * Routes:
-         * - /socket.io/* -> engine.handleRequest (Socket.io + WebSocket upgrades)
-         * - All others   -> Hono app
-         */
-        async fetch(request, server) {
-            const pathname = new URL(request.url).pathname
-
-            // Route Socket.io requests to Bun Engine
-            if (pathname.startsWith("/socket.io")) {
-                return engine.handleRequest(request, server)
-            }
-
-            // Route all other requests to Hono
-            return app.fetch(request)
-        },
-    })
-
+if (socketSetup) {
     console.log(`
       ┌───────────────────────────────────────────────┐
       │  Ping Backend Server                          │
@@ -300,5 +257,33 @@ if (process.env.NODE_ENV !== "test") {
     `)
 }
 
-// Export app for testing (without starting server)
-export default app
+/**
+ * Bun server export
+ *
+ * Bun starts a server from `export default { fetch, websocket?, port }`.
+ * Using this object form (instead of a separate Bun.serve() call alongside
+ * `export default app`) avoids the port conflict where Bun auto-serves the
+ * Hono app first and the custom Bun.serve() fetch handler never runs.
+ *
+ * Routes:
+ * - /socket.io/* -> engine.handleRequest  (Socket.io + WebSocket upgrades)
+ * - everything else -> Hono app
+ */
+export default {
+    port: PORT,
+    websocket: engineHandler?.websocket,
+    idleTimeout: engineHandler?.idleTimeout,
+    maxRequestBodySize: engineHandler?.maxRequestBodySize,
+    async fetch(request: Request, server: Server<unknown>) {
+        if (socketSetup) {
+            const pathname = new URL(request.url).pathname
+            if (pathname.startsWith("/socket.io")) {
+                return socketSetup.engine.handleRequest(request, server)
+            }
+        }
+        return app.fetch(request)
+    },
+}
+
+//TODO: For test only, remove later, Named export for tests: import { app } from "./index"
+export { app }

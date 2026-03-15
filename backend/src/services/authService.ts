@@ -164,7 +164,7 @@ async function findOrCreateUser(
     const newUser = await prisma.user.create({
         data: {
             email: googleUser.email,
-            name: googleUser.name ?? googleUser.email.split("@")[0],
+            name: googleUser.name ?? (googleUser.email.split("@")[0] as string),
             image: googleUser.picture ?? null,
             emailVerified: true,
         },

@@ -15,7 +15,7 @@
 
 import { useMutationState } from "@tanstack/react-query"
 import { useStore } from "@tanstack/react-store"
-import { useEffect, useRef } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { VList, type VListHandle } from "virtua"
 
 import { useMessages } from "@/hooks/useMessages"
@@ -49,13 +49,41 @@ export function MessageList({ conversationId, currentUserId, conversationType }:
         }),
     })
 
+    // Track when this conversation was opened. Messages created BEFORE this
+    // timestamp are "historical" and skip the entrance animation. Messages
+    // arriving via socket or after a send-invalidate are "new" and do animate.
+    // Reset when the conversationId changes (i.e. user switches conversations).
+    const mountTimeRef = useRef<number>(Date.now())
+    useEffect(() => {
+        mountTimeRef.current = Date.now()
+    }, [conversationId])
+
+    // Two-second grace window covers clock drift and the round-trip time of
+    // the first invalidate-refetch after sending a message.
+    const ANIMATION_WINDOW_MS = 2_000
+    const isNewMessage = useMemo(
+        () =>
+            (createdAt: string): boolean => {
+                const msgTime = new Date(createdAt).getTime()
+                return msgTime >= mountTimeRef.current - ANIMATION_WINDOW_MS
+            },
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+        [conversationId] // recompute only when switching conversations
+    )
+
     const listRef = useRef<VListHandle>(null)
     const topSentinelRef = useRef<HTMLDivElement>(null)
 
-    // Auto-scroll to bottom when new messages arrive
+    // Auto-scroll to bottom when new messages arrive.
+    // requestAnimationFrame defers the call until after VList has measured item
+    // heights in its first layout pass, which prevents the newest message from
+    // landing in the middle of the viewport on the initial conversation load.
     useEffect(() => {
         if (messages.length > 0) {
-            listRef.current?.scrollToIndex(messages.length - 1, { smooth: true })
+            const raf = requestAnimationFrame(() => {
+                listRef.current?.scrollToIndex(messages.length - 1, { smooth: false })
+            })
+            return () => cancelAnimationFrame(raf)
         }
     }, [messages.length])
 
@@ -79,10 +107,13 @@ export function MessageList({ conversationId, currentUserId, conversationType }:
             role="log"
             aria-live="polite"
             aria-label="Message history"
-            className="flex flex-col h-full"
-            style={{ overscrollBehavior: "contain" }}
+            className="flex flex-col flex-1 min-h-0"
         >
-            <VList ref={listRef} className="flex-1 overflow-y-auto px-4 py-2">
+            <VList
+                ref={listRef}
+                className="flex-1"
+                style={{ padding: "0.5rem 1rem", overscrollBehavior: "contain" }}
+            >
                 {/* Top sentinel — triggers loading older messages when visible */}
                 <div ref={topSentinelRef} style={{ height: 1 }} aria-hidden="true" />
 
@@ -98,19 +129,23 @@ export function MessageList({ conversationId, currentUserId, conversationType }:
 
                 {/* Actual messages */}
                 {messages.map((msg: Message) => (
-                    <div key={msg.id} className="mb-2">
+                    <div key={msg.id} className="mb-2 w-full">
                         {conversationType === "GROUP" && msg.sender.id !== currentUserId && (
                             <span className="text-xs text-muted-foreground mb-0.5 ml-1 block">
                                 {msg.sender.name}
                             </span>
                         )}
-                        <MessageBubble message={msg} isOwn={msg.sender.id === currentUserId} />
+                        <MessageBubble
+                            message={msg}
+                            isOwn={msg.sender.id === currentUserId}
+                            shouldAnimate={isNewMessage(msg.createdAt)}
+                        />
                     </div>
                 ))}
 
                 {/* Optimistic pending messages */}
                 {pendingMessages.map((pending) => (
-                    <div key={`pending-${pending.submittedAt}`} className="mb-2">
+                    <div key={`pending-${pending.submittedAt}`} className="mb-2 w-full">
                         <MessageBubble
                             message={{
                                 id: `pending-${pending.submittedAt}`,

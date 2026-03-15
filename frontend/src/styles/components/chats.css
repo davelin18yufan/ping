@@ -85,7 +85,159 @@
 }
 
 /* ============================================================
-   Chats Page Layout
+   Chats Two-Pane Sidebar Layout
+   ============================================================ */
+
+@layer components {
+    /* Root two-pane container — fills viewport below the top nav */
+    .chats-layout {
+        display: flex;
+        flex-direction: row;
+        height: calc(100vh - var(--nav-height, 4rem));
+        overflow: hidden;
+    }
+
+    /* ── Sidebar ────────────────────────────────────────────── */
+
+    .chats-layout__sidebar {
+        width: 280px;
+        min-width: 280px;
+        max-width: 280px;
+        display: flex;
+        flex-direction: column;
+        /* Override glass-card defaults */
+        border-radius: 0 !important;
+        transform: none !important;
+        /* Kill the 400ms glass-card hover transition so sidebar never animates */
+        transition: none !important;
+        border-top: none;
+        border-bottom: none;
+        border-left: none;
+        border-right: 1px solid var(--border);
+        /* Lock background — prevents glass-card hover from brightening the sidebar */
+        background: oklch(from var(--card) l c h / 0.5) !important;
+    }
+
+    /* Suppress all glass-card hover effects on the sidebar container itself.
+       Hover feedback should only appear on individual conversation rows. */
+    .chats-layout__sidebar:hover {
+        transform: none !important;
+        background: oklch(from var(--card) l c h / 0.5) !important;
+        box-shadow:
+            0 8px 32px oklch(0 0 0 / 0.08),
+            0 16px 64px oklch(0 0 0 / 0.12),
+            0 24px 96px oklch(0 0 0 / 0.15) !important;
+    }
+
+    .chats-layout__sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.875rem 1rem;
+        flex-shrink: 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .chats-layout__sidebar-title {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--foreground);
+    }
+
+    .chats-layout__new-btn {
+        padding: 0 !important;
+        width: 1.875rem !important;
+        height: 1.875rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .chats-layout__sidebar-list {
+        flex: 1;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 0.375rem;
+    }
+
+    /* ── Main Content ───────────────────────────────────────── */
+
+    .chats-layout__main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* ChatRoom height override: fill the main pane instead of viewport */
+    .chats-layout__main .chat-room-outer {
+        height: 100% !important;
+    }
+
+    /* ── Empty State ────────────────────────────────────────── */
+
+    .chats-layout__empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        gap: 0.75rem;
+        color: var(--muted-foreground);
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .chats-layout__empty-state h2 {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--foreground);
+    }
+
+    .chats-layout__empty-state p {
+        font-size: 0.8125rem;
+    }
+
+    /* Active conversation row highlight */
+    .conversation-item--active {
+        background: oklch(from var(--primary) l c h / 0.12) !important;
+        border-left-color: var(--primary) !important;
+    }
+
+    /* ── Mobile: Full-Screen Stack ─────────────────────────── */
+
+    @media (max-width: 767px) {
+        .chats-layout__sidebar {
+            width: 100%;
+            min-width: 100%;
+            max-width: 100%;
+            border-right: none;
+        }
+
+        /* Main pane hidden on mobile by default */
+        .chats-layout__main {
+            display: none;
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            background: var(--background);
+        }
+
+        /* When a conversation is open: show main, hide sidebar */
+        .chats-layout[data-has-chat="true"] .chats-layout__sidebar {
+            display: none;
+        }
+
+        .chats-layout[data-has-chat="true"] .chats-layout__main {
+            display: flex;
+        }
+    }
+}
+
+/* ============================================================
+   Chats Page Layout (legacy standalone route — kept for
+   double-click independent window which uses the old layout)
    ============================================================ */
 
 @layer components {
@@ -466,6 +618,35 @@
     }
 
     /* ============================================================
+       Chat Room Header — disable glass-card hover lift
+       ============================================================ */
+
+    .chat-room__header {
+        transform: none !important;
+        transition: none !important;
+        background: oklch(from var(--card) l c h / 0.5) !important;
+    }
+
+    .chat-room__header:hover {
+        transform: none !important;
+        background: oklch(from var(--card) l c h / 0.5) !important;
+        box-shadow:
+            0 8px 32px oklch(0 0 0 / 0.08),
+            0 16px 64px oklch(0 0 0 / 0.12),
+            0 24px 96px oklch(0 0 0 / 0.15) !important;
+    }
+
+    /* Suppress glass-button lift inside the chat room header.
+       Buttons still get background/opacity feedback; they just don't float up. */
+    .chat-room__header .glass-button:hover {
+        transform: none !important;
+    }
+
+    .chat-room__header .glass-button:hover::after {
+        animation: none !important;
+    }
+
+    /* ============================================================
        Chat Room Layout
        ============================================================ */
 
@@ -501,6 +682,16 @@
     .message-input__field {
         flex: 1;
         position: relative;
+    }
+
+    /* Hide the scrollbar on the auto-resize textarea while still allowing
+       scrolling when content exceeds the max-height clamp. */
+    .message-input__field textarea {
+        scrollbar-width: none; /* Firefox */
+    }
+
+    .message-input__field textarea::-webkit-scrollbar {
+        display: none; /* Chrome / Safari / Opera */
     }
 
     .message-input__send {

@@ -25,11 +25,20 @@ import type { Message } from "@/types/conversations"
 export function useMessages(conversationId: string) {
     const query = useInfiniteQuery(messagesInfiniteOptions(conversationId))
 
-    // Flatten all pages into a single array ordered oldest → newest.
-    // Pages are stored in fetch order; each page's messages are already
-    // in chronological order from the server.
+    // Flatten all pages and sort ascending (oldest → newest).
+    // The backend returns pages in DESC order (newest first) for initial load,
+    // so we sort by createdAt to ensure VList renders oldest at top and newest
+    // at the bottom — allowing scrollToIndex(length-1) to land on the newest.
     const messages = useMemo(
-        () => (query.data ? query.data.pages.flatMap((page) => page.messages) : []) as Message[],
+        () =>
+            (query.data
+                ? query.data.pages
+                      .flatMap((page) => page.messages)
+                      .sort(
+                          (a, b) =>
+                              new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+                      )
+                : []) as Message[],
         [query.data]
     )
 

@@ -651,8 +651,9 @@ describe("TC-F-13: MessageBubble status icons for own messages", () => {
         // We check that the bubble-card--send class is present (own message)
         const bubble = document.querySelector(".bubble-card--send")
         expect(bubble).toBeInTheDocument()
-        // Status icon container should be rendered (div with flex items-center)
-        const statusDiv = bubble?.querySelector(".flex.items-center")
+        // Status row is a sibling of bubble-card, not a child — traverse up to outer flex-col
+        const outerDiv = bubble?.closest(".flex.flex-col")
+        const statusDiv = outerDiv?.querySelector(".flex.items-center")
         expect(statusDiv).toBeInTheDocument()
     })
 
@@ -667,8 +668,9 @@ describe("TC-F-13: MessageBubble status icons for own messages", () => {
 
         const bubble = document.querySelector(".bubble-card--send")
         expect(bubble).toBeInTheDocument()
-        // DELIVERED uses CheckCheck — verify status area exists
-        const statusDiv = bubble?.querySelector(".flex.items-center")
+        // Status row is a sibling of bubble-card, not a child — traverse up to outer flex-col
+        const outerDiv = bubble?.closest(".flex.flex-col")
+        const statusDiv = outerDiv?.querySelector(".flex.items-center")
         expect(statusDiv).toBeInTheDocument()
     })
 
@@ -683,8 +685,9 @@ describe("TC-F-13: MessageBubble status icons for own messages", () => {
 
         const bubble = document.querySelector(".bubble-card--send")
         expect(bubble).toBeInTheDocument()
-        // READ uses CheckCheck with --primary color via style attribute
-        const statusDiv = bubble?.querySelector("[style*='--primary']")
+        // READ CheckCheck has inline style color: var(--primary) — traverse up then down
+        const outerDiv = bubble?.closest(".flex.flex-col")
+        const statusDiv = outerDiv?.querySelector("[style*='--primary']")
         expect(statusDiv).toBeInTheDocument()
     })
 

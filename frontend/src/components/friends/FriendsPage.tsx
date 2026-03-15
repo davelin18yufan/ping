@@ -13,8 +13,9 @@
  * 3. Friends List — collapses to summary row during search
  */
 
-import { useQuery } from "@tanstack/react-query"
-import { UserCheck, Users } from "lucide-react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { useNavigate } from "@tanstack/react-router"
+import { MessageCircle, UserCheck, Users } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useCallback, useEffect, useMemo, useRef, useState } from "react"
 
@@ -22,11 +23,14 @@ import { FriendSearchInput } from "@/components/friends/FriendSearchInput"
 import { PendingRequestCard } from "@/components/friends/PendingRequestCard"
 import { UserStatusAvatar } from "@/components/shared/UserStatusAvatar"
 import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
+import { GET_OR_CREATE_CONVERSATION_MUTATION } from "@/graphql/options/conversations"
 import {
     friendsListQueryOptions,
     pendingRequestsQueryOptions,
     sentRequestsQueryOptions,
 } from "@/graphql/options/friends"
+import { graphqlFetch } from "@/lib/graphql-client"
+import type { Conversation } from "@/types/conversations"
 import type { FriendshipStatus } from "@/types/friends"
 
 // Motion variants for section expand/collapse during search
@@ -70,6 +74,25 @@ export function FriendsPage() {
     const { data: sentRequests = [] } = useQuery(sentRequestsQueryOptions)
 
     const { isMinimal } = useAestheticMode()
+    const navigate = useNavigate()
+    const queryClient = useQueryClient()
+
+    // Start or open a direct-message conversation with a friend
+    const startDMMutation = useMutation({
+        mutationFn: (userId: string) =>
+            graphqlFetch<{ getOrCreateConversation: Conversation }>(
+                GET_OR_CREATE_CONVERSATION_MUTATION,
+                { userId }
+            ),
+        onSuccess: (data) => {
+            // Prime the conversations cache so the sidebar shows it immediately
+            void queryClient.invalidateQueries({ queryKey: ["conversations"] })
+            void navigate({
+                to: "/chats/$conversationId",
+                params: { conversationId: data.getOrCreateConversation.id },
+            })
+        },
+    })
 
     const [searchQuery, setSearchQuery] = useState("")
     const isSearching = searchQuery.trim().length >= 2
@@ -315,6 +338,21 @@ export function FriendsPage() {
                                             <span className="user-card__email">{friend.email}</span>
                                         </div>
                                         <div className="user-card__action">
+                                            <button
+                                                type="button"
+                                                className="glass-button glass-button--icon"
+                                                onClick={() =>
+                                                    void startDMMutation.mutate(friend.id)
+                                                }
+                                                aria-label={`Message ${friend.name}`}
+                                                disabled={
+                                                    startDMMutation.isPending &&
+                                                    startDMMutation.variables === friend.id
+                                                }
+                                                title={`Message ${friend.name}`}
+                                            >
+                                                <MessageCircle size={14} aria-hidden="true" />
+                                            </button>
                                             <div
                                                 className="user-card__friends-badge"
                                                 aria-label="Friends"

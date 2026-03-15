@@ -10,20 +10,20 @@
  * Accessibility:
  *   - role="dialog" + aria-modal="true" + aria-labelledby
  *   - Overlay click closes the modal
- *   - Friend rows use role="checkbox" + aria-checked + tabIndex + onKeyDown
+ *   - Friend picker uses FriendPickerSearch (label+checkbox pattern)
  *   - Celebration particles are aria-hidden
  */
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
-import { Check } from "lucide-react"
 import { useState } from "react"
 
 import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
 import { CREATE_GROUP_MUTATION } from "@/graphql/options/conversations"
 import { friendsListQueryOptions } from "@/graphql/options/friends"
 import { graphqlFetch } from "@/lib/graphql-client"
-import { cn } from "@/lib/utils"
 import type { Conversation } from "@/types/conversations"
+
+import { FriendPickerSearch } from "./FriendPickerSearch"
 
 interface GroupCreateModalProps {
     onClose: () => void
@@ -111,54 +111,16 @@ export function GroupCreateModal({ onClose, onCreated }: GroupCreateModalProps) 
                     />
                 </div>
 
-                {/* Friend picker */}
+                {/* Friend picker with search */}
                 <div className="mb-4">
                     <p className="text-sm font-medium mb-2">Select Members</p>
-                    <div
-                        className="flex flex-col gap-1 max-h-48 overflow-y-auto"
-                        style={{ overscrollBehavior: "contain" }}
-                    >
-                        {friends.map((friend) => {
-                            const isSelected = selectedUserIds.includes(friend.id)
-                            return (
-                                <div
-                                    key={friend.id}
-                                    className={cn(
-                                        "flex items-center justify-between px-3 py-2 rounded-lg cursor-pointer",
-                                        "transition-colors",
-                                        isSelected
-                                            ? "bg-[oklch(from_var(--primary)_l_c_h/0.15)] border border-[oklch(from_var(--primary)_l_c_h/0.3)]"
-                                            : "bg-[oklch(from_var(--card)_l_c_h/0.4)] border border-transparent hover:bg-[oklch(from_var(--card)_l_c_h/0.6)]"
-                                    )}
-                                    onClick={() => toggleUser(friend.id)}
-                                    onKeyDown={(e) => {
-                                        if (e.key === "Enter" || e.key === " ") {
-                                            e.preventDefault()
-                                            toggleUser(friend.id)
-                                        }
-                                    }}
-                                    role="checkbox"
-                                    aria-checked={isSelected}
-                                    tabIndex={0}
-                                    aria-label={friend.name}
-                                >
-                                    <span className="text-sm">{friend.name}</span>
-                                    {isSelected && (
-                                        <Check
-                                            size={14}
-                                            aria-hidden="true"
-                                            style={{ color: "var(--primary)" }}
-                                        />
-                                    )}
-                                </div>
-                            )
-                        })}
-                        {friends.length === 0 && (
-                            <p className="text-sm text-muted-foreground text-center py-4">
-                                No friends yet
-                            </p>
-                        )}
-                    </div>
+                    <FriendPickerSearch
+                        friends={friends}
+                        selectedIds={selectedUserIds}
+                        onToggle={toggleUser}
+                        placeholder="Search friends\u2026"
+                        emptyMessage="No friends yet"
+                    />
                 </div>
 
                 {/* Celebration particle burst (ornate mode only) */}

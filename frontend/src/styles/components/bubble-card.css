@@ -79,9 +79,12 @@
         /* Primary color background */
         background: oklch(from var(--primary) l c h / 0.15);
 
+        /* Shrink to content, cap at 70% of parent */
+        width: fit-content;
+        /* max-width: 70%; */
+
         /* Align to right */
         margin-left: auto;
-        max-width: 70%;
     }
 
     .bubble-card--send:hover {
@@ -102,9 +105,12 @@
         /* Card background */
         background: oklch(from var(--card) l c h / 0.5);
 
+        /* Shrink to content, cap at 70% of parent */
+        width: fit-content;
+        max-width: 70%;
+
         /* Align to left */
         margin-right: auto;
-        max-width: 70%;
     }
 
     .bubble-card--receive:hover {

@@ -14,7 +14,7 @@
 
 import { MessageSquare } from "lucide-react"
 import { motion } from "motion/react"
-import { useMemo } from "react"
+import { memo, useMemo } from "react"
 
 import type { Conversation } from "@/types/conversations"
 
@@ -24,6 +24,8 @@ interface ConversationListProps {
     conversations: Conversation[]
     currentUserId: string
     onSelect: (conversationId: string) => void
+    /** Called on double-click — opens conversation in a new window */
+    onDoubleClick?: (conversationId: string) => void
 }
 
 // ─── Motion variants ──────────────────────────────────────────────────────────
@@ -72,10 +74,11 @@ function sortConversations(conversations: Conversation[]): Conversation[] {
     })
 }
 
-export function ConversationList({
+function ConversationListInner({
     conversations,
     currentUserId,
     onSelect,
+    onDoubleClick,
 }: ConversationListProps) {
     const sorted = useMemo(() => sortConversations(conversations), [conversations])
 
@@ -100,11 +103,15 @@ export function ConversationList({
                 <motion.div key={conversation.id} variants={itemVariants}>
                     <ConversationItem
                         conversation={conversation}
+                        conversationId={conversation.id}
                         currentUserId={currentUserId}
-                        onClick={() => onSelect(conversation.id)}
+                        onSelect={onSelect}
+                        onDoubleClick={onDoubleClick}
                     />
                 </motion.div>
             ))}
         </motion.div>
     )
 }
+
+export const ConversationList = memo(ConversationListInner)

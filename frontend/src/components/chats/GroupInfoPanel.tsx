@@ -15,15 +15,22 @@
  *   - Destructive buttons have aria-label.
  */
 
-import { useMutation, useQueryClient } from "@tanstack/react-query"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
-import { LogOut, UserMinus, X } from "lucide-react"
+import { LogOut, UserMinus, UserPlus, X } from "lucide-react"
 import { motion } from "motion/react"
 import { useState } from "react"
 
-import { LEAVE_GROUP_MUTATION, REMOVE_FROM_GROUP_MUTATION } from "@/graphql/options/conversations"
+import {
+    INVITE_TO_GROUP_MUTATION,
+    LEAVE_GROUP_MUTATION,
+    REMOVE_FROM_GROUP_MUTATION,
+} from "@/graphql/options/conversations"
+import { friendsListQueryOptions } from "@/graphql/options/friends"
 import { graphqlFetch } from "@/lib/graphql-client"
 import type { Conversation } from "@/types/conversations"
+
+import { FriendPickerSearch } from "./FriendPickerSearch"
 
 interface GroupInfoPanelProps {
     conversation: Conversation
@@ -43,6 +50,38 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
     const [successorId, setSuccessorId] = useState<string | null>(null)
     const [kickError, setKickError] = useState<string | null>(null)
     const [leaveError, setLeaveError] = useState<string | null>(null)
+
+    // Invite flow
+    const [showInvite, setShowInvite] = useState(false)
+    const [inviteIds, setInviteIds] = useState<string[]>([])
+    const [inviteError, setInviteError] = useState<string | null>(null)
+
+    const { data: friends = [] } = useQuery(friendsListQueryOptions)
+
+    // IDs already in the group — exclude from invite picker
+    const memberIds = conversation.participants.map((p) => p.user.id)
+
+    const inviteMutation = useMutation({
+        mutationFn: (userIds: string[]) =>
+            Promise.all(
+                userIds.map((userId) =>
+                    graphqlFetch<{ inviteToGroup: boolean }>(INVITE_TO_GROUP_MUTATION, {
+                        conversationId: conversation.id,
+                        userId,
+                    })
+                )
+            ),
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: ["conversations"] })
+            void queryClient.invalidateQueries({ queryKey: ["conversation", conversation.id] })
+            setShowInvite(false)
+            setInviteIds([])
+            setInviteError(null)
+        },
+        onError: () => {
+            setInviteError("Failed to invite members. Please try again.")
+        },
+    })
 
     // Remove from group mutation
     const kickMutation = useMutation({
@@ -150,6 +189,83 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                     ))}
                 </div>
             </div>
+
+            {/* Invite members section (owner only) */}
+            {isOwner && (
+                <div className="px-4 py-3 border-t border-border shrink-0">
+                    {!showInvite ? (
+                        <button
+                            type="button"
+                            onClick={() => setShowInvite(true)}
+                            aria-label="Invite members to group"
+                            className="glass-button w-full flex items-center justify-center gap-2"
+                        >
+                            <UserPlus size={14} aria-hidden="true" />
+                            <span>Invite Members</span>
+                        </button>
+                    ) : (
+                        <div className="flex flex-col gap-2">
+                            <p className="text-xs font-medium text-muted-foreground">
+                                Invite Friends
+                            </p>
+                            <FriendPickerSearch
+                                friends={friends}
+                                selectedIds={inviteIds}
+                                onToggle={(id) =>
+                                    setInviteIds((prev) =>
+                                        prev.includes(id)
+                                            ? prev.filter((x) => x !== id)
+                                            : [...prev, id]
+                                    )
+                                }
+                                excludeIds={memberIds}
+                                placeholder="Search friends\u2026"
+                                emptyMessage="All friends already in group"
+                            />
+                            {inviteError && (
+                                <p
+                                    role="alert"
+                                    className="text-xs"
+                                    style={{ color: "var(--destructive)" }}
+                                >
+                                    {inviteError}
+                                </p>
+                            )}
+                            <div className="flex gap-2 mt-1">
+                                <button
+                                    type="button"
+                                    className="glass-button flex-1"
+                                    onClick={() => {
+                                        setShowInvite(false)
+                                        setInviteIds([])
+                                        setInviteError(null)
+                                    }}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="button"
+                                    className="glass-button flex-1"
+                                    disabled={inviteIds.length === 0 || inviteMutation.isPending}
+                                    style={
+                                        inviteIds.length === 0 || inviteMutation.isPending
+                                            ? { opacity: 0.5, cursor: "not-allowed" }
+                                            : {
+                                                  background:
+                                                      "oklch(from var(--primary) l c h / 0.2)",
+                                                  borderColor:
+                                                      "oklch(from var(--primary) l c h / 0.4)",
+                                              }
+                                    }
+                                    onClick={() => inviteMutation.mutate(inviteIds)}
+                                >
+                                    {inviteMutation.isPending ? "Inviting\u2026" : "Invite"}
+                                </button>
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
 
             {/* Leave group button */}
             <div className="px-4 py-3 border-t border-border shrink-0">

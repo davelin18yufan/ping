@@ -14,9 +14,12 @@
  * conversations the group name and a letter-initial avatar are used.
  */
 
+import { useStore } from "@tanstack/react-store"
 import { Pin } from "lucide-react"
+import { memo } from "react"
 
 import { cn, formatConversationDate, formatMessageTime, toLocalDateKey } from "@/lib/utils"
+import { uiStore } from "@/stores/uiStore"
 import type { Conversation } from "@/types/conversations"
 
 import { ContactAvatar } from "./ContactAvatar"
@@ -24,8 +27,12 @@ import { UnreadBadge } from "./UnreadBadge"
 
 interface ConversationItemProps {
     conversation: Conversation
+    /** The conversation's own ID — passed as a primitive to enable memo bailout */
+    conversationId: string
     currentUserId: string
-    onClick: () => void
+    onSelect: (id: string) => void
+    /** Opens the conversation in a new browser window */
+    onDoubleClick?: (id: string) => void
 }
 
 // ─── Timestamp helpers ────────────────────────────────────────────────────────
@@ -56,7 +63,17 @@ function truncatePreview(text: string | null): string {
     return `${text.slice(0, MAX_PREVIEW_LENGTH)}\u2026`
 }
 
-export function ConversationItem({ conversation, currentUserId, onClick }: ConversationItemProps) {
+function ConversationItemInner({
+    conversation,
+    conversationId,
+    currentUserId,
+    onSelect,
+    onDoubleClick,
+}: ConversationItemProps) {
+    // Granular selector: only this item re-renders when ITS active state flips.
+    // O(2) re-renders per conversation switch across the entire list.
+    const isActive = useStore(uiStore, (s) => s.activeConversationId === conversationId)
+
     const isGroup = conversation.type === "GROUP"
     const isPinned = conversation.pinnedAt !== null
     const hasUnread = conversation.unreadCount > 0
@@ -106,18 +123,21 @@ export function ConversationItem({ conversation, currentUserId, onClick }: Conve
             className={cn(
                 "conversation-item",
                 isPinned && "conversation-item--pinned",
-                hasUnread && "conversation-item--unread sidebar-breathe"
+                hasUnread && "conversation-item--unread sidebar-breathe",
+                isActive && "conversation-item--active"
             )}
-            onClick={onClick}
+            onClick={() => onSelect(conversationId)}
+            onDoubleClick={onDoubleClick ? () => onDoubleClick(conversationId) : undefined}
             onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault()
-                    onClick()
+                    onSelect(conversationId)
                 }
             }}
             role="button"
             tabIndex={0}
-            aria-label={`${displayName}${hasUnread ? `, ${conversation.unreadCount} unread` : ""}`}
+            aria-current={isActive ? "true" : undefined}
+            aria-label={`${displayName}${hasUnread ? `, ${conversation.unreadCount} unread` : ""}${isActive ? ", currently open" : ""}`}
         >
             {/* Avatar */}
             <div className="conversation-item__avatar">
@@ -128,6 +148,7 @@ export function ConversationItem({ conversation, currentUserId, onClick }: Conve
                     isOnline={isOnline}
                     isFriend={isFriend}
                     size="md"
+                    isGroup={isGroup}
                 />
             </div>
 
@@ -157,3 +178,5 @@ export function ConversationItem({ conversation, currentUserId, onClick }: Conve
         </div>
     )
 }
+
+export const ConversationItem = memo(ConversationItemInner)

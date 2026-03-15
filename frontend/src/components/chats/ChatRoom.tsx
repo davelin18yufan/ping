@@ -12,10 +12,10 @@
  * GroupInfoPanel is lazy-rendered via local state and AnimatePresence exit.
  */
 
-import { useMutation, useQuery } from "@tanstack/react-query"
-import { useNavigate } from "@tanstack/react-router"
-import { ArrowLeft, Users } from "lucide-react"
-import { AnimatePresence } from "motion/react"
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
+import { Link } from "@tanstack/react-router"
+import { ArrowLeft, Info, Users } from "lucide-react"
+import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useState } from "react"
 
 import { SEND_MESSAGE_MUTATION, conversationQueryOptions } from "@/graphql/options/conversations"
@@ -24,6 +24,7 @@ import { cn } from "@/lib/utils"
 import { uiStore } from "@/stores/uiStore"
 import type { Conversation, Message } from "@/types/conversations"
 
+import { DirectInfoPanel } from "./DirectInfoPanel"
 import { GroupInfoPanel } from "./GroupInfoPanel"
 import { MessageInput } from "./MessageInput"
 import { MessageList } from "./MessageList"
@@ -34,9 +35,9 @@ interface ChatRoomProps {
 }
 
 export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
-    const navigate = useNavigate()
+    const queryClient = useQueryClient()
 
-    const [showGroupInfo, setShowGroupInfo] = useState(false)
+    const [showInfo, setShowInfo] = useState(false)
     const [sendError, setSendError] = useState<string | null>(null)
 
     const { data: conversation } = useQuery(conversationQueryOptions(conversationId))
@@ -59,6 +60,14 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                 content,
             }),
         onSuccess: () => {
+            // Invalidate messages so the confirmed message from the server
+            // replaces the optimistic bubble — guards against server-side
+            // socket events not echoing back to the sender.
+            void queryClient.invalidateQueries({
+                queryKey: ["messages", conversationId],
+            })
+            // Also refresh the conversation list to update lastMessage preview.
+            void queryClient.invalidateQueries({ queryKey: ["conversations"] })
             setSendError(null)
         },
         onError: () => {
@@ -79,22 +88,22 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
     const conversationType = conversation?.type ?? "ONE_TO_ONE"
 
     return (
-        <div className="flex flex-col" style={{ height: "calc(100vh - 4rem)" }}>
+        <div className="chat-room-outer relative flex flex-col" style={{ height: "calc(100vh - 4rem)" }}>
             {/* Header */}
             <div
                 className={cn(
-                    "glass-card flex items-center gap-3 px-4 py-3 shrink-0",
+                    "chat-room__header glass-card flex items-center gap-3 px-4 py-3 shrink-0",
                     "rounded-none border-x-0 border-t-0"
                 )}
             >
-                <button
-                    type="button"
-                    onClick={() => void navigate({ to: "/chats" })}
+                <Link
+                    to="/chats"
                     aria-label="Back to conversations"
                     className="glass-button glass-button--icon"
+                    viewTransition={false}
                 >
                     <ArrowLeft size={18} aria-hidden="true" />
-                </button>
+                </Link>
 
                 <div className="flex-1 flex flex-col min-w-0">
                     <h2 className="font-semibold text-sm truncate min-w-0">{displayName}</h2>
@@ -106,14 +115,17 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                 </div>
 
                 <div className="flex items-center gap-1">
-                    {conversation?.type === "GROUP" && (
+                    {conversation && (
                         <button
                             type="button"
-                            onClick={() => setShowGroupInfo(true)}
-                            aria-label="Group info"
+                            onClick={() => setShowInfo(true)}
+                            aria-label={isOneToOne ? "Contact info" : "Group info"}
                             className="glass-button glass-button--icon"
                         >
-                            <Users size={18} aria-hidden="true" />
+                            {isOneToOne
+                                ? <Info size={18} aria-hidden="true" />
+                                : <Users size={18} aria-hidden="true" />
+                            }
                         </button>
                     )}
                 </div>
@@ -134,14 +146,21 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                 </div>
             )}
 
-            {/* Message list */}
-            <div className="flex-1 min-h-0 overflow-hidden">
+            {/* Message list — keyed by conversationId so the list remounts (scroll
+                  resets to bottom) when switching conversations, and fades in. */}
+            <motion.div
+                key={conversationId}
+                className="flex-1 min-h-0 flex flex-col"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.15, ease: "easeOut" }}
+            >
                 <MessageList
                     conversationId={conversationId}
                     currentUserId={currentUserId}
                     conversationType={conversationType}
                 />
-            </div>
+            </motion.div>
 
             {/* Message input */}
             <div className="shrink-0">
@@ -152,14 +171,31 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                 />
             </div>
 
-            {/* Group info slide-in panel */}
+            {/* Click-outside backdrop — covers the chat area behind the panel.
+                  z-10 puts it below the panel (z-20) but above the message list. */}
+            {showInfo && (
+                <div
+                    className="absolute inset-0 z-10"
+                    onClick={() => setShowInfo(false)}
+                    aria-hidden="true"
+                />
+            )}
+
+            {/* Info slide-in panel — GROUP: member management, ONE_TO_ONE: contact info */}
             <AnimatePresence>
-                {showGroupInfo && conversation && (
+                {showInfo && conversation && isOneToOne && otherParticipant && (
+                    <DirectInfoPanel
+                        key="direct-info-panel"
+                        participant={otherParticipant}
+                        onClose={() => setShowInfo(false)}
+                    />
+                )}
+                {showInfo && conversation && !isOneToOne && (
                     <GroupInfoPanel
                         key="group-info-panel"
                         conversation={conversation as Conversation}
                         currentUserId={currentUserId}
-                        onClose={() => setShowGroupInfo(false)}
+                        onClose={() => setShowInfo(false)}
                     />
                 )}
             </AnimatePresence>

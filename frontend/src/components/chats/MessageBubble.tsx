@@ -25,6 +25,12 @@ interface MessageBubbleProps {
     isOwn: boolean
     /** True while the mutation is still in-flight (optimistic update). */
     isPending?: boolean
+    /**
+     * True when this message arrived in real-time (socket or just sent).
+     * False (default) for history loaded on conversation switch — skips
+     * entrance animation so switching conversations doesn't shrink/expand.
+     */
+    shouldAnimate?: boolean
 }
 
 // Status icon (own messages only)
@@ -39,7 +45,12 @@ function StatusIcon({ status }: { status: MessageStatusType }) {
     return <CheckCheck size={12} aria-hidden="true" style={{ color: "var(--primary)" }} />
 }
 
-export function MessageBubble({ message, isOwn, isPending = false }: MessageBubbleProps) {
+export function MessageBubble({
+    message,
+    isOwn,
+    isPending = false,
+    shouldAnimate = false,
+}: MessageBubbleProps) {
     const { isMinimal } = useAestheticMode()
 
     const bubbleContent = (
@@ -49,36 +60,43 @@ export function MessageBubble({ message, isOwn, isPending = false }: MessageBubb
                 isOwn ? "bubble-card--send" : "bubble-card--receive"
             )}
         >
-            <p className="text-sm min-w-0 wrap-break-word overflow-wrap-break-word">
+            <p className="text-sm" style={{ overflowWrap: "anywhere", wordBreak: "break-word", whiteSpace: "pre-wrap" }}>
                 {message.content}
             </p>
-            {isOwn && (
-                <div className="flex items-center justify-end gap-1 mt-1">
-                    <StatusIcon status={message.status} />
-                </div>
-            )}
         </div>
     )
 
+    // Only play entrance animation for new real-time messages and pending bubbles.
+    // Historical messages (shouldAnimate=false) appear instantly to avoid the
+    // "shrink/expand" effect when switching conversations.
+    const playAnimation = shouldAnimate || isPending
+
     return (
-        <div className={cn("flex flex-col", isOwn ? "items-end" : "items-start")}>
-            {isMinimal ? (
-                <div style={{ opacity: isPending ? 0.6 : 1 }}>{bubbleContent}</div>
+        <div className={cn("flex flex-col w-full min-w-0", isOwn ? "items-end" : "items-start")}>
+            {isMinimal || !playAnimation ? (
+                // w-fit prevents this block wrapper from stretching to full column width,
+                // which would override bubble-card's width: fit-content sizing.
+                <div className="w-fit" style={{ opacity: isPending ? 0.6 : 1 }}>{bubbleContent}</div>
             ) : (
                 <motion.div
-                    initial={isOwn ? { x: 20, opacity: 0 } : { y: 12, opacity: 0 }}
+                    className="w-fit"
+                    initial={isOwn ? { x: 16, opacity: 0 } : { y: 10, opacity: 0 }}
                     animate={{ x: 0, y: 0, opacity: isPending ? 0.6 : 1 }}
-                    transition={{ duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
+                    transition={{ duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
                 >
                     {bubbleContent}
                 </motion.div>
             )}
-            <span
-                className="text-[0.625rem] text-muted-foreground mt-0.5 tabular-nums"
+            <div
+                className={cn(
+                    "flex items-center gap-1 mt-0.5 tabular-nums text-[0.625rem] text-muted-foreground",
+                    isOwn ? "justify-end" : "justify-start"
+                )}
                 suppressHydrationWarning
             >
                 {formatMessageTime(message.createdAt)}
-            </span>
+                {isOwn && <StatusIcon status={message.status} />}
+            </div>
         </div>
     )
 }

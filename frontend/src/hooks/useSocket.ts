@@ -174,6 +174,8 @@ export function useSocket() {
         // is disconnected and the instance is garbage-collected.
     }, [queryClient])
 
-    // Return the existing socket (or create one if called before useEffect runs)
-    return getSocketClient() ?? createSocketClient()
+    // Return only the existing instance — never create the socket here.
+    // createSocketClient() is called exclusively inside useEffect (client-only)
+    // to prevent SSR from initiating a WebSocket connection to the backend.
+    return getSocketClient()
 }

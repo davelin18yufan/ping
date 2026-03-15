@@ -424,13 +424,11 @@ describe("Auth — Server Session Guards", () => {
             const mockCookie = "better-auth.session_token=abc123"
             vi.mocked(getRequestHeaders).mockReturnValue(new Headers({ cookie: mockCookie }))
 
-            const fetchSpy = vi
-                .spyOn(global, "fetch")
-                .mockResolvedValueOnce(
-                    new Response(JSON.stringify({ user: { id: "123" }, session: { id: "s-1" } }), {
-                        status: 200,
-                    })
-                )
+            const fetchSpy = vi.spyOn(global, "fetch").mockResolvedValueOnce(
+                new Response(JSON.stringify({ user: { id: "123" }, session: { id: "s-1" } }), {
+                    status: 200,
+                })
+            )
 
             const headers = getRequestHeaders()
             await fetch("http://localhost:3000/api/auth/get-session", {

@@ -88,7 +88,10 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
     const conversationType = conversation?.type ?? "ONE_TO_ONE"
 
     return (
-        <div className="chat-room-outer relative flex flex-col" style={{ height: "calc(100vh - 4rem)" }}>
+        <div
+            className="chat-room-outer relative flex flex-col"
+            style={{ height: "calc(100vh - 4rem)" }}
+        >
             {/* Header */}
             <div
                 className={cn(
@@ -122,10 +125,11 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                             aria-label={isOneToOne ? "Contact info" : "Group info"}
                             className="glass-button glass-button--icon"
                         >
-                            {isOneToOne
-                                ? <Info size={18} aria-hidden="true" />
-                                : <Users size={18} aria-hidden="true" />
-                            }
+                            {isOneToOne ? (
+                                <Info size={18} aria-hidden="true" />
+                            ) : (
+                                <Users size={18} aria-hidden="true" />
+                            )}
                         </button>
                     )}
                 </div>

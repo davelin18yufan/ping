@@ -19,6 +19,7 @@ import { useEffect, useRef, useState } from "react"
 import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
 import { useTyping } from "@/hooks/useTyping"
 import { cn } from "@/lib/utils"
+
 import { Button } from "../ui/button"
 
 interface MessageInputProps {
@@ -76,10 +77,7 @@ export function MessageInput({ conversationId, onSend, disabled = false }: Messa
     }
 
     return (
-        <form
-            onSubmit={handleSubmit}
-            className="flex items-end gap-2 p-3 border-t border-border"
-        >
+        <form onSubmit={handleSubmit} className="flex items-end gap-2 p-3 border-t border-border">
             {/* Input wrapper — energy waveform lives here as a sibling */}
             <div className="flex-1 relative message-input__field">
                 {/* Energy waveform decoration (ornate + focused only) */}

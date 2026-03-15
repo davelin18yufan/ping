@@ -9,9 +9,9 @@
  * Socket and CSS are initialized by the parent chats layout route.
  */
 
+import { ChatRoom } from "@components/chats/ChatRoom"
 import { createFileRoute } from "@tanstack/react-router"
 
-import { ChatRoom } from "@components/chats/ChatRoom"
 import { conversationQueryOptions, messagesInfiniteOptions } from "@/graphql/options/conversations"
 
 export const Route = createFileRoute("/_protected/chats/$conversationId")({

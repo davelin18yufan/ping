@@ -351,10 +351,7 @@ export function FriendsPage() {
                                                 }
                                                 title={`Message ${friend.name}`}
                                             >
-                                                <MessageCircle
-                                                    size={14}
-                                                    aria-hidden="true"
-                                                />
+                                                <MessageCircle size={14} aria-hidden="true" />
                                             </button>
                                             <div
                                                 className="user-card__friends-badge"

@@ -18,6 +18,7 @@ import { useState } from "react"
 import { BLOCK_USER_MUTATION } from "@/graphql/options/conversations"
 import { graphqlFetch } from "@/lib/graphql-client"
 import type { ConversationParticipant } from "@/types/conversations"
+
 import { ContactAvatar } from "./ContactAvatar"
 
 interface DirectInfoPanelProps {

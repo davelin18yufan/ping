@@ -31,7 +31,7 @@ const SIZE_PX: Record<"sm" | "md" | "lg" | "xl", number> = {
     sm: 32,
     md: 40,
     lg: 48,
-    xl: 56
+    xl: 56,
 }
 
 export function ContactAvatar({
@@ -42,7 +42,7 @@ export function ContactAvatar({
     isFriend,
     size = "md",
     showEqBars = false,
-    isGroup = false
+    isGroup = false,
 }: ContactAvatarProps) {
     const sizePx = SIZE_PX[size]
     return (
@@ -86,14 +86,20 @@ export function ContactAvatar({
                         />
                     </div>
                     {/* Online status dot */}
-                    {!isGroup && <span
-                        className={cn(
-                            "absolute bottom-0 right-0 rounded-full border-2 border-background",
-                            size === "sm" ? "h-2 w-2" : size === "md" ? "h-2.5 w-2.5" : "h-3 w-3",
-                            isOnline ? "bg-green-500" : "bg-gray-400"
-                        )}
-                        aria-label={`Status: ${isOnline ? "online" : "offline"}`}
-                    />}
+                    {!isGroup && (
+                        <span
+                            className={cn(
+                                "absolute bottom-0 right-0 rounded-full border-2 border-background",
+                                size === "sm"
+                                    ? "h-2 w-2"
+                                    : size === "md"
+                                      ? "h-2.5 w-2.5"
+                                      : "h-3 w-3",
+                                isOnline ? "bg-green-500" : "bg-gray-400"
+                            )}
+                            aria-label={`Status: ${isOnline ? "online" : "offline"}`}
+                        />
+                    )}
                 </div>
             )}
 

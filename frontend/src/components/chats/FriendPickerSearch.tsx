@@ -119,7 +119,10 @@ export function FriendPickerSearch({
                 })}
 
                 {filtered.length === 0 && (
-                    <p className="text-sm text-center py-4" style={{ color: "var(--muted-foreground)" }}>
+                    <p
+                        className="text-sm text-center py-4"
+                        style={{ color: "var(--muted-foreground)" }}
+                    >
                         {query ? "No results found" : emptyMessage}
                     </p>
                 )}

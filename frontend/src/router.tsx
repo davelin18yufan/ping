@@ -31,7 +31,7 @@ export const getRouter = () => {
 
         // Enable View Transition API
         defaultViewTransition: true,
-        defaultStructuralSharing: true
+        defaultStructuralSharing: true,
     })
 
     setupRouterSsrQueryIntegration({ router, queryClient: rqContext.queryClient })

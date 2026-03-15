@@ -60,7 +60,14 @@ export function MessageBubble({
                 isOwn ? "bubble-card--send" : "bubble-card--receive"
             )}
         >
-            <p className="text-sm" style={{ overflowWrap: "anywhere", wordBreak: "break-word", whiteSpace: "pre-wrap" }}>
+            <p
+                className="text-sm"
+                style={{
+                    overflowWrap: "anywhere",
+                    wordBreak: "break-word",
+                    whiteSpace: "pre-wrap",
+                }}
+            >
                 {message.content}
             </p>
         </div>
@@ -76,7 +83,9 @@ export function MessageBubble({
             {isMinimal || !playAnimation ? (
                 // w-fit prevents this block wrapper from stretching to full column width,
                 // which would override bubble-card's width: fit-content sizing.
-                <div className="w-fit" style={{ opacity: isPending ? 0.6 : 1 }}>{bubbleContent}</div>
+                <div className="w-fit" style={{ opacity: isPending ? 0.6 : 1 }}>
+                    {bubbleContent}
+                </div>
             ) : (
                 <motion.div
                     className="w-fit"

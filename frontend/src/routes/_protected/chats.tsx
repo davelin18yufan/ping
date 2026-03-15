@@ -28,12 +28,12 @@ import { useCallback, useState } from "react"
 
 import { ConversationList } from "@/components/chats/ConversationList"
 import { GroupCreateModal } from "@/components/chats/GroupCreateModal"
+import { Button } from "@/components/ui/button"
 import { conversationsQueryOptions } from "@/graphql/options/conversations"
 import { useSocket } from "@/hooks/useSocket"
-import { uiStore } from "@/stores/uiStore"
 
 import "@styles/components/chats.css"
-import { Button } from "@/components/ui/button"
+import { uiStore } from "@/stores/uiStore"
 
 export const Route = createFileRoute("/_protected/chats")({
     // Prefetch conversation list for ALL chats routes (sidebar always needs it)
@@ -98,10 +98,7 @@ function ChatsLayout() {
     )
     return (
         // data-has-chat drives the mobile CSS: sidebar ↔ main pane swap
-        <div
-            className="chats-layout"
-            data-has-chat={hasActiveConversation ? "true" : "false"}
-        >
+        <div className="chats-layout" data-has-chat={hasActiveConversation ? "true" : "false"}>
             {/* ── Left Sidebar ──────────────────────────────────── */}
             <aside className="chats-layout__sidebar glass-card" aria-label="Conversations">
                 <div className="chats-layout__sidebar-header">

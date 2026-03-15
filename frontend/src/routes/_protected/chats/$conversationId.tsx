@@ -6,17 +6,13 @@
  *   - prefetchInfiniteQuery for message history (bottom-anchored VList).
  *
  * Auth is handled by the parent _protected layout route (beforeLoad).
- *
- * Renders the full-screen ChatRoom component with conversationId and currentUserId.
+ * Socket and CSS are initialized by the parent chats layout route.
  */
 
 import { createFileRoute } from "@tanstack/react-router"
 
-import { ChatRoom } from "@/components/chats/ChatRoom"
+import { ChatRoom } from "@components/chats/ChatRoom"
 import { conversationQueryOptions, messagesInfiniteOptions } from "@/graphql/options/conversations"
-import { useSocket } from "@/hooks/useSocket"
-
-import "@styles/components/chats.css"
 
 export const Route = createFileRoute("/_protected/chats/$conversationId")({
     loader: async ({ context: { queryClient }, params }) => {
@@ -32,9 +28,6 @@ export const Route = createFileRoute("/_protected/chats/$conversationId")({
 function ChatRoomPage() {
     const { conversationId } = Route.useParams()
     const { session } = Route.useRouteContext()
-
-    // Initialize real-time socket event handlers (idempotent singleton)
-    useSocket()
 
     return <ChatRoom conversationId={conversationId} currentUserId={session?.user?.id ?? ""} />
 }

@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as ProtectedRouteImport } from './routes/_protected'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthIndexRouteImport } from './routes/auth/index'
+import { Route as ProtectedChatsRouteImport } from './routes/_protected/chats'
 import { Route as ProtectedFriendsIndexRouteImport } from './routes/_protected/friends/index'
 import { Route as ProtectedChatsIndexRouteImport } from './routes/_protected/chats/index'
 import { Route as ProtectedChatsConversationIdRouteImport } from './routes/_protected/chats/$conversationId'
@@ -30,25 +31,31 @@ const AuthIndexRoute = AuthIndexRouteImport.update({
   path: '/auth/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProtectedChatsRoute = ProtectedChatsRouteImport.update({
+  id: '/chats',
+  path: '/chats',
+  getParentRoute: () => ProtectedRoute,
+} as any)
 const ProtectedFriendsIndexRoute = ProtectedFriendsIndexRouteImport.update({
   id: '/friends/',
   path: '/friends/',
   getParentRoute: () => ProtectedRoute,
 } as any)
 const ProtectedChatsIndexRoute = ProtectedChatsIndexRouteImport.update({
-  id: '/chats/',
-  path: '/chats/',
-  getParentRoute: () => ProtectedRoute,
+  id: '/',
+  path: '/',
+  getParentRoute: () => ProtectedChatsRoute,
 } as any)
 const ProtectedChatsConversationIdRoute =
   ProtectedChatsConversationIdRouteImport.update({
-    id: '/chats/$conversationId',
-    path: '/chats/$conversationId',
-    getParentRoute: () => ProtectedRoute,
+    id: '/$conversationId',
+    path: '/$conversationId',
+    getParentRoute: () => ProtectedChatsRoute,
   } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/chats': typeof ProtectedChatsRouteWithChildren
   '/auth/': typeof AuthIndexRoute
   '/chats/$conversationId': typeof ProtectedChatsConversationIdRoute
   '/chats/': typeof ProtectedChatsIndexRoute
@@ -65,6 +72,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/_protected': typeof ProtectedRouteWithChildren
+  '/_protected/chats': typeof ProtectedChatsRouteWithChildren
   '/auth/': typeof AuthIndexRoute
   '/_protected/chats/$conversationId': typeof ProtectedChatsConversationIdRoute
   '/_protected/chats/': typeof ProtectedChatsIndexRoute
@@ -72,13 +80,20 @@ export interface FileRoutesById {
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/auth/' | '/chats/$conversationId' | '/chats/' | '/friends/'
+  fullPaths:
+    | '/'
+    | '/chats'
+    | '/auth/'
+    | '/chats/$conversationId'
+    | '/chats/'
+    | '/friends/'
   fileRoutesByTo: FileRoutesByTo
   to: '/' | '/auth' | '/chats/$conversationId' | '/chats' | '/friends'
   id:
     | '__root__'
     | '/'
     | '/_protected'
+    | '/_protected/chats'
     | '/auth/'
     | '/_protected/chats/$conversationId'
     | '/_protected/chats/'
@@ -114,6 +129,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/_protected/chats': {
+      id: '/_protected/chats'
+      path: '/chats'
+      fullPath: '/chats'
+      preLoaderRoute: typeof ProtectedChatsRouteImport
+      parentRoute: typeof ProtectedRoute
+    }
     '/_protected/friends/': {
       id: '/_protected/friends/'
       path: '/friends'
@@ -123,30 +145,42 @@ declare module '@tanstack/react-router' {
     }
     '/_protected/chats/': {
       id: '/_protected/chats/'
-      path: '/chats'
+      path: '/'
       fullPath: '/chats/'
       preLoaderRoute: typeof ProtectedChatsIndexRouteImport
-      parentRoute: typeof ProtectedRoute
+      parentRoute: typeof ProtectedChatsRoute
     }
     '/_protected/chats/$conversationId': {
       id: '/_protected/chats/$conversationId'
-      path: '/chats/$conversationId'
+      path: '/$conversationId'
       fullPath: '/chats/$conversationId'
       preLoaderRoute: typeof ProtectedChatsConversationIdRouteImport
-      parentRoute: typeof ProtectedRoute
+      parentRoute: typeof ProtectedChatsRoute
     }
   }
 }
 
-interface ProtectedRouteChildren {
+interface ProtectedChatsRouteChildren {
   ProtectedChatsConversationIdRoute: typeof ProtectedChatsConversationIdRoute
   ProtectedChatsIndexRoute: typeof ProtectedChatsIndexRoute
+}
+
+const ProtectedChatsRouteChildren: ProtectedChatsRouteChildren = {
+  ProtectedChatsConversationIdRoute: ProtectedChatsConversationIdRoute,
+  ProtectedChatsIndexRoute: ProtectedChatsIndexRoute,
+}
+
+const ProtectedChatsRouteWithChildren = ProtectedChatsRoute._addFileChildren(
+  ProtectedChatsRouteChildren,
+)
+
+interface ProtectedRouteChildren {
+  ProtectedChatsRoute: typeof ProtectedChatsRouteWithChildren
   ProtectedFriendsIndexRoute: typeof ProtectedFriendsIndexRoute
 }
 
 const ProtectedRouteChildren: ProtectedRouteChildren = {
-  ProtectedChatsConversationIdRoute: ProtectedChatsConversationIdRoute,
-  ProtectedChatsIndexRoute: ProtectedChatsIndexRoute,
+  ProtectedChatsRoute: ProtectedChatsRouteWithChildren,
   ProtectedFriendsIndexRoute: ProtectedFriendsIndexRoute,
 }
 

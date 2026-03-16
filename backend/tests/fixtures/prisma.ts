@@ -64,6 +64,15 @@ export function createTestPrismaClient(): PrismaClient {
  * ```
  */
 export async function cleanupTestPrisma(prisma: PrismaClient): Promise<void> {
+    // Safety guard: refuse to run destructive cleanup if TEST_DATABASE_URL is not set.
+    // This prevents accidentally wiping the development database when running tests.
+    if (!process.env.TEST_DATABASE_URL) {
+        throw new Error(
+            "TEST_DATABASE_URL is not set. Refusing to run test cleanup on the development database. " +
+                "Set TEST_DATABASE_URL in .env to use a dedicated test database."
+        )
+    }
+
     try {
         // Delete in order respecting foreign key constraints
         await prisma.session.deleteMany()

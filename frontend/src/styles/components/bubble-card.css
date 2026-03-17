@@ -23,11 +23,11 @@
         /* Asymmetric rounded corners (organic feel) */
         border-radius: 1.5rem 1.2rem 1.5rem 1.2rem;
 
-        /* Diffusion shadow (reduced blur range) */
+        /* Diffusion shadow using theme-aware tokens */
         box-shadow:
-            0 4px 16px oklch(0 0 0 / 0.06),
-            0 8px 32px oklch(0 0 0 / 0.1),
-            0 12px 48px oklch(0 0 0 / 0.12);
+            0 4px 16px var(--shadow-ambient),
+            0 8px 32px var(--shadow-diffuse),
+            0 12px 48px var(--shadow-deep);
 
         /* Layout */
         padding: 1.5rem;
@@ -47,11 +47,11 @@
         /* Cloud floating effect (reduced lift) */
         transform: translateY(-4px);
 
-        /* Enhanced diffusion shadow (reduced blur range) */
+        /* Enhanced diffusion shadow using theme-aware tokens */
         box-shadow:
-            0 6px 20px oklch(0 0 0 / 0.08),
-            0 12px 40px oklch(0 0 0 / 0.12),
-            0 18px 60px oklch(0 0 0 / 0.15);
+            0 6px 20px var(--shadow-ambient),
+            0 12px 40px var(--shadow-diffuse),
+            0 18px 60px var(--shadow-deep);
 
         /* Slightly brighter */
         background: oklch(from var(--card) calc(l + 0.02) c h / 0.6);
@@ -64,9 +64,9 @@
 
         /* Shadow slightly reduced */
         box-shadow:
-            0 3px 12px oklch(0 0 0 / 0.06),
-            0 6px 24px oklch(0 0 0 / 0.1),
-            0 9px 36px oklch(0 0 0 / 0.12);
+            0 3px 12px var(--shadow-ambient),
+            0 6px 24px var(--shadow-diffuse),
+            0 9px 36px var(--shadow-deep);
     }
 
     /* ============================================
@@ -76,12 +76,20 @@
         /* Asymmetric corners: small bottom-right (tail) */
         border-radius: 1.5rem 1.5rem 0.5rem 1.5rem;
 
-        /* Primary color background */
-        background: oklch(from var(--primary) l c h / 0.15);
+        /* Gradient glass with theme-variant tint support */
+        background: linear-gradient(
+            135deg,
+            oklch(from var(--bubble-send-tint, var(--primary)) l c h / 0.35),
+            oklch(from var(--bubble-send-tint, var(--primary)) calc(l - 0.05) c h / 0.25)
+        );
+
+        /* Faint primary glow + shadow tokens */
+        box-shadow:
+            0 0 20px oklch(from var(--bubble-send-tint, var(--primary)) l c h / 0.15),
+            0 4px 16px var(--shadow-ambient);
 
         /* Shrink to content, cap at 70% of parent */
         width: fit-content;
-        /* max-width: 70%; */
 
         /* Align to right */
         margin-left: auto;
@@ -89,6 +97,9 @@
 
     .bubble-card--send:hover {
         border-radius: 1.8rem 1.8rem 0.8rem 1.8rem;
+        box-shadow:
+            0 0 28px oklch(from var(--bubble-send-tint, var(--primary)) l c h / 0.22),
+            0 6px 20px var(--shadow-diffuse);
     }
 
     .bubble-card--send:active {
@@ -102,8 +113,8 @@
         /* Asymmetric corners: small bottom-left (tail) */
         border-radius: 1.5rem 1.5rem 1.5rem 0.5rem;
 
-        /* Card background */
-        background: oklch(from var(--card) l c h / 0.5);
+        /* Card background — higher opacity for legibility in light mode */
+        background: oklch(from var(--bubble-receive-tint, var(--card)) l c h / 0.65);
 
         /* Shrink to content, cap at 70% of parent */
         width: fit-content;

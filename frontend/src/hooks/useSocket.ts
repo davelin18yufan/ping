@@ -48,8 +48,34 @@ export function useSocket() {
         // ------------------------------------------------------------------
         socket.on(
             "message:new",
-            ({ message, conversationId }: { message: Message; conversationId: string }) => {
-                // Append message to the last infinite query page
+            ({ message, conversationId }: { message: Record<string, unknown>; conversationId: string }) => {
+                // Backend sends senderId string; we need sender: ConversationUser
+                const conversations = queryClient.getQueryData<Conversation[]>(conversationsQueryOptions.queryKey)
+                const conv = conversations?.find((c) => c.id === conversationId)
+                const senderId =
+                    (message.sender as { id?: string } | undefined)?.id ??
+                    (message.senderId as string | undefined) ??
+                    ""
+                const participant = conv?.participants.find((p) => p.user.id === senderId)
+
+                const enrichedMessage: Message = {
+                    id: message.id as string,
+                    conversationId: message.conversationId as string,
+                    content: message.content as string | null,
+                    messageType: message.messageType as Message["messageType"],
+                    imageUrl: message.imageUrl as string | null,
+                    createdAt: message.createdAt as string,
+                    status: message.status as Message["status"],
+                    sender: participant?.user ?? {
+                        id: senderId,
+                        name: "Unknown",
+                        email: "",
+                        image: null,
+                        isOnline: false,
+                    },
+                }
+
+                // Append to infinite query page
                 queryClient.setQueryData(
                     messagesInfiniteOptions(conversationId).queryKey,
                     (old: { pages: MessagePage[]; pageParams: unknown[] } | undefined) => {
@@ -61,14 +87,14 @@ export function useSocket() {
                                 ...old.pages.slice(0, -1),
                                 {
                                     ...lastPage,
-                                    messages: [...lastPage.messages, message],
+                                    messages: [...lastPage.messages, enrichedMessage],
                                 },
                             ],
                         }
                     }
                 )
 
-                // Patch lastMessage and conditionally increment unreadCount
+                // Patch conversation list
                 queryClient.setQueryData(
                     conversationsQueryOptions.queryKey,
                     (old: Conversation[] | undefined) => {
@@ -78,7 +104,7 @@ export function useSocket() {
                             const isActive = uiStore.state.activeConversationId === conversationId
                             return {
                                 ...conv,
-                                lastMessage: message,
+                                lastMessage: enrichedMessage,
                                 unreadCount: isActive ? conv.unreadCount : conv.unreadCount + 1,
                             }
                         })
@@ -152,6 +178,41 @@ export function useSocket() {
                 void queryClient.invalidateQueries({
                     queryKey: ["conversation", conversationId],
                 })
+            }
+        )
+
+        // ------------------------------------------------------------------
+        // message:read
+        // Another client marked messages in a conversation as read.
+        // Update every message the reader did NOT send to READ status so
+        // the sender sees the correct delivery indicator.
+        // ------------------------------------------------------------------
+        socket.on(
+            "message:read",
+            ({
+                conversationId,
+                readByUserId,
+            }: {
+                conversationId: string
+                readByUserId: string
+            }) => {
+                queryClient.setQueryData(
+                    messagesInfiniteOptions(conversationId).queryKey,
+                    (old: { pages: MessagePage[]; pageParams: unknown[] } | undefined) => {
+                        if (!old) return old
+                        return {
+                            ...old,
+                            pages: old.pages.map((page) => ({
+                                ...page,
+                                messages: page.messages.map((msg) =>
+                                    msg.sender.id !== readByUserId
+                                        ? { ...msg, status: "READ" as const }
+                                        : msg
+                                ),
+                            })),
+                        }
+                    }
+                )
             }
         )
 

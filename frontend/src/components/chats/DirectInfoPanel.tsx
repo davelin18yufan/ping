@@ -19,14 +19,16 @@ import { BLOCK_USER_MUTATION } from "@/graphql/options/conversations"
 import { graphqlFetch } from "@/lib/graphql-client"
 import type { ConversationParticipant } from "@/types/conversations"
 
+import { ChatSettings } from "./ChatSettings"
 import { ContactAvatar } from "./ContactAvatar"
 
 interface DirectInfoPanelProps {
     participant: ConversationParticipant
+    conversationId: string
     onClose: () => void
 }
 
-export function DirectInfoPanel({ participant, onClose }: DirectInfoPanelProps) {
+export function DirectInfoPanel({ participant, conversationId, onClose }: DirectInfoPanelProps) {
     const queryClient = useQueryClient()
     const navigate = useNavigate()
 
@@ -97,6 +99,11 @@ export function DirectInfoPanel({ participant, onClose }: DirectInfoPanelProps) 
                         </p>
                     </div>
                 </div>
+            </div>
+
+            {/* Customize */}
+            <div className="px-4 py-3 border-t border-border shrink-0">
+                <ChatSettings conversationId={conversationId} />
             </div>
 
             {/* Block user */}

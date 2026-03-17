@@ -18,7 +18,12 @@ import { ArrowLeft, Info, Users } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useState } from "react"
 
-import { SEND_MESSAGE_MUTATION, conversationQueryOptions } from "@/graphql/options/conversations"
+import {
+    MARK_READ_MUTATION,
+    SEND_MESSAGE_MUTATION,
+    conversationQueryOptions,
+    conversationsQueryOptions,
+} from "@/graphql/options/conversations"
 import { graphqlFetch } from "@/lib/graphql-client"
 import { cn } from "@/lib/utils"
 import { uiStore } from "@/stores/uiStore"
@@ -27,7 +32,9 @@ import type { Conversation, Message } from "@/types/conversations"
 import { DirectInfoPanel } from "./DirectInfoPanel"
 import { GroupInfoPanel } from "./GroupInfoPanel"
 import { MessageInput } from "./MessageInput"
-import { MessageList } from "./MessageList"
+import { ContactAvatar } from "./ContactAvatar"
+import { MessageList, type SonicPingEvent } from "./MessageList"
+import { SonicPingButton } from "./SonicPingButton"
 
 interface ChatRoomProps {
     conversationId: string
@@ -39,6 +46,7 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
 
     const [showInfo, setShowInfo] = useState(false)
     const [sendError, setSendError] = useState<string | null>(null)
+    const [sonicPingEvents, setSonicPingEvents] = useState<SonicPingEvent[]>([])
 
     const { data: conversation } = useQuery(conversationQueryOptions(conversationId))
 
@@ -49,6 +57,36 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
         return () => {
             uiStore.setState((s) => ({ ...s, activeConversationId: null }))
         }
+    }, [conversationId])
+
+    // Mark messages as read whenever the active conversation changes.
+    const markReadMutation = useMutation({
+        mutationFn: () =>
+            graphqlFetch<{ markMessagesAsRead: boolean }>(MARK_READ_MUTATION, {
+                conversationId,
+            }),
+        onSuccess: () => {
+            // Zero out unread badge for this conversation in the list cache.
+            queryClient.setQueryData(
+                conversationsQueryOptions.queryKey,
+                (old: Conversation[] | undefined) =>
+                    old?.map((c) =>
+                        c.id === conversationId ? { ...c, unreadCount: 0 } : c
+                    )
+            )
+        },
+    })
+
+    useEffect(() => {
+        markReadMutation.mutate()
+        // Only re-fire when the conversation changes; markReadMutation reference
+        // is stable across renders so it is safe to omit from deps.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [conversationId])
+
+    // Reset sonic ping events when the active conversation changes
+    useEffect(() => {
+        setSonicPingEvents([])
     }, [conversationId])
 
     // Send message mutation (mutationKey powers useMutationState in MessageList)
@@ -81,6 +119,17 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
         ? conversation?.participants.find((p) => p.user.id !== currentUserId)
         : null
 
+    const handlePingSent = () => {
+        setSonicPingEvents((prev) => [
+            ...prev,
+            {
+                id: `sonic-ping-${Date.now()}`,
+                timestamp: new Date().toISOString(),
+                recipientName: otherParticipant?.user.name ?? "them",
+            },
+        ])
+    }
+
     const displayName = isOneToOne
         ? (otherParticipant?.user.name ?? "Chat")
         : (conversation?.name ?? "Group")
@@ -90,7 +139,7 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
     return (
         <div
             className="chat-room-outer relative flex flex-col"
-            style={{ height: "calc(100vh - 4rem)" }}
+            style={{ height: "100%" }}
         >
             {/* Header */}
             <div
@@ -108,6 +157,28 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                     <ArrowLeft size={18} aria-hidden="true" />
                 </Link>
 
+                {/* Avatar — shown for both 1:1 and group conversations */}
+                {isOneToOne && otherParticipant ? (
+                    <ContactAvatar
+                        userId={otherParticipant.user.id}
+                        name={otherParticipant.user.name ?? displayName}
+                        image={otherParticipant.user.image ?? null}
+                        isOnline={otherParticipant.user.isOnline}
+                        isFriend={otherParticipant.isFriend}
+                        size="sm"
+                    />
+                ) : !isOneToOne ? (
+                    <ContactAvatar
+                        userId={conversationId}
+                        name={displayName}
+                        image={null}
+                        isOnline={false}
+                        isFriend={true}
+                        size="sm"
+                        isGroup={true}
+                    />
+                ) : null}
+
                 <div className="flex-1 flex flex-col min-w-0">
                     <h2 className="font-semibold text-sm truncate min-w-0">{displayName}</h2>
                     {isOneToOne && otherParticipant && (
@@ -118,6 +189,8 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                 </div>
 
                 <div className="flex items-center gap-1">
+                    {/* Sonic Ping — only for 1:1 conversations */}
+                    {isOneToOne && <SonicPingButton conversationId={conversationId} onPingSent={handlePingSent} />}
                     {conversation && (
                         <button
                             type="button"
@@ -163,6 +236,7 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                     conversationId={conversationId}
                     currentUserId={currentUserId}
                     conversationType={conversationType}
+                    sonicPingEvents={sonicPingEvents}
                 />
             </motion.div>
 
@@ -191,6 +265,7 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                     <DirectInfoPanel
                         key="direct-info-panel"
                         participant={otherParticipant}
+                        conversationId={conversationId}
                         onClose={() => setShowInfo(false)}
                     />
                 )}

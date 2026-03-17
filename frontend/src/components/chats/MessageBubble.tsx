@@ -83,29 +83,34 @@ export function MessageBubble({
             {isMinimal || !playAnimation ? (
                 // w-fit prevents this block wrapper from stretching to full column width,
                 // which would override bubble-card's width: fit-content sizing.
-                <div className="w-fit" style={{ opacity: isPending ? 0.6 : 1 }}>
+                // Timestamp is nested inside so it never extends wider than the bubble.
+                <div className="w-fit flex flex-col" style={{ opacity: isPending ? 0.6 : 1 }}>
                     {bubbleContent}
+                    <div
+                        className="flex items-center gap-1 tabular-nums text-[0.625rem] text-muted-foreground justify-end"
+                        suppressHydrationWarning
+                    >
+                        {formatMessageTime(message.createdAt)}
+                        {isOwn && <StatusIcon status={message.status} />}
+                    </div>
                 </div>
             ) : (
                 <motion.div
-                    className="w-fit"
+                    className="w-fit flex flex-col"
                     initial={isOwn ? { x: 16, opacity: 0 } : { y: 10, opacity: 0 }}
                     animate={{ x: 0, y: 0, opacity: isPending ? 0.6 : 1 }}
                     transition={{ duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}
                 >
                     {bubbleContent}
+                    <div
+                        className="flex items-center gap-1 tabular-nums text-[0.625rem] text-muted-foreground justify-end"
+                        suppressHydrationWarning
+                    >
+                        {formatMessageTime(message.createdAt)}
+                        {isOwn && <StatusIcon status={message.status} />}
+                    </div>
                 </motion.div>
             )}
-            <div
-                className={cn(
-                    "flex items-center gap-1 mt-0.5 tabular-nums text-[0.625rem] text-muted-foreground",
-                    isOwn ? "justify-end" : "justify-start"
-                )}
-                suppressHydrationWarning
-            >
-                {formatMessageTime(message.createdAt)}
-                {isOwn && <StatusIcon status={message.status} />}
-            </div>
         </div>
     )
 }

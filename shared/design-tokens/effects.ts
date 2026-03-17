@@ -57,6 +57,14 @@ export const shadowHighlight = {
     lg: "oklch(1 0 0 / 0.12)",
 } as const
 
+export const shadows = {
+    ambient: "var(--shadow-ambient)",
+    diffuse: "var(--shadow-diffuse)",
+    deep: "var(--shadow-deep)",
+} as const
+
+export type ShadowKey = keyof typeof shadows
+
 export type GlassBlur = keyof typeof effects.glass.blur
 export type GlassOpacity = keyof typeof effects.glass.opacity
 export type GlassSaturation = keyof typeof effects.glass.saturation

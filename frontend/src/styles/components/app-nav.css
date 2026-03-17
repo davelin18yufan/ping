@@ -1,0 +1,168 @@
+/**
+ * App Nav Sidebar — fixed 56px icon rail on the left edge.
+ *
+ * Provides app-level navigation (Chats, Friends, Settings) as a
+ * persistent vertical sidebar. Tooltips appear on hover.
+ *
+ * Tokens used:
+ *   --card, --border, --primary, --muted-foreground, --foreground
+ *   --shadow-ambient (phase 1 token)
+ *
+ * All transitions use transform/opacity only.
+ * prefers-reduced-motion: reduce disables transitions.
+ */
+
+@layer components {
+    .app-nav {
+        position: fixed;
+        left: 0;
+        top: 0;
+        height: 100vh;
+        width: 56px;
+        z-index: 40;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 1rem 0;
+        gap: 0.25rem;
+        background: oklch(from var(--card) l c h / 0.6);
+        backdrop-filter: blur(20px) saturate(1.5);
+        -webkit-backdrop-filter: blur(20px) saturate(1.5);
+        border-right: 1px solid oklch(from var(--border) l c h / 0.3);
+        box-shadow: 2px 0 16px var(--shadow-ambient);
+    }
+
+    .app-nav__top {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+        width: 100%;
+    }
+
+    .app-nav__item {
+        position: relative;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: 40px;
+        height: 40px;
+        border-radius: 12px;
+        color: var(--muted-foreground);
+        transition:
+            background var(--duration-fast, 150ms) var(--ease-out, ease-out),
+            color var(--duration-fast, 150ms) var(--ease-out, ease-out),
+            transform var(--duration-fast, 150ms) var(--ease-out, ease-out),
+            box-shadow var(--duration-fast, 150ms) var(--ease-out, ease-out);
+        cursor: pointer;
+        background: transparent;
+        border: none;
+        text-decoration: none;
+    }
+
+    .app-nav__item:hover {
+        background: oklch(from var(--primary) l c h / 0.12);
+        color: var(--primary);
+        transform: scale(1.05);
+    }
+
+    .app-nav__item:focus-visible {
+        outline: 2px solid var(--ring, var(--primary));
+        outline-offset: 2px;
+    }
+
+    .app-nav__item--active {
+        background: oklch(from var(--primary) l c h / 0.18);
+        color: var(--primary);
+        box-shadow: 0 0 12px oklch(from var(--primary) l c h / 0.25);
+    }
+
+    .app-nav__item-tooltip {
+        position: absolute;
+        left: calc(100% + 8px);
+        top: 50%;
+        transform: translateY(-50%);
+        background: oklch(from var(--card) l c h / 0.95);
+        backdrop-filter: blur(8px);
+        -webkit-backdrop-filter: blur(8px);
+        color: var(--foreground);
+        font-size: 0.75rem;
+        font-weight: 500;
+        padding: 4px 8px;
+        border-radius: 6px;
+        white-space: nowrap;
+        pointer-events: none;
+        opacity: 0;
+        transition: opacity 150ms ease-out;
+        border: 1px solid oklch(from var(--border) l c h / 0.4);
+        box-shadow: 0 2px 8px var(--shadow-ambient);
+        z-index: 50;
+    }
+
+    .app-nav__item:hover .app-nav__item-tooltip {
+        opacity: 1;
+    }
+
+    .app-nav__bottom {
+        margin-top: auto;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.25rem;
+    }
+
+    .app-nav__avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        overflow: hidden;
+        cursor: pointer;
+        transition: transform var(--duration-fast, 150ms) var(--ease-out, ease-out);
+        border: 2px solid oklch(from var(--border) l c h / 0.4);
+    }
+
+    .app-nav__avatar:hover {
+        transform: scale(1.05);
+    }
+
+    /* ── Reduced Motion ── */
+    @media (prefers-reduced-motion: reduce) {
+        .app-nav__item,
+        .app-nav__avatar {
+            transition: none;
+        }
+
+        .app-nav__item-tooltip {
+            transition: none;
+        }
+    }
+}
+
+/* Content area padding — offset by fixed sidebar width */
+.app-nav-content {
+    padding-left: 56px;
+}
+
+
+/* ── Mobile: hide nav rail when inside a chat room ──────────────────────────
+   Below 768px the full screen is needed for the conversation.
+   The [data-in-chat-room] attribute is set by ProtectedLayout when the
+   pathname matches /chats/:conversationId.
+   ── */
+@media (max-width: 767px) {
+    [data-in-chat-room] .app-nav {
+        display: none;
+    }
+
+    /* Remove the 56px left offset so the chat room fills edge-to-edge */
+    [data-in-chat-room] .app-nav-content {
+        padding-left: 0;
+    }
+}
+
+/* Safari: no backdrop-filter */
+@supports not (backdrop-filter: blur(20px)) {
+    .app-nav {
+        background: oklch(from var(--card) l c h / 0.97);
+    }
+}

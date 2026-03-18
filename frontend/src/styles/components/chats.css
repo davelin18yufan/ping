@@ -199,6 +199,9 @@
         flex-shrink: 1;
         display: flex;
         flex-direction: column;
+        /* Container query context: @container sidebar rules respond to this element's width */
+        container-type: inline-size;
+        container-name: sidebar;
         /* Override glass-card defaults */
         border-radius: 0 !important;
         transform: none !important;
@@ -295,11 +298,13 @@
 
     /* Active conversation row highlight */
     .conversation-item--active {
-        background: oklch(from var(--primary) l c h / 0.18) !important;
+        background: linear-gradient(
+            90deg,
+            oklch(from var(--primary) l c h / 0.18) 0%,
+            oklch(from var(--card) l c h / 0.5) 100%
+        ) !important;
         border-left-color: var(--primary) !important;
-        box-shadow:
-            inset 3px 0 0 var(--primary),
-            inset 4px 0 16px oklch(from var(--primary) l c h / 0.3) !important;
+        box-shadow: inset 3px 0 0 0 var(--primary) !important;
     }
 
     /* ── Mobile: Full-Screen Stack ─────────────────────────── */
@@ -404,6 +409,16 @@
        Conversation Item (row in list)
        ============================================================ */
 
+    /* Button reset for ConversationItem (accessibility fix: div -> button) */
+    button.conversation-item {
+        appearance: none;
+        border: none;
+        font: inherit;
+        cursor: pointer;
+        text-align: left;
+        width: 100%;
+    }
+
     .conversation-item {
         display: flex;
         flex-direction: row;
@@ -414,7 +429,12 @@
         border-radius: var(--radius-lg, 0.75rem);
         border: 1px solid oklch(1 0 0 / 0.03);
         border-left: 3px solid transparent;
-        background: oklch(from var(--card) l c h / 0.4);
+        /* Subtle left-to-right depth gradient */
+        background: linear-gradient(
+            90deg,
+            oklch(from var(--card) l c h / 0.55) 0%,
+            oklch(from var(--card) l c h / 0.35) 100%
+        );
         position: relative;
         transition:
             background var(--duration-fast, 150ms) var(--ease-out, ease-out),
@@ -424,12 +444,23 @@
         transform: none;
     }
 
+    /* Online contact: warm primary glow on left edge */
+    .conversation-item[data-online="true"] {
+        background: linear-gradient(
+            90deg,
+            oklch(from var(--primary) calc(l - 0.35) c h / 0.12) 0%,
+            oklch(from var(--card) l c h / 0.35) 100%
+        );
+    }
+
     .conversation-item:hover {
-        background: oklch(from var(--card) calc(l + 0.05) c h / 0.7);
+        background: linear-gradient(
+            90deg,
+            oklch(from var(--primary) l c h / 0.15) 0%,
+            oklch(from var(--card) calc(l + 0.05) c h / 0.6) 100%
+        );
         transform: none;
-        box-shadow:
-            inset 3px 0 0 oklch(from var(--primary) l c h / 0.6),
-            inset 4px 0 12px oklch(from var(--primary) l c h / 0.2);
+        box-shadow: inset 3px 0 0 0 oklch(from var(--primary) l c h / 0.5);
     }
 
     .conversation-item:hover .conversation-item__avatar {
@@ -451,9 +482,20 @@
         border-left-color: oklch(0.78 0.15 85 / 0.5);
     }
 
-    /* Unread conversation — primary left border highlight + pulsing glow bar */
+    /* Unread conversation — energized row with stronger left gradient */
     .conversation-item--unread {
         border-left-color: oklch(from var(--primary) l c h / 0.6);
+        background: linear-gradient(
+            90deg,
+            oklch(from var(--primary) l c h / 0.22) 0%,
+            oklch(from var(--card) l c h / 0.45) 100%
+        );
+    }
+
+    /* Unread preview text — stronger weight for legibility */
+    .conversation-item--unread .conversation-item__preview {
+        font-weight: 500;
+        color: var(--foreground);
     }
 
     .conversation-item--unread::before {
@@ -1079,5 +1121,379 @@
         .sonic-ping-event__badge {
             box-shadow: none;
         }
+    }
+
+    /* ============================================================
+       Sonic Ping Conversation Item Indicator
+       ============================================================ */
+
+    /* Conversation row with unread Sonic Ping: ritual-nudge left border */
+    .conversation-item--sonic-ping {
+        border-left-color: var(--ritual-nudge) !important;
+    }
+
+    /* Avatar ripple ring for Sonic Ping conversations */
+    .conversation-item--sonic-ping .conversation-item__avatar {
+        position: relative;
+    }
+
+    .conversation-item--sonic-ping .conversation-item__avatar::after {
+        content: "";
+        position: absolute;
+        inset: -3px;
+        border-radius: 50%;
+        border: 2px solid var(--ritual-nudge);
+        box-shadow: 0 0 8px oklch(from var(--ritual-nudge) l c h / 0.5);
+        animation: ritual-nudge-pulse 1.5s ease-in-out infinite;
+        pointer-events: none;
+    }
+
+    @keyframes ritual-nudge-pulse {
+        0%,
+        100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.4;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .conversation-item--sonic-ping .conversation-item__avatar::after {
+            animation: none;
+        }
+    }
+
+    [data-aesthetic="minimal"] .conversation-item--sonic-ping .conversation-item__avatar::after {
+        animation: none;
+        box-shadow: none;
+    }
+
+    /* ============================================================
+       Sonic Ping Chat Room Animations
+       ============================================================ */
+
+    /* Sender: screen shake */
+    @keyframes chat-room-shake {
+        0%,
+        100% {
+            transform: translateX(0);
+        }
+        20% {
+            transform: translateX(-4px);
+        }
+        40% {
+            transform: translateX(4px);
+        }
+        60% {
+            transform: translateX(-3px);
+        }
+        80% {
+            transform: translateX(3px);
+        }
+    }
+
+    .chat-room-outer.is-shaking {
+        animation: chat-room-shake 300ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+
+    /* Incoming: floating overlay text */
+    @keyframes sonic-overlay-fade {
+        0% {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        15% {
+            opacity: 0.9;
+            transform: translateY(0);
+        }
+        70% {
+            opacity: 0.9;
+            transform: translateY(0);
+        }
+        100% {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+    }
+
+    .sonic-incoming-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        z-index: 20;
+    }
+
+    .sonic-incoming-overlay__text {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--foreground);
+        opacity: 0;
+        animation: sonic-overlay-fade 1.5s ease-out forwards;
+        text-shadow: 0 0 20px oklch(from var(--ritual-nudge) l c h / 0.6);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .chat-room-outer.is-shaking {
+            animation: none;
+        }
+
+        .sonic-incoming-overlay__text {
+            animation: none;
+            opacity: 0.85;
+        }
+    }
+
+    [data-aesthetic="minimal"] .chat-room-outer.is-shaking {
+        animation: none;
+    }
+
+    [data-aesthetic="minimal"] .sonic-incoming-overlay__text {
+        animation: none;
+        opacity: 0;
+    }
+}
+
+/* ============================================================
+   Search Bar + Filter Chips
+   ============================================================ */
+
+.chats-layout__search-wrapper {
+    padding: 0 var(--spacing-3) var(--spacing-2);
+}
+
+.chats-layout__search-input-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    background: oklch(from var(--card) l c h / 0.4);
+    border: 1px solid oklch(from var(--border) l c h / 0.5);
+    border-radius: var(--radius);
+    padding: 0 var(--spacing-3);
+    height: 34px;
+    transition:
+        border-color 150ms ease-out,
+        background 150ms ease-out;
+}
+
+.chats-layout__search-input-row:focus-within {
+    border-color: oklch(from var(--primary) l c h / 0.6);
+    background: oklch(from var(--card) l c h / 0.6);
+    box-shadow: 0 0 0 2px oklch(from var(--primary) l c h / 0.12);
+}
+
+.chats-layout__search-icon {
+    color: var(--muted-foreground);
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+.chats-layout__search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    font-size: 0.8125rem;
+    color: var(--foreground);
+    min-width: 0;
+}
+
+.chats-layout__search-input::placeholder {
+    color: var(--muted-foreground);
+}
+
+/* Remove browser default search input clear button */
+.chats-layout__search-input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.chats-layout__search-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: none;
+    background: oklch(from var(--muted-foreground) l c h / 0.2);
+    color: var(--muted-foreground);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 120ms ease-out;
+}
+
+.chats-layout__search-clear:hover {
+    background: oklch(from var(--muted-foreground) l c h / 0.35);
+}
+
+.chats-layout__search-clear:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+}
+
+/* Filter chips row */
+.chats-layout__filters {
+    display: flex;
+    gap: var(--spacing-1\.5);
+    padding: 0 var(--spacing-3) var(--spacing-2);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.chats-layout__filters::-webkit-scrollbar {
+    display: none;
+}
+
+.chats-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 1px solid oklch(from var(--border) l c h / 0.5);
+    background: oklch(from var(--card) l c h / 0.3);
+    color: var(--muted-foreground);
+    transition:
+        background 150ms ease-out,
+        border-color 150ms ease-out,
+        color 150ms ease-out,
+        box-shadow 150ms ease-out;
+    flex-shrink: 0;
+}
+
+.chats-filter-chip:hover {
+    background: oklch(from var(--card) l c h / 0.55);
+    color: var(--foreground);
+    border-color: oklch(from var(--primary) l c h / 0.4);
+}
+
+.chats-filter-chip:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.chats-filter-chip--active {
+    background: oklch(from var(--primary) l c h / 0.18);
+    border-color: oklch(from var(--primary) l c h / 0.6);
+    color: var(--primary);
+    box-shadow: 0 0 8px oklch(from var(--primary) l c h / 0.2);
+}
+
+.chats-filter-chip--active:hover {
+    background: oklch(from var(--primary) l c h / 0.25);
+    box-shadow: 0 0 12px oklch(from var(--primary) l c h / 0.3);
+}
+
+/* Unread chip active: uses ritual-nudge color for consistency with unread badges */
+.chats-filter-chip[aria-pressed="true"]:first-child {
+    background: oklch(from var(--ritual-nudge) l c h / 0.15);
+    border-color: oklch(from var(--ritual-nudge) l c h / 0.5);
+    color: var(--ritual-nudge);
+    box-shadow: 0 0 8px oklch(from var(--ritual-nudge) l c h / 0.2);
+}
+
+/* Filter toggle button — always present in DOM, hidden via CSS on wide sidebar */
+.chats-layout__filter-toggle-row {
+    display: none; /* hidden by default; shown via @container below */
+    padding: 0 var(--spacing-3) var(--spacing-2);
+}
+
+.chats-layout__filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-1\.5);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid oklch(from var(--border) l c h / 0.5);
+    background: oklch(from var(--card) l c h / 0.3);
+    color: var(--muted-foreground);
+    transition:
+        background 150ms ease-out,
+        border-color 150ms ease-out,
+        color 150ms ease-out;
+}
+
+.chats-layout__filter-toggle:hover,
+.chats-layout__filter-toggle--open {
+    background: oklch(from var(--card) l c h / 0.55);
+    color: var(--foreground);
+}
+
+.chats-layout__filter-toggle--active {
+    border-color: oklch(from var(--primary) l c h / 0.5);
+    color: var(--primary);
+}
+
+.chats-layout__filter-toggle-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    background: oklch(from var(--primary) l c h / 0.25);
+    color: var(--primary);
+}
+
+/* ── Container query: narrow sidebar (<= 275px) ─────────────────── */
+/* Chips switch to a collapsible dropdown panel driven by filterPanelOpen state */
+
+@container sidebar (max-width: 275px) {
+    /* Show the toggle button row */
+    .chats-layout__filter-toggle-row {
+        display: flex;
+    }
+
+    /* Hide chips by default; reveal when panel is open (.chats-layout__filters--open) */
+    .chats-layout__filters {
+        display: none;
+        flex-wrap: wrap;
+        gap: var(--spacing-1);
+        padding: var(--spacing-1) var(--spacing-3) var(--spacing-2);
+        animation: filter-panel-open 150ms ease-out both;
+    }
+
+    .chats-layout__filters--open {
+        display: flex;
+    }
+}
+
+@keyframes filter-panel-open {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    .chats-layout__search-input-row,
+    .chats-filter-chip,
+    .chats-layout__filter-toggle {
+        transition: none;
+    }
+
+    .chats-layout__filters {
+        animation: none !important;
     }
 }

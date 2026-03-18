@@ -172,6 +172,7 @@ export const schema = createSchema({
       enum MessageType {
         TEXT
         IMAGE
+        SONIC_PING
       }
 
       """
@@ -543,6 +544,14 @@ export const schema = createSchema({
         Broadcasts message:new via Socket.io to all room members.
         """
         sendMessage(conversationId: ID!, content: String!): Message!
+
+        """
+        Send a Sonic Ping ritual message to a conversation.
+        The current user must be a participant.
+        Persists a SONIC_PING type message and broadcasts via Socket.io.
+        Emits message:new and sonicPing:incoming to the conversation room.
+        """
+        sendSonicPing(conversationId: ID!): Message!
 
         """
         Mark all unread messages in a conversation as READ for the current user.

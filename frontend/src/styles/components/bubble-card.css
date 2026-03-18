@@ -146,6 +146,27 @@
     }
 
     /* ============================================
+       Timestamp row — inside the bubble, bottom-right
+       ============================================ */
+
+    .bubble-card__time {
+        display: flex;
+        align-items: end;
+        justify-content: flex-end;
+        gap: 0.25rem;
+        margin-top: 0.25rem;
+        font-size: 0.625rem; /* 10px */
+        white-space: nowrap;
+        /* Receive bubble: semi-transparent foreground */
+        color: oklch(from var(--foreground) l c h / 0.45);
+    }
+
+    /* Send bubble sits on a primary-tinted background — slightly lighter */
+    .bubble-card--send .bubble-card__time {
+        color: oklch(from var(--foreground) l c h / 0.55);
+    }
+
+    /* ============================================
        Interactive States
        ============================================ */
     .bubble-card--interactive {

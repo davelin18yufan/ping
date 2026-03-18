@@ -9,7 +9,7 @@
  * Typing indicators appear below the last real message.
  *
  * Date separators are inserted between messages from different calendar days.
- * Event markers (Sonic Ping, future rituals) are interleaved chronologically.
+ * SONIC_PING messageType messages are rendered as ritual event markers in-line.
  *
  * Extension guide — adding a new interactive message type:
  *   1. Define `interface XxxItem { kind: "xxx"; key: string; ... }`
@@ -36,13 +36,12 @@ import { VList, type VListHandle } from "virtua"
 import { useMessages } from "@/hooks/useMessages"
 import { cn, formatMessageTime } from "@/lib/utils"
 import { uiStore } from "@/stores/uiStore"
-import type { ConversationType, Message, SonicPingEvent } from "@/types/conversations"
+import type { ConversationType, Message } from "@/types/conversations"
 import type {
     DateItem,
     ListItem,
     MessageItem,
     PendingItem,
-    SonicPingItem,
     TypingItem,
 } from "@/types/messageList"
 
@@ -89,36 +88,21 @@ function formatDateLabel(isoString: string): string {
 // Converts raw data sources into a flat, sorted ListItem array for VList.
 // Extracting this makes unit testing trivial.
 
-type TimedRawEntry =
-    | { type: "message"; data: Message }
-    | { type: "sonic-ping"; data: SonicPingEvent }
-
 function buildItems(
     messages: Message[],
-    sonicPingEvents: SonicPingEvent[],
     pendingMessages: Array<{ content: string; submittedAt: number }>,
     typingUsers: string[]
 ): ListItem[] {
     const result: ListItem[] = []
     let lastDateLabel = ""
 
-    // Merge messages and event entries sorted by timestamp
-    const allEntries: TimedRawEntry[] = [
-        ...messages.map((m) => ({ type: "message" as const, data: m })),
-        ...sonicPingEvents.map((e) => ({ type: "sonic-ping" as const, data: e })),
-    ].sort((a, b) => {
-        const ta = new Date(
-            a.type === "message" ? a.data.createdAt : a.data.timestamp
-        ).getTime()
-        const tb = new Date(
-            b.type === "message" ? b.data.createdAt : b.data.timestamp
-        ).getTime()
-        return ta - tb
-    })
+    // Sort all messages by timestamp
+    const sortedMessages = [...messages].sort(
+        (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    )
 
-    allEntries.forEach((entry, i) => {
-        const ts = entry.type === "message" ? entry.data.createdAt : entry.data.timestamp
-        const dateLabel = formatDateLabel(ts)
+    sortedMessages.forEach((msg, i) => {
+        const dateLabel = formatDateLabel(msg.createdAt)
 
         // Inject a date separator whenever the calendar day changes
         if (dateLabel !== lastDateLabel) {
@@ -126,21 +110,20 @@ function buildItems(
             lastDateLabel = dateLabel
         }
 
-        if (entry.type === "sonic-ping") {
-            result.push({ kind: "sonic-ping", key: entry.data.id, event: entry.data })
+        // SONIC_PING messages are rendered as ritual event markers, not bubbles
+        if (msg.messageType === "SONIC_PING") {
+            result.push({ kind: "message", key: msg.id, message: msg, isFirstInSequence: true, isLastInSequence: true })
             return
         }
 
-        const msg = entry.data
-
-        // Sequence detection: look at the nearest message-type neighbours
-        const prevMsg = allEntries
+        // Sequence detection: look at adjacent non-sonic-ping message neighbours
+        const prevMsg = sortedMessages
             .slice(0, i)
             .reverse()
-            .find((e) => e.type === "message")?.data as Message | undefined
-        const nextMsg = allEntries
+            .find((m) => m.messageType !== "SONIC_PING")
+        const nextMsg = sortedMessages
             .slice(i + 1)
-            .find((e) => e.type === "message")?.data as Message | undefined
+            .find((m) => m.messageType !== "SONIC_PING")
 
         result.push({
             kind: "message",
@@ -181,19 +164,22 @@ function DateSeparatorRow({ item }: { item: DateItem }) {
     )
 }
 
-function SonicPingRow({ item }: { item: SonicPingItem }) {
+function SonicPingMessageRow({ message, isOwn }: { message: Message; isOwn: boolean }) {
     return (
         <motion.div
-            className="sonic-ping-event"
+            className={cn(
+                "sonic-ping-event",
+                isOwn ? "sonic-ping-event--own" : "sonic-ping-event--received"
+            )}
             initial={{ opacity: 0, scale: 0.92 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
         >
             <span className="sonic-ping-event__badge">
                 <Zap size={10} aria-hidden="true" />
-                Sonic Ping · {item.event.recipientName}
+                {isOwn ? "You sent a Sonic Ping" : `${message.sender.name} sent a Sonic Ping`}
                 <span className="sonic-ping-event__time">
-                    {formatMessageTime(item.event.timestamp)}
+                    {formatMessageTime(message.createdAt)}
                 </span>
             </span>
         </motion.div>
@@ -238,6 +224,12 @@ function MessageRow({ item, ctx }: { item: MessageItem; ctx: RenderContext }) {
     const { currentUserId, conversationType, isNewMessage } = ctx
 
     const isOwn = msg.sender.id === currentUserId
+
+    // Render SONIC_PING messages as event markers, not chat bubbles
+    if (msg.messageType === "SONIC_PING") {
+        return <SonicPingMessageRow message={msg} isOwn={isOwn} />
+    }
+
     const isGroupReceived = conversationType === "GROUP" && !isOwn
 
     return (
@@ -302,7 +294,8 @@ function renderListItem(item: ListItem, ctx: RenderContext): ReactNode {
         case "date":
             return <DateSeparatorRow key={item.key} item={item} />
         case "sonic-ping":
-            return <SonicPingRow key={item.key} item={item} />
+            // Legacy local-only sonic ping items (kept for type union completeness)
+            return null
         case "pending":
             return <PendingMessageRow key={item.key} item={item} ctx={ctx} />
         case "message":
@@ -318,7 +311,6 @@ interface MessageListProps {
     conversationId: string
     currentUserId: string
     conversationType: ConversationType
-    sonicPingEvents?: SonicPingEvent[]
 }
 
 // ─── MessageList ──────────────────────────────────────────────────────────────
@@ -327,7 +319,6 @@ export function MessageList({
     conversationId,
     currentUserId,
     conversationType,
-    sonicPingEvents = [],
 }: MessageListProps) {
     const { messages, fetchNextPage, hasNextPage, isFetchingNextPage } = useMessages(conversationId)
     const typingUsers = useStore(uiStore, (s) => s.typingMap[conversationId] ?? [])
@@ -397,8 +388,8 @@ export function MessageList({
     }, [hasNextPage, isFetchingNextPage, fetchNextPage])
 
     const items = useMemo(
-        () => buildItems(messages, sonicPingEvents, pendingMessages, typingUsers),
-        [messages, sonicPingEvents, pendingMessages, typingUsers]
+        () => buildItems(messages, pendingMessages, typingUsers),
+        [messages, pendingMessages, typingUsers]
     )
 
     const ctx: RenderContext = useMemo(

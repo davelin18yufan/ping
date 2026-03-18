@@ -14,7 +14,7 @@ import type { User } from "@/types/friends"
 
 export type ConversationType = "ONE_TO_ONE" | "GROUP"
 
-export type MessageType = "TEXT" | "IMAGE"
+export type MessageType = "TEXT" | "IMAGE" | "SONIC_PING"
 
 export type MessageStatusType = "SENT" | "DELIVERED" | "READ"
 

@@ -199,6 +199,7 @@ enum ConversationType {
 enum MessageType {
   TEXT
   IMAGE
+  SONIC_PING
 }
 
 enum MessageStatusType {

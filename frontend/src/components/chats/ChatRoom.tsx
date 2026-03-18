@@ -10,13 +10,17 @@
  * On unmount: clears activeConversationId.
  *
  * GroupInfoPanel is lazy-rendered via local state and AnimatePresence exit.
+ *
+ * Incoming Sonic Ping:
+ *   Listens for the "sonicPing:incoming" custom DOM event dispatched by useSocket.
+ *   Shows an overlay text for 1.6 s to signal the incoming ping to the receiver.
  */
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 import { ArrowLeft, Info, Users } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
 import {
     MARK_READ_MUTATION,
@@ -33,7 +37,7 @@ import { DirectInfoPanel } from "./DirectInfoPanel"
 import { GroupInfoPanel } from "./GroupInfoPanel"
 import { MessageInput } from "./MessageInput"
 import { ContactAvatar } from "./ContactAvatar"
-import { MessageList, type SonicPingEvent } from "./MessageList"
+import { MessageList } from "./MessageList"
 import { SonicPingButton } from "./SonicPingButton"
 
 interface ChatRoomProps {
@@ -46,7 +50,8 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
 
     const [showInfo, setShowInfo] = useState(false)
     const [sendError, setSendError] = useState<string | null>(null)
-    const [sonicPingEvents, setSonicPingEvents] = useState<SonicPingEvent[]>([])
+    const [incomingSenderName, setIncomingSenderName] = useState<string | null>(null)
+    const incomingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const { data: conversation } = useQuery(conversationQueryOptions(conversationId))
 
@@ -84,10 +89,22 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [conversationId])
 
-    // Reset sonic ping events when the active conversation changes
+    // Listen for incoming Sonic Ping custom DOM event dispatched by useSocket.
+    // Show the overlay for 1600 ms then clear it.
     useEffect(() => {
-        setSonicPingEvents([])
-    }, [conversationId])
+        const handleIncoming = (e: Event) => {
+            const { senderName } = (e as CustomEvent<{ conversationId: string; senderName: string }>).detail
+            setIncomingSenderName(senderName)
+            if (incomingTimeoutRef.current) clearTimeout(incomingTimeoutRef.current)
+            incomingTimeoutRef.current = setTimeout(() => setIncomingSenderName(null), 1600)
+        }
+
+        window.addEventListener("sonicPing:incoming", handleIncoming)
+        return () => {
+            window.removeEventListener("sonicPing:incoming", handleIncoming)
+            if (incomingTimeoutRef.current) clearTimeout(incomingTimeoutRef.current)
+        }
+    }, [])
 
     // Send message mutation (mutationKey powers useMutationState in MessageList)
     const sendMutation = useMutation({
@@ -118,17 +135,6 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
     const otherParticipant = isOneToOne
         ? conversation?.participants.find((p) => p.user.id !== currentUserId)
         : null
-
-    const handlePingSent = () => {
-        setSonicPingEvents((prev) => [
-            ...prev,
-            {
-                id: `sonic-ping-${Date.now()}`,
-                timestamp: new Date().toISOString(),
-                recipientName: otherParticipant?.user.name ?? "them",
-            },
-        ])
-    }
 
     const displayName = isOneToOne
         ? (otherParticipant?.user.name ?? "Chat")
@@ -190,7 +196,7 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
 
                 <div className="flex items-center gap-1">
                     {/* Sonic Ping — only for 1:1 conversations */}
-                    {isOneToOne && <SonicPingButton conversationId={conversationId} onPingSent={handlePingSent} />}
+                    {isOneToOne && <SonicPingButton conversationId={conversationId} />}
                     {conversation && (
                         <button
                             type="button"
@@ -236,9 +242,21 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                     conversationId={conversationId}
                     currentUserId={currentUserId}
                     conversationType={conversationType}
-                    sonicPingEvents={sonicPingEvents}
                 />
             </motion.div>
+
+            {/* Incoming Sonic Ping overlay — visible for 1.6 s after receiving a ping */}
+            {incomingSenderName && (
+                <div className="sonic-incoming-overlay" aria-live="polite">
+                    <span
+                        className="sonic-incoming-overlay__text"
+                        // Key on a timestamp so the animation replays for rapid successive pings
+                        key={incomingSenderName + String(Date.now())}
+                    >
+                        Anybody home?
+                    </span>
+                </div>
+            )}
 
             {/* Message input */}
             <div className="shrink-0">

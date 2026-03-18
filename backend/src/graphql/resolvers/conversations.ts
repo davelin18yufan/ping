@@ -927,6 +927,79 @@ const Mutation = {
     },
 
     /**
+     * Send a Sonic Ping ritual message to a conversation.
+     * Persists a SONIC_PING type message (no content) and broadcasts via Socket.io:
+     *   - message:new   — same payload as sendMessage for real-time message list updates
+     *   - sonicPing:incoming — dedicated event carrying senderId and senderName
+     */
+    sendSonicPing: async (
+        _parent: unknown,
+        args: { conversationId: string },
+        context: GraphQLContext
+    ): Promise<MessageParent> => {
+        const userId = requireAuth(context)
+
+        const participant = await getParticipant(context.prisma, args.conversationId, userId)
+        if (!participant) {
+            throw new GraphQLError("Not a participant of this conversation", {
+                extensions: { code: "FORBIDDEN", status: 403 },
+            })
+        }
+
+        const sender = await context.prisma.user.findUnique({
+            where: { id: userId },
+            select: { name: true },
+        })
+
+        const message = await context.prisma.message.create({
+            data: {
+                conversationId: args.conversationId,
+                senderId: userId,
+                content: null,
+                messageType: MessageType.SONIC_PING,
+            },
+            select: {
+                id: true,
+                conversationId: true,
+                senderId: true,
+                content: true,
+                messageType: true,
+                imageUrl: true,
+                createdAt: true,
+            },
+        })
+
+        const messageParent: MessageParent = {
+            id: message.id,
+            conversationId: message.conversationId,
+            senderId: message.senderId,
+            content: message.content,
+            messageType: message.messageType,
+            imageUrl: message.imageUrl,
+            createdAt: message.createdAt.toISOString(),
+            status: MessageStatusType.SENT,
+        }
+
+        // Broadcast via Socket.io (non-fatal if not initialized)
+        try {
+            const io = getIO()
+            io.to(args.conversationId).emit("message:new", {
+                message: messageParent,
+                conversationId: args.conversationId,
+            })
+            io.to(args.conversationId).emit("sonicPing:incoming", {
+                conversationId: args.conversationId,
+                senderId: userId,
+                senderName: sender?.name ?? null,
+            })
+        } catch {
+            // Non-fatal in test environment
+        }
+
+        return messageParent
+    },
+
+    /**
      * Mark all messages in a conversation as READ for the current user.
      * Updates lastReadAt for the participant record.
      */

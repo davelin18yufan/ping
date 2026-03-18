@@ -229,6 +229,39 @@ export function useSocket() {
             }
         })
 
+        // ------------------------------------------------------------------
+        // sonicPing:incoming
+        // Another user sent a Sonic Ping in a conversation.
+        // If the user is currently viewing that conversation, dispatch a custom
+        // DOM event so ChatRoom can show the incoming overlay animation.
+        // Always invalidate so the persisted SONIC_PING message appears.
+        // ------------------------------------------------------------------
+        socket.on(
+            "sonicPing:incoming",
+            ({
+                conversationId: pingConvId,
+                senderName,
+            }: {
+                conversationId: string
+                senderId: string
+                senderName: string
+            }) => {
+                // Show overlay only if we are in this conversation right now
+                if (uiStore.state.activeConversationId === pingConvId) {
+                    window.dispatchEvent(
+                        new CustomEvent("sonicPing:incoming", {
+                            detail: { conversationId: pingConvId, senderName },
+                        })
+                    )
+                }
+                // Always hydrate the persisted message
+                void queryClient.invalidateQueries({ queryKey: ["messages", pingConvId] })
+                void queryClient.invalidateQueries({
+                    queryKey: ["conversations"],
+                })
+            }
+        )
+
         // Do NOT remove listeners on component unmount — the socket is a
         // module-level singleton and its handlers must stay alive for the
         // entire session. Listeners are naturally cleaned up when the socket

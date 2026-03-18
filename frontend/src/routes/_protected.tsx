@@ -20,6 +20,7 @@ import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/rea
 
 import { AppNavSidebar } from "@/components/shared/AppNavSidebar"
 import { getSession } from "@/lib/getSession"
+import AppHeader from "@/components/shared/AppHeader"
 
 export const Route = createFileRoute("/_protected")({
     beforeLoad: async ({ location }) => {
@@ -49,6 +50,7 @@ function ProtectedLayout() {
 
     return (
         <div data-in-chat-room={isInChatRoom || undefined}>
+            <AppHeader />
             <AppNavSidebar />
             <div className="app-nav-content">
                 <Outlet />

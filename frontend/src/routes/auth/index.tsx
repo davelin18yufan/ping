@@ -15,6 +15,7 @@ import { LogIn } from "lucide-react"
 
 import { AcousticField } from "@/components/ui/acoustic-field"
 import { AnimatedCard } from "@/components/ui/animated-card"
+import AppHeader from "@/components/shared/AppHeader"
 import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
 import { getSession } from "@/lib/getSession"
 
@@ -47,6 +48,8 @@ function LoginPage() {
 
     return (
         <div className="login-container">
+            <AppHeader placement="top-center" />
+
             {/* Acoustic Field - Interactive sound wave background (Ornate mode only) */}
             {isOrnate && <AcousticField cols={40} rows={40} influenceRadius={100} maxScale={30} />}
 

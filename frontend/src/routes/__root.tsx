@@ -1,4 +1,3 @@
-import AppHeader from "@components/shared/AppHeader"
 import { TanStackDevtools } from "@tanstack/react-devtools"
 import type { QueryClient } from "@tanstack/react-query"
 import { HeadContent, Outlet, Scripts, createRootRouteWithContext } from "@tanstack/react-router"
@@ -122,7 +121,6 @@ function RootComponent() {
                 <HtmlClassManager />
                 <SessionGuardMounter />
                 <HeartbeatMounter />
-                <AppHeader />
                 <Outlet />
                 <TanStackDevtools
                     config={{

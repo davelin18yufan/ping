@@ -457,21 +457,49 @@
     /* ── Nudge animation ── */
     @keyframes capsule-nudge {
         0% {
-            transform: translateX(-50%) scaleY(1) scaleX(1);
+            transform: scaleY(1) scaleX(1);
         }
         30% {
-            transform: translateX(-50%) scaleY(1.07) scaleX(0.97);
+            transform: scaleY(1.07) scaleX(0.97);
         }
         65% {
-            transform: translateX(-50%) scaleY(0.97) scaleX(1.02);
+            transform: scaleY(0.97) scaleX(1.02);
         }
         100% {
-            transform: translateX(-50%) scaleY(1) scaleX(1);
+            transform: scaleY(1) scaleX(1);
         }
     }
 
     .capsule-header--nudge {
         animation: capsule-nudge var(--duration-480) var(--ease-spring);
+    }
+
+    /* Mobile: on protected pages (bottom-left placement), float above the bottom nav bar */
+    @media (max-width: 767px) {
+        .capsule-header[data-placement="bottom-left"] {
+            bottom: calc(56px + 8px) !important;
+            left: 50% !important;
+            transform: translateX(-50%) !important;
+        }
+
+        .capsule-header[data-placement="bottom-left"].capsule-header--nudge {
+            animation: capsule-nudge-mobile var(--duration-480) var(--ease-spring);
+        }
+
+        @keyframes capsule-nudge-mobile {
+            0% {
+                transform: translateX(-50%) scaleY(1) scaleX(1);
+            }
+            30% {
+                transform: translateX(-50%) scaleY(1.07) scaleX(0.97);
+            }
+            65% {
+                transform: translateX(-50%) scaleY(0.97) scaleX(1.02);
+            }
+            100% {
+                transform: translateX(-50%) scaleY(1) scaleX(1);
+            }
+        }
     }
 
     /* ══════════════════════════════════════════════════════

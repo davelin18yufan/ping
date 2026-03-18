@@ -143,7 +143,6 @@
     padding-left: 56px;
 }
 
-
 /* ── Mobile: hide nav rail when inside a chat room ──────────────────────────
    Below 768px the full screen is needed for the conversation.
    The [data-in-chat-room] attribute is set by ProtectedLayout when the

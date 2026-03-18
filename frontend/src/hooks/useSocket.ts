@@ -48,9 +48,17 @@ export function useSocket() {
         // ------------------------------------------------------------------
         socket.on(
             "message:new",
-            ({ message, conversationId }: { message: Record<string, unknown>; conversationId: string }) => {
+            ({
+                message,
+                conversationId,
+            }: {
+                message: Record<string, unknown>
+                conversationId: string
+            }) => {
                 // Backend sends senderId string; we need sender: ConversationUser
-                const conversations = queryClient.getQueryData<Conversation[]>(conversationsQueryOptions.queryKey)
+                const conversations = queryClient.getQueryData<Conversation[]>(
+                    conversationsQueryOptions.queryKey
+                )
                 const conv = conversations?.find((c) => c.id === conversationId)
                 const senderId =
                     (message.sender as { id?: string } | undefined)?.id ??

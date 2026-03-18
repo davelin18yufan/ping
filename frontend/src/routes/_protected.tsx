@@ -18,9 +18,9 @@
 
 import { createFileRoute, Outlet, redirect, useRouterState } from "@tanstack/react-router"
 
+import AppHeader from "@/components/shared/AppHeader"
 import { AppNavSidebar } from "@/components/shared/AppNavSidebar"
 import { getSession } from "@/lib/getSession"
-import AppHeader from "@/components/shared/AppHeader"
 
 export const Route = createFileRoute("/_protected")({
     beforeLoad: async ({ location }) => {

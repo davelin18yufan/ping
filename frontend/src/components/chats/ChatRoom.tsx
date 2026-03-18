@@ -33,10 +33,10 @@ import { cn } from "@/lib/utils"
 import { uiStore } from "@/stores/uiStore"
 import type { Conversation, Message } from "@/types/conversations"
 
+import { ContactAvatar } from "./ContactAvatar"
 import { DirectInfoPanel } from "./DirectInfoPanel"
 import { GroupInfoPanel } from "./GroupInfoPanel"
 import { MessageInput } from "./MessageInput"
-import { ContactAvatar } from "./ContactAvatar"
 import { MessageList } from "./MessageList"
 import { SonicPingButton } from "./SonicPingButton"
 
@@ -75,9 +75,7 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
             queryClient.setQueryData(
                 conversationsQueryOptions.queryKey,
                 (old: Conversation[] | undefined) =>
-                    old?.map((c) =>
-                        c.id === conversationId ? { ...c, unreadCount: 0 } : c
-                    )
+                    old?.map((c) => (c.id === conversationId ? { ...c, unreadCount: 0 } : c))
             )
         },
     })
@@ -93,7 +91,9 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
     // Show the overlay for 1600 ms then clear it.
     useEffect(() => {
         const handleIncoming = (e: Event) => {
-            const { senderName } = (e as CustomEvent<{ conversationId: string; senderName: string }>).detail
+            const { senderName } = (
+                e as CustomEvent<{ conversationId: string; senderName: string }>
+            ).detail
             setIncomingSenderName(senderName)
             if (incomingTimeoutRef.current) clearTimeout(incomingTimeoutRef.current)
             incomingTimeoutRef.current = setTimeout(() => setIncomingSenderName(null), 1600)
@@ -143,10 +143,7 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
     const conversationType = conversation?.type ?? "ONE_TO_ONE"
 
     return (
-        <div
-            className="chat-room-outer relative flex flex-col"
-            style={{ height: "100%" }}
-        >
+        <div className="chat-room-outer relative flex flex-col" style={{ height: "100%" }}>
             {/* Header */}
             <div
                 className={cn(

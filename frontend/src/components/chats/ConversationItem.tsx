@@ -77,8 +77,7 @@ function ConversationItemInner({
     const isGroup = conversation.type === "GROUP"
     const isPinned = conversation.pinnedAt !== null
     const hasUnread = conversation.unreadCount > 0
-    const isSonicPingUnread =
-        conversation.lastMessage?.messageType === "SONIC_PING" && hasUnread
+    const isSonicPingUnread = conversation.lastMessage?.messageType === "SONIC_PING" && hasUnread
 
     // Resolve display name and other-participant metadata
     let displayName: string

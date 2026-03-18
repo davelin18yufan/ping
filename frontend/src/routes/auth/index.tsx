@@ -13,9 +13,9 @@ import { LoginForm } from "@components/auth/LoginForm"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 import { LogIn } from "lucide-react"
 
+import AppHeader from "@/components/shared/AppHeader"
 import { AcousticField } from "@/components/ui/acoustic-field"
 import { AnimatedCard } from "@/components/ui/animated-card"
-import AppHeader from "@/components/shared/AppHeader"
 import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
 import { getSession } from "@/lib/getSession"
 

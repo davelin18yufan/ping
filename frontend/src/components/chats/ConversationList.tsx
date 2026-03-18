@@ -16,8 +16,8 @@
  * Empty state is rendered when the sorted list has zero entries.
  */
 
-import { AnimatePresence, motion } from "motion/react"
 import { MessageSquare } from "lucide-react"
+import { AnimatePresence, motion } from "motion/react"
 import { memo, useMemo } from "react"
 
 import type { Conversation } from "@/types/conversations"
@@ -91,7 +91,9 @@ function ConversationListInner({
                 <MessageSquare size={32} aria-hidden="true" className="opacity-40" />
                 <p>{emptyMessage ?? "No conversations yet"}</p>
                 <p className="text-xs">
-                    {emptyMessage ? "Try adjusting your search or filters" : "Start a chat with a friend"}
+                    {emptyMessage
+                        ? "Try adjusting your search or filters"
+                        : "Start a chat with a friend"}
                 </p>
             </div>
         )

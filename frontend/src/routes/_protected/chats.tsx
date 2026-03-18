@@ -147,7 +147,8 @@ function ChatsLayout() {
                 const name = isGroup ? (conv.name ?? "") : (other?.user.name ?? "")
                 const preview = conv.lastMessage?.content ?? ""
                 const q = deferredSearchQuery.toLowerCase()
-                if (!name.toLowerCase().includes(q) && !preview.toLowerCase().includes(q)) return false
+                if (!name.toLowerCase().includes(q) && !preview.toLowerCase().includes(q))
+                    return false
             }
             // Filters — AND logic: all active filters must pass
             if (activeFilters.has("unread") && conv.unreadCount === 0) return false

@@ -25,25 +25,19 @@
  *   - Avatar images carry alt text and title for screen readers.
  */
 
-import type { ReactNode } from "react"
-import { useEffect, useMemo, useRef } from "react"
-import { motion } from "motion/react"
-import { Zap } from "lucide-react"
 import { useMutationState } from "@tanstack/react-query"
 import { useStore } from "@tanstack/react-store"
+import { Zap } from "lucide-react"
+import { motion } from "motion/react"
+import type { ReactNode } from "react"
+import { useEffect, useMemo, useRef } from "react"
 import { VList, type VListHandle } from "virtua"
 
 import { useMessages } from "@/hooks/useMessages"
 import { cn, formatMessageTime } from "@/lib/utils"
 import { uiStore } from "@/stores/uiStore"
 import type { ConversationType, Message } from "@/types/conversations"
-import type {
-    DateItem,
-    ListItem,
-    MessageItem,
-    PendingItem,
-    TypingItem,
-} from "@/types/messageList"
+import type { DateItem, ListItem, MessageItem, PendingItem, TypingItem } from "@/types/messageList"
 
 import { MessageBubble } from "./MessageBubble"
 import { TypingIndicator } from "./TypingIndicator"
@@ -112,7 +106,13 @@ function buildItems(
 
         // SONIC_PING messages are rendered as ritual event markers, not bubbles
         if (msg.messageType === "SONIC_PING") {
-            result.push({ kind: "message", key: msg.id, message: msg, isFirstInSequence: true, isLastInSequence: true })
+            result.push({
+                kind: "message",
+                key: msg.id,
+                message: msg,
+                isFirstInSequence: true,
+                isLastInSequence: true,
+            })
             return
         }
 
@@ -121,9 +121,7 @@ function buildItems(
             .slice(0, i)
             .reverse()
             .find((m) => m.messageType !== "SONIC_PING")
-        const nextMsg = sortedMessages
-            .slice(i + 1)
-            .find((m) => m.messageType !== "SONIC_PING")
+        const nextMsg = sortedMessages.slice(i + 1).find((m) => m.messageType !== "SONIC_PING")
 
         result.push({
             kind: "message",
@@ -241,12 +239,7 @@ function MessageRow({ item, ctx }: { item: MessageItem; ctx: RenderContext }) {
                 </span>
             )}
 
-            <div
-                className={cn(
-                    "flex w-full",
-                    isGroupReceived ? "flex-row items-end gap-2" : ""
-                )}
-            >
+            <div className={cn("flex w-full", isGroupReceived ? "flex-row items-end gap-2" : "")}>
                 {/* Avatar slot: 32 px reserved for group received messages.
                     Only the last message in a sequence renders the avatar;
                     others render an invisible spacer to keep bubble alignment. */}
@@ -315,11 +308,7 @@ interface MessageListProps {
 
 // ─── MessageList ──────────────────────────────────────────────────────────────
 
-export function MessageList({
-    conversationId,
-    currentUserId,
-    conversationType,
-}: MessageListProps) {
+export function MessageList({ conversationId, currentUserId, conversationType }: MessageListProps) {
     const { messages, fetchNextPage, hasNextPage, isFetchingNextPage } = useMessages(conversationId)
     const typingUsers = useStore(uiStore, (s) => s.typingMap[conversationId] ?? [])
 

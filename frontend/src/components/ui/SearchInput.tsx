@@ -19,8 +19,10 @@ import { type InputHTMLAttributes } from "react"
 
 import { cn } from "@/lib/utils"
 
-interface SearchInputProps
-    extends Omit<InputHTMLAttributes<HTMLInputElement>, "type" | "onChange"> {
+interface SearchInputProps extends Omit<
+    InputHTMLAttributes<HTMLInputElement>,
+    "type" | "onChange"
+> {
     value: string
     onChange: (value: string) => void
     /** Called when the clear (×) button is clicked. If omitted, no clear button is rendered. */

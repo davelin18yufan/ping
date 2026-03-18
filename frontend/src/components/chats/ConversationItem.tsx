@@ -77,6 +77,7 @@ function ConversationItemInner({
     const isGroup = conversation.type === "GROUP"
     const isPinned = conversation.pinnedAt !== null
     const hasUnread = conversation.unreadCount > 0
+    const isSonicPingUnread = conversation.lastMessage?.messageType === "SONIC_PING" && hasUnread
 
     // Resolve display name and other-participant metadata
     let displayName: string
@@ -119,23 +120,18 @@ function ConversationItemInner({
     const truncatedPreview = truncatePreview(rawPreview)
 
     return (
-        <div
+        <button
+            type="button"
             className={cn(
                 "conversation-item",
                 isPinned && "conversation-item--pinned",
                 hasUnread && "conversation-item--unread sidebar-breathe",
+                isSonicPingUnread && "conversation-item--sonic-ping",
                 isActive && "conversation-item--active"
             )}
+            data-online={!isGroup && isOnline ? "true" : undefined}
             onClick={() => onSelect(conversationId)}
             onDoubleClick={onDoubleClick ? () => onDoubleClick(conversationId) : undefined}
-            onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault()
-                    onSelect(conversationId)
-                }
-            }}
-            role="button"
-            tabIndex={0}
             aria-current={isActive ? "true" : undefined}
             aria-label={`${displayName}${hasUnread ? `, ${conversation.unreadCount} unread` : ""}${isActive ? ", currently open" : ""}`}
         >
@@ -175,7 +171,7 @@ function ConversationItemInner({
                     <UnreadBadge count={conversation.unreadCount} />
                 </div>
             </div>
-        </div>
+        </button>
     )
 }
 

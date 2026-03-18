@@ -10,24 +10,35 @@
  * On unmount: clears activeConversationId.
  *
  * GroupInfoPanel is lazy-rendered via local state and AnimatePresence exit.
+ *
+ * Incoming Sonic Ping:
+ *   Listens for the "sonicPing:incoming" custom DOM event dispatched by useSocket.
+ *   Shows an overlay text for 1.6 s to signal the incoming ping to the receiver.
  */
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 import { ArrowLeft, Info, Users } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 
-import { SEND_MESSAGE_MUTATION, conversationQueryOptions } from "@/graphql/options/conversations"
+import {
+    MARK_READ_MUTATION,
+    SEND_MESSAGE_MUTATION,
+    conversationQueryOptions,
+    conversationsQueryOptions,
+} from "@/graphql/options/conversations"
 import { graphqlFetch } from "@/lib/graphql-client"
 import { cn } from "@/lib/utils"
 import { uiStore } from "@/stores/uiStore"
 import type { Conversation, Message } from "@/types/conversations"
 
+import { ContactAvatar } from "./ContactAvatar"
 import { DirectInfoPanel } from "./DirectInfoPanel"
 import { GroupInfoPanel } from "./GroupInfoPanel"
 import { MessageInput } from "./MessageInput"
 import { MessageList } from "./MessageList"
+import { SonicPingButton } from "./SonicPingButton"
 
 interface ChatRoomProps {
     conversationId: string
@@ -39,6 +50,8 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
 
     const [showInfo, setShowInfo] = useState(false)
     const [sendError, setSendError] = useState<string | null>(null)
+    const [incomingSenderName, setIncomingSenderName] = useState<string | null>(null)
+    const incomingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const { data: conversation } = useQuery(conversationQueryOptions(conversationId))
 
@@ -50,6 +63,48 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
             uiStore.setState((s) => ({ ...s, activeConversationId: null }))
         }
     }, [conversationId])
+
+    // Mark messages as read whenever the active conversation changes.
+    const markReadMutation = useMutation({
+        mutationFn: () =>
+            graphqlFetch<{ markMessagesAsRead: boolean }>(MARK_READ_MUTATION, {
+                conversationId,
+            }),
+        onSuccess: () => {
+            // Zero out unread badge for this conversation in the list cache.
+            queryClient.setQueryData(
+                conversationsQueryOptions.queryKey,
+                (old: Conversation[] | undefined) =>
+                    old?.map((c) => (c.id === conversationId ? { ...c, unreadCount: 0 } : c))
+            )
+        },
+    })
+
+    useEffect(() => {
+        markReadMutation.mutate()
+        // Only re-fire when the conversation changes; markReadMutation reference
+        // is stable across renders so it is safe to omit from deps.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [conversationId])
+
+    // Listen for incoming Sonic Ping custom DOM event dispatched by useSocket.
+    // Show the overlay for 1600 ms then clear it.
+    useEffect(() => {
+        const handleIncoming = (e: Event) => {
+            const { senderName } = (
+                e as CustomEvent<{ conversationId: string; senderName: string }>
+            ).detail
+            setIncomingSenderName(senderName)
+            if (incomingTimeoutRef.current) clearTimeout(incomingTimeoutRef.current)
+            incomingTimeoutRef.current = setTimeout(() => setIncomingSenderName(null), 1600)
+        }
+
+        window.addEventListener("sonicPing:incoming", handleIncoming)
+        return () => {
+            window.removeEventListener("sonicPing:incoming", handleIncoming)
+            if (incomingTimeoutRef.current) clearTimeout(incomingTimeoutRef.current)
+        }
+    }, [])
 
     // Send message mutation (mutationKey powers useMutationState in MessageList)
     const sendMutation = useMutation({
@@ -88,10 +143,7 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
     const conversationType = conversation?.type ?? "ONE_TO_ONE"
 
     return (
-        <div
-            className="chat-room-outer relative flex flex-col"
-            style={{ height: "calc(100vh - 4rem)" }}
-        >
+        <div className="chat-room-outer relative flex flex-col" style={{ height: "100%" }}>
             {/* Header */}
             <div
                 className={cn(
@@ -108,6 +160,28 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                     <ArrowLeft size={18} aria-hidden="true" />
                 </Link>
 
+                {/* Avatar — shown for both 1:1 and group conversations */}
+                {isOneToOne && otherParticipant ? (
+                    <ContactAvatar
+                        userId={otherParticipant.user.id}
+                        name={otherParticipant.user.name ?? displayName}
+                        image={otherParticipant.user.image ?? null}
+                        isOnline={otherParticipant.user.isOnline}
+                        isFriend={otherParticipant.isFriend}
+                        size="sm"
+                    />
+                ) : !isOneToOne ? (
+                    <ContactAvatar
+                        userId={conversationId}
+                        name={displayName}
+                        image={null}
+                        isOnline={false}
+                        isFriend={true}
+                        size="sm"
+                        isGroup={true}
+                    />
+                ) : null}
+
                 <div className="flex-1 flex flex-col min-w-0">
                     <h2 className="font-semibold text-sm truncate min-w-0">{displayName}</h2>
                     {isOneToOne && otherParticipant && (
@@ -118,6 +192,8 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                 </div>
 
                 <div className="flex items-center gap-1">
+                    {/* Sonic Ping — only for 1:1 conversations */}
+                    {isOneToOne && <SonicPingButton conversationId={conversationId} />}
                     {conversation && (
                         <button
                             type="button"
@@ -166,6 +242,19 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                 />
             </motion.div>
 
+            {/* Incoming Sonic Ping overlay — visible for 1.6 s after receiving a ping */}
+            {incomingSenderName && (
+                <div className="sonic-incoming-overlay" aria-live="polite">
+                    <span
+                        className="sonic-incoming-overlay__text"
+                        // Key on a timestamp so the animation replays for rapid successive pings
+                        key={incomingSenderName + String(Date.now())}
+                    >
+                        Anybody home?
+                    </span>
+                </div>
+            )}
+
             {/* Message input */}
             <div className="shrink-0">
                 <MessageInput
@@ -191,6 +280,7 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                     <DirectInfoPanel
                         key="direct-info-panel"
                         participant={otherParticipant}
+                        conversationId={conversationId}
                         onClose={() => setShowInfo(false)}
                     />
                 )}

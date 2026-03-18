@@ -70,6 +70,11 @@ export function MessageBubble({
             >
                 {message.content}
             </p>
+            {/* Time + status inside the bubble, right-aligned */}
+            <div className="bubble-card__time" suppressHydrationWarning>
+                {formatMessageTime(message.createdAt)}
+                {isOwn && <StatusIcon status={message.status} />}
+            </div>
         </div>
     )
 
@@ -96,16 +101,6 @@ export function MessageBubble({
                     {bubbleContent}
                 </motion.div>
             )}
-            <div
-                className={cn(
-                    "flex items-center gap-1 mt-0.5 tabular-nums text-[0.625rem] text-muted-foreground",
-                    isOwn ? "justify-end" : "justify-start"
-                )}
-                suppressHydrationWarning
-            >
-                {formatMessageTime(message.createdAt)}
-                {isOwn && <StatusIcon status={message.status} />}
-            </div>
         </div>
     )
 }

@@ -10,20 +10,126 @@
  */
 
 /* ============================================================
+   Sonic Ping Keyframes & Button
+   ============================================================ */
+
+/* Directional wave: rings expand leftward from button (recipient is to the left) */
+@keyframes sonic-wave-1 {
+    0% {
+        transform: scaleX(0.1) scaleY(0.1);
+        opacity: 1;
+    }
+    100% {
+        transform: scaleX(5) scaleY(2.5);
+        opacity: 0;
+    }
+}
+
+@keyframes sonic-wave-2 {
+    0% {
+        transform: scaleX(0.1) scaleY(0.1);
+        opacity: 0.85;
+    }
+    100% {
+        transform: scaleX(6) scaleY(2.8);
+        opacity: 0;
+    }
+}
+
+@keyframes sonic-wave-3 {
+    0% {
+        transform: scaleX(0.1) scaleY(0.1);
+        opacity: 0.7;
+    }
+    100% {
+        transform: scaleX(7) scaleY(3);
+        opacity: 0;
+    }
+}
+
+@keyframes sonic-wave-4 {
+    0% {
+        transform: scaleX(0.1) scaleY(0.1);
+        opacity: 0.55;
+    }
+    100% {
+        transform: scaleX(8) scaleY(3.2);
+        opacity: 0;
+    }
+}
+
+.sonic-ping-button {
+    position: relative;
+    overflow: visible;
+}
+
+.sonic-ping-button.is-firing .sonic-ring {
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    border-radius: 50%;
+    border: 1.5px solid var(--ritual-nudge);
+    /* Anchor right edge so rings expand LEFTWARD toward recipient */
+    transform-origin: right center;
+    animation: sonic-wave-1 1s ease-out forwards;
+    pointer-events: none;
+    box-shadow: 0 0 6px oklch(from var(--ritual-nudge) l c h / 0.4);
+}
+
+.sonic-ping-button.is-firing .sonic-ring:nth-child(2) {
+    animation-name: sonic-wave-2;
+    animation-delay: 0.12s;
+    border-width: 1.5px;
+}
+
+.sonic-ping-button.is-firing .sonic-ring:nth-child(3) {
+    animation-name: sonic-wave-3;
+    animation-delay: 0.24s;
+    border-width: 1px;
+}
+
+.sonic-ping-button.is-firing .sonic-ring:nth-child(4) {
+    animation-name: sonic-wave-4;
+    animation-delay: 0.36s;
+    border-width: 1px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .sonic-ring {
+        animation: none !important;
+    }
+}
+
+/* ============================================================
    Keyframes
    ============================================================ */
 
 /**
- * sidebar-breathe — left border pulses between dim and vivid primary.
- * Applied to .conversation-item--unread via the .sidebar-breathe class.
+ * sidebar-breathe — signal band glows between dim and vivid primary.
+ * Applied to .conversation-item--unread::before via .sidebar-breathe.
  */
 @keyframes sidebar-breathe {
     0%,
     100% {
-        border-left-color: oklch(from var(--primary) l c h / 0.3);
+        box-shadow: 0 0 6px oklch(from var(--primary) l c h / 0.4);
     }
     50% {
-        border-left-color: oklch(from var(--primary) l c h / 0.9);
+        box-shadow: 0 0 16px oklch(from var(--primary) l c h / 0.9);
+    }
+}
+
+/**
+ * signal-band-sonic-pulse — cyan band pulses for Sonic Ping unread.
+ */
+@keyframes signal-band-sonic-pulse {
+    0%,
+    100% {
+        box-shadow: 0 0 8px oklch(from var(--ritual-nudge) l c h / 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px oklch(from var(--ritual-nudge) l c h / 1);
     }
 }
 
@@ -89,22 +195,26 @@
    ============================================================ */
 
 @layer components {
-    /* Root two-pane container — fills viewport below the top nav */
+    /* Root two-pane container — fills the full viewport */
     .chats-layout {
         display: flex;
         flex-direction: row;
-        height: calc(100vh - var(--nav-height, 4rem));
+        height: 100vh;
         overflow: hidden;
     }
 
     /* ── Sidebar ────────────────────────────────────────────── */
 
     .chats-layout__sidebar {
-        width: 280px;
-        min-width: 280px;
-        max-width: 280px;
+        width: clamp(240px, 25vw, 330px);
+        min-width: 240px;
+        max-width: 330px;
+        flex-shrink: 1;
         display: flex;
         flex-direction: column;
+        /* Container query context: @container sidebar rules respond to this element's width */
+        container-type: inline-size;
+        container-name: sidebar;
         /* Override glass-card defaults */
         border-radius: 0 !important;
         transform: none !important;
@@ -124,16 +234,16 @@
         transform: none !important;
         background: oklch(from var(--card) l c h / 0.5) !important;
         box-shadow:
-            0 8px 32px oklch(0 0 0 / 0.08),
-            0 16px 64px oklch(0 0 0 / 0.12),
-            0 24px 96px oklch(0 0 0 / 0.15) !important;
+            0 8px 32px var(--shadow-ambient),
+            0 16px 64px var(--shadow-diffuse),
+            0 24px 96px var(--shadow-deep) !important;
     }
 
     .chats-layout__sidebar-header {
         display: flex;
         align-items: center;
         justify-content: space-between;
-        padding: 0.875rem 1rem;
+        padding: 0.625rem 0.875rem;
         flex-shrink: 0;
         border-bottom: 1px solid var(--border);
     }
@@ -157,7 +267,7 @@
         flex: 1;
         overflow-y: auto;
         overscroll-behavior: contain;
-        padding: 0.375rem;
+        padding: 0.25rem;
     }
 
     /* ── Main Content ───────────────────────────────────────── */
@@ -201,8 +311,20 @@
 
     /* Active conversation row highlight */
     .conversation-item--active {
-        background: oklch(from var(--primary) l c h / 0.12) !important;
-        border-left-color: var(--primary) !important;
+        background: linear-gradient(
+            90deg,
+            oklch(from var(--primary) l c h / 0.18) 0%,
+            oklch(from var(--card) l c h / 0.5) 100%
+        ) !important;
+        /* Active glass border: brighter primary outline + stronger top refraction */
+        box-shadow:
+            inset 0 0 0 1px oklch(from var(--primary) l c h / 0.5),
+            inset 0 1px 0 oklch(1 0 0 / 0.22) !important;
+    }
+
+    .conversation-item--active::before {
+        background: var(--primary) !important;
+        box-shadow: 0 0 14px oklch(from var(--primary) l c h / 0.8) !important;
     }
 
     /* ── Mobile: Full-Screen Stack ─────────────────────────── */
@@ -265,9 +387,9 @@
     .chats-page__section:hover {
         transform: none;
         box-shadow:
-            0 8px 32px oklch(0 0 0 / 0.08),
-            0 16px 64px oklch(0 0 0 / 0.12),
-            0 24px 96px oklch(0 0 0 / 0.15);
+            0 8px 32px var(--shadow-ambient),
+            0 16px 64px var(--shadow-diffuse),
+            0 24px 96px var(--shadow-deep);
         background: oklch(from var(--card) l c h / 0.5);
     }
 
@@ -288,7 +410,7 @@
     .chats-page__list {
         display: flex;
         flex-direction: column;
-        gap: 0.5rem;
+        gap: 0.25rem;
     }
 
     .chats-page__empty {
@@ -307,27 +429,101 @@
        Conversation Item (row in list)
        ============================================================ */
 
+    /* Button reset for ConversationItem (accessibility fix: div -> button) */
+    button.conversation-item {
+        appearance: none;
+        border: none;
+        font: inherit;
+        cursor: pointer;
+        text-align: left;
+        width: 100%;
+    }
+
     .conversation-item {
         display: flex;
         flex-direction: row;
         align-items: center;
-        gap: 0.75rem;
+        gap: 0.625rem;
         cursor: pointer;
-        padding: 0.75rem;
+        padding: 0.5rem 0.625rem;
         border-radius: var(--radius-lg, 0.75rem);
-        border: 1px solid oklch(1 0 0 / 0.03);
-        border-left: 3px solid transparent;
-        background: oklch(from var(--card) l c h / 0.4);
+        border: none;
+        /* Glassmorphism border: full-perimeter inset outline + top-edge light refraction highlight.
+           Uses foreground-relative color so it reads in both dark (white tint) and light (ink tint). */
+        box-shadow:
+            inset 0 0 0 1px oklch(from var(--foreground) l c h / 0.08),
+            inset 0 1px 0 oklch(1 0 0 / 0.14);
+        /* Subtle left-to-right depth gradient */
+        background: linear-gradient(
+            90deg,
+            oklch(from var(--card) l c h / 0.55) 0%,
+            oklch(from var(--card) l c h / 0.35) 100%
+        );
+        position: relative;
+        overflow: hidden;
         transition:
             background var(--duration-fast, 150ms) var(--ease-out, ease-out),
-            border-left-color var(--duration-fast, 150ms) var(--ease-out, ease-out);
+            box-shadow var(--duration-fast, 150ms) var(--ease-out, ease-out);
         /* Override glass-card hover — no vertical lift on rows */
         transform: none;
     }
 
+    /* Universal signal band — transparent by default, colored by state */
+    .conversation-item::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        top: 0;
+        bottom: 0;
+        width: 3px;
+        border-radius: 0 2px 2px 0;
+        background: transparent;
+        transition:
+            background var(--duration-fast, 150ms) var(--ease-out, ease-out),
+            box-shadow var(--duration-fast, 150ms) var(--ease-out, ease-out);
+        pointer-events: none;
+    }
+
+    /* Online contact: band glows green-tinted, warm gradient */
+    .conversation-item[data-online="true"] {
+        background: linear-gradient(
+            90deg,
+            oklch(from var(--primary) calc(l - 0.35) c h / 0.12) 0%,
+            oklch(from var(--card) l c h / 0.35) 100%
+        );
+    }
+
+    .conversation-item[data-online="true"]::before {
+        background: oklch(0.72 0.17 145 / 0.5);
+        box-shadow: 0 0 6px oklch(0.72 0.17 145 / 0.35);
+    }
+
     .conversation-item:hover {
-        background: oklch(from var(--card) calc(l + 0.03) c h / 0.6);
+        background: linear-gradient(
+            90deg,
+            oklch(from var(--primary) l c h / 0.15) 0%,
+            oklch(from var(--card) calc(l + 0.05) c h / 0.6) 100%
+        );
+        /* Glass border tints primary on hover */
+        box-shadow:
+            inset 0 0 0 1px oklch(from var(--primary) l c h / 0.3),
+            inset 0 1px 0 oklch(from var(--primary) l c h / 0.2),
+            inset 0 1px 0 oklch(1 0 0 / 0.14);
         transform: none;
+    }
+
+    .conversation-item:hover::before {
+        background: oklch(from var(--primary) l c h / 0.7);
+        box-shadow: 0 0 8px oklch(from var(--primary) l c h / 0.4);
+    }
+
+    .conversation-item:hover .conversation-item__avatar {
+        transform: scale(1.03);
+    }
+
+    /* Timestamp reveal on hover */
+    .conversation-item:hover .conversation-item__time {
+        opacity: 1;
     }
 
     .conversation-item:focus-visible {
@@ -340,24 +536,86 @@
         transform: none;
     }
 
-    /* Pinned conversation — subtle gold/amber left accent */
-    .conversation-item--pinned {
-        border-left-color: oklch(0.78 0.15 85 / 0.5);
+    /* Pinned conversation — subtle amber band */
+    .conversation-item--pinned::before {
+        background: oklch(0.78 0.15 85 / 0.5);
+        box-shadow: 0 0 6px oklch(0.78 0.15 85 / 0.3);
     }
 
-    /* Unread conversation — primary left border highlight */
+    /* Unread conversation — energized row with primary-tinted glass border */
     .conversation-item--unread {
-        border-left-color: oklch(from var(--primary) l c h / 0.6);
+        background: linear-gradient(
+            90deg,
+            oklch(from var(--primary) l c h / 0.22) 0%,
+            oklch(from var(--card) l c h / 0.45) 100%
+        );
+        box-shadow:
+            inset 0 0 0 1px oklch(from var(--primary) l c h / 0.3),
+            inset 0 1px 0 oklch(1 0 0 / 0.18);
     }
 
-    /* Breathing pulse on unread items (ornate mode only) */
-    .conversation-item--unread.sidebar-breathe {
+    /* Unread signal band — primary color, pulsing glow */
+    .conversation-item--unread::before {
+        background: var(--primary);
+        box-shadow: 0 0 8px oklch(from var(--primary) l c h / 0.6);
+    }
+
+    /* Breathing pulse on unread band (ornate mode only) */
+    .conversation-item--unread.sidebar-breathe::before {
         animation: sidebar-breathe 2s ease-in-out infinite;
+    }
+
+    /* Unread dot on avatar top-right */
+    .conversation-item--unread .conversation-item__avatar::after {
+        content: "";
+        position: absolute;
+        top: -1px;
+        right: -1px;
+        width: 9px;
+        height: 9px;
+        border-radius: 9999px;
+        background: var(--primary);
+        border: 1.5px solid var(--background, oklch(0.1 0 0));
+        pointer-events: none;
+    }
+
+    /* Unread preview text — stronger weight/color for legibility */
+    .conversation-item--unread .conversation-item__preview {
+        font-style: normal;
+        font-weight: 500;
+        color: var(--foreground);
+    }
+
+    /* Unread timestamp reveal */
+    .conversation-item--unread .conversation-item__time {
+        opacity: 1;
+    }
+
+    /* Sonic Ping unread — full cyan glass border + cyan band */
+    .conversation-item--sonic-ping {
+        box-shadow:
+            inset 0 0 0 1px oklch(from var(--ritual-nudge) l c h / 0.45),
+            inset 0 1px 0 oklch(from var(--ritual-nudge) l c h / 0.25);
+    }
+
+    .conversation-item--sonic-ping::before {
+        background: var(--ritual-nudge);
+        box-shadow: 0 0 10px oklch(from var(--ritual-nudge) l c h / 0.6);
+        animation: signal-band-sonic-pulse 1.5s ease-in-out infinite;
+    }
+
+    /* Sonic Ping avatar dot — cyan */
+    .conversation-item--sonic-ping .conversation-item__avatar::after {
+        background: var(--ritual-nudge);
+        border-color: var(--background, oklch(0.1 0 0));
+        box-shadow: 0 0 6px oklch(from var(--ritual-nudge) l c h / 0.7);
     }
 
     .conversation-item__avatar {
         flex-shrink: 0;
         position: relative;
+        transition: transform var(--duration-fast, 150ms) var(--ease-out, ease-out);
+        /* Needed for avatar unread dot ::after positioning */
     }
 
     .conversation-item__content {
@@ -377,7 +635,7 @@
     }
 
     .conversation-item__name {
-        font-size: 0.875rem;
+        font-size: 0.9375rem;
         font-weight: 600;
         color: var(--foreground);
         white-space: nowrap;
@@ -400,6 +658,14 @@
         flex-shrink: 0;
         font-variant-numeric: tabular-nums;
         white-space: nowrap;
+        /* Hidden by default — revealed on hover/unread/active */
+        opacity: 0;
+        transition: opacity var(--duration-fast, 150ms) var(--ease-out, ease-out);
+    }
+
+    /* Active timestamp always visible */
+    .conversation-item--active .conversation-item__time {
+        opacity: 1;
     }
 
     .conversation-item__preview {
@@ -410,6 +676,8 @@
         text-overflow: ellipsis;
         min-width: 0;
         overflow-wrap: break-word;
+        /* Read state: italic hint that this is "old" content */
+        font-style: italic;
     }
 
     /* ============================================================
@@ -558,9 +826,19 @@
    ============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
-    .sidebar-breathe,
-    .conversation-item--unread.sidebar-breathe {
+    .conversation-item--unread.sidebar-breathe::before,
+    .conversation-item--sonic-ping::before {
         animation: none !important;
+    }
+
+    .conversation-item:hover .conversation-item__avatar {
+        transform: none !important;
+    }
+
+    /* Show timestamp immediately without transition in reduced-motion mode */
+    .conversation-item__time {
+        opacity: 1 !important;
+        transition: none !important;
     }
 
     .contact-avatar__eq-bar,
@@ -589,9 +867,20 @@
     display: none;
 }
 
-[data-aesthetic="minimal"] .sidebar-breathe,
-[data-aesthetic="minimal"] .conversation-item--unread.sidebar-breathe {
+[data-aesthetic="minimal"] .conversation-item--unread.sidebar-breathe::before,
+[data-aesthetic="minimal"] .conversation-item--sonic-ping::before {
     animation: none;
+    box-shadow: none;
+}
+
+/* In minimal mode, keep the band color but remove glow/animation */
+[data-aesthetic="minimal"] .conversation-item--sonic-ping::before {
+    background: var(--ritual-nudge);
+}
+
+/* In minimal mode, always show timestamps (no hide-reveal animation) */
+[data-aesthetic="minimal"] .conversation-item__time {
+    opacity: 1 !important;
 }
 
 [data-aesthetic="minimal"] .ping-ripple {
@@ -631,9 +920,9 @@
         transform: none !important;
         background: oklch(from var(--card) l c h / 0.5) !important;
         box-shadow:
-            0 8px 32px oklch(0 0 0 / 0.08),
-            0 16px 64px oklch(0 0 0 / 0.12),
-            0 24px 96px oklch(0 0 0 / 0.15) !important;
+            0 8px 32px var(--shadow-ambient),
+            0 16px 64px var(--shadow-diffuse),
+            0 24px 96px var(--shadow-deep) !important;
     }
 
     /* Suppress glass-button lift inside the chat room header.
@@ -653,7 +942,7 @@
     .chat-room {
         display: flex;
         flex-direction: column;
-        height: calc(100vh - 4rem);
+        height: 100vh;
         position: relative;
     }
 
@@ -751,6 +1040,89 @@
     }
 
     /* ============================================================
+       Chat Settings Panel
+       ============================================================ */
+
+    .chat-settings {
+        padding: 1rem;
+    }
+
+    .chat-settings__title {
+        font-size: 0.875rem;
+        font-weight: 600;
+        color: var(--foreground);
+        margin-bottom: 0.875rem;
+    }
+
+    .chat-settings__section {
+        margin-bottom: 1rem;
+    }
+
+    .chat-settings__section:last-child {
+        margin-bottom: 0;
+    }
+
+    .chat-settings__label {
+        display: block;
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--muted-foreground);
+        margin-bottom: 0.5rem;
+    }
+
+    .chat-settings__tint-grid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+    }
+
+    .chat-settings__tint-swatch {
+        width: 1.75rem;
+        height: 1.75rem;
+        border-radius: 50%;
+        background: var(--swatch-color, var(--primary));
+        border: 2px solid transparent;
+        cursor: pointer;
+        transition:
+            transform var(--duration-fast, 150ms) var(--ease-out, ease-out),
+            border-color var(--duration-fast, 150ms) var(--ease-out, ease-out);
+        box-shadow: 0 2px 6px var(--shadow-ambient);
+    }
+
+    .chat-settings__tint-swatch:hover {
+        transform: scale(1.1);
+    }
+
+    .chat-settings__tint-swatch.is-active {
+        border-color: var(--foreground);
+        transform: scale(1.15);
+    }
+
+    .chat-settings__tint-swatch:focus-visible {
+        outline: 2px solid var(--ring, var(--primary));
+        outline-offset: 2px;
+    }
+
+    .chat-settings__toggle-label {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        font-size: 0.8125rem;
+        font-weight: 500;
+        color: var(--foreground);
+        cursor: pointer;
+        gap: 0.5rem;
+    }
+
+    .chat-settings__toggle-label input[type="checkbox"] {
+        width: 2rem;
+        height: 1.125rem;
+        cursor: pointer;
+        accent-color: var(--primary);
+        flex-shrink: 0;
+    }
+
+    /* ============================================================
        Group Create Modal
        ============================================================ */
 
@@ -764,5 +1136,467 @@
         transform: rotate(var(--particle-angle, 0deg)) translateY(-3rem);
         opacity: 0;
         animation: ping-ripple 0.8s var(--ease-out, ease-out) forwards;
+    }
+
+    /* ============================================================
+       Date Separator
+       ============================================================ */
+
+    .date-separator {
+        display: flex;
+        align-items: center;
+        gap: 0.625rem;
+        padding: 0.875rem 1rem 0.375rem;
+        pointer-events: none;
+        user-select: none;
+    }
+
+    .date-separator__line {
+        flex: 1;
+        height: 1px;
+        background: oklch(from var(--border) l c h / 0.6);
+    }
+
+    .date-separator__label {
+        font-size: 0.6875rem;
+        font-weight: 500;
+        color: var(--muted-foreground);
+        white-space: nowrap;
+        padding: 3px 10px;
+        border-radius: 999px;
+        background: oklch(from var(--card) l c h / 0.7);
+        border: 1px solid oklch(from var(--border) l c h / 0.5);
+        letter-spacing: 0.02em;
+    }
+
+    /* ============================================================
+       Sonic Ping Event Marker (in-chat ritual message)
+       ============================================================ */
+
+    .sonic-ping-event {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.75rem 1rem;
+        pointer-events: none;
+        user-select: none;
+    }
+
+    .sonic-ping-event::before,
+    .sonic-ping-event::after {
+        content: "";
+        flex: 1;
+        height: 1px;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            oklch(from var(--ritual-nudge) l c h / 0.35),
+            transparent
+        );
+    }
+
+    .sonic-ping-event__badge {
+        display: flex;
+        align-items: center;
+        gap: 0.3125rem;
+        padding: 0.25rem 0.75rem;
+        border-radius: 999px;
+        background: oklch(from var(--ritual-nudge) l c h / 0.08);
+        border: 1px solid oklch(from var(--ritual-nudge) l c h / 0.28);
+        color: var(--ritual-nudge);
+        font-size: 0.6875rem;
+        font-weight: 500;
+        white-space: nowrap;
+        box-shadow:
+            0 0 8px oklch(from var(--ritual-nudge) l c h / 0.12),
+            inset 0 0 12px oklch(from var(--ritual-nudge) l c h / 0.06);
+        letter-spacing: 0.025em;
+    }
+
+    .sonic-ping-event__time {
+        color: oklch(from var(--ritual-nudge) l c h / 0.55);
+        font-size: 0.625rem;
+        font-weight: 400;
+        margin-left: 0.25rem;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .sonic-ping-event__badge {
+            box-shadow: none;
+        }
+    }
+
+    /* ============================================================
+       Sonic Ping Conversation Item Indicator
+       ============================================================ */
+
+    /* Conversation row with unread Sonic Ping: ritual-nudge left border */
+    .conversation-item--sonic-ping {
+        border-left-color: var(--ritual-nudge) !important;
+    }
+
+    /* Avatar ripple ring for Sonic Ping conversations */
+    .conversation-item--sonic-ping .conversation-item__avatar {
+        position: relative;
+    }
+
+    .conversation-item--sonic-ping .conversation-item__avatar::after {
+        content: "";
+        position: absolute;
+        inset: -3px;
+        border-radius: 50%;
+        border: 2px solid var(--ritual-nudge);
+        box-shadow: 0 0 8px oklch(from var(--ritual-nudge) l c h / 0.5);
+        animation: ritual-nudge-pulse 1.5s ease-in-out infinite;
+        pointer-events: none;
+    }
+
+    @keyframes ritual-nudge-pulse {
+        0%,
+        100% {
+            opacity: 1;
+        }
+        50% {
+            opacity: 0.4;
+        }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .conversation-item--sonic-ping .conversation-item__avatar::after {
+            animation: none;
+        }
+    }
+
+    [data-aesthetic="minimal"] .conversation-item--sonic-ping .conversation-item__avatar::after {
+        animation: none;
+        box-shadow: none;
+    }
+
+    /* ============================================================
+       Sonic Ping Chat Room Animations
+       ============================================================ */
+
+    /* Sender: screen shake */
+    @keyframes chat-room-shake {
+        0%,
+        100% {
+            transform: translateX(0);
+        }
+        20% {
+            transform: translateX(-4px);
+        }
+        40% {
+            transform: translateX(4px);
+        }
+        60% {
+            transform: translateX(-3px);
+        }
+        80% {
+            transform: translateX(3px);
+        }
+    }
+
+    .chat-room-outer.is-shaking {
+        animation: chat-room-shake 300ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+
+    /* Incoming: floating overlay text */
+    @keyframes sonic-overlay-fade {
+        0% {
+            opacity: 0;
+            transform: translateY(8px);
+        }
+        15% {
+            opacity: 0.9;
+            transform: translateY(0);
+        }
+        70% {
+            opacity: 0.9;
+            transform: translateY(0);
+        }
+        100% {
+            opacity: 0;
+            transform: translateY(-8px);
+        }
+    }
+
+    .sonic-incoming-overlay {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        pointer-events: none;
+        z-index: 20;
+    }
+
+    .sonic-incoming-overlay__text {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--foreground);
+        opacity: 0;
+        animation: sonic-overlay-fade 1.5s ease-out forwards;
+        text-shadow: 0 0 20px oklch(from var(--ritual-nudge) l c h / 0.6);
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+        .chat-room-outer.is-shaking {
+            animation: none;
+        }
+
+        .sonic-incoming-overlay__text {
+            animation: none;
+            opacity: 0.85;
+        }
+    }
+
+    [data-aesthetic="minimal"] .chat-room-outer.is-shaking {
+        animation: none;
+    }
+
+    [data-aesthetic="minimal"] .sonic-incoming-overlay__text {
+        animation: none;
+        opacity: 0;
+    }
+}
+
+/* ============================================================
+   Search Bar + Filter Chips
+   ============================================================ */
+
+.chats-layout__search-wrapper {
+    padding: 0.25rem 0.625rem 0.375rem;
+}
+
+.chats-layout__search-input-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    background: oklch(from var(--card) l c h / 0.4);
+    border: 1px solid oklch(from var(--border) l c h / 0.5);
+    border-radius: var(--radius);
+    padding: 0 var(--spacing-3);
+    height: 34px;
+    transition:
+        border-color 150ms ease-out,
+        background 150ms ease-out;
+}
+
+.chats-layout__search-input-row:focus-within {
+    border-color: oklch(from var(--primary) l c h / 0.6);
+    background: oklch(from var(--card) l c h / 0.6);
+    box-shadow: 0 0 0 2px oklch(from var(--primary) l c h / 0.12);
+}
+
+.chats-layout__search-icon {
+    color: var(--muted-foreground);
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+.chats-layout__search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    font-size: 0.8125rem;
+    color: var(--foreground);
+    min-width: 0;
+}
+
+.chats-layout__search-input::placeholder {
+    color: var(--muted-foreground);
+}
+
+/* Remove browser default search input clear button */
+.chats-layout__search-input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.chats-layout__search-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: none;
+    background: oklch(from var(--muted-foreground) l c h / 0.2);
+    color: var(--muted-foreground);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 120ms ease-out;
+}
+
+.chats-layout__search-clear:hover {
+    background: oklch(from var(--muted-foreground) l c h / 0.35);
+}
+
+.chats-layout__search-clear:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+}
+
+/* Filter chips row */
+.chats-layout__filters {
+    display: flex;
+    gap: var(--spacing-1\.5);
+    padding: 0 0.625rem 0.375rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.chats-layout__filters::-webkit-scrollbar {
+    display: none;
+}
+
+.chats-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    border: 1px solid oklch(from var(--border) l c h / 0.5);
+    background: oklch(from var(--card) l c h / 0.3);
+    color: var(--muted-foreground);
+    transition:
+        background 150ms ease-out,
+        border-color 150ms ease-out,
+        color 150ms ease-out,
+        box-shadow 150ms ease-out;
+    flex-shrink: 0;
+}
+
+.chats-filter-chip:hover {
+    background: oklch(from var(--card) l c h / 0.55);
+    color: var(--foreground);
+    border-color: oklch(from var(--primary) l c h / 0.4);
+}
+
+.chats-filter-chip:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.chats-filter-chip--active {
+    background: oklch(from var(--primary) l c h / 0.18);
+    border-color: oklch(from var(--primary) l c h / 0.6);
+    color: var(--primary);
+    box-shadow: 0 0 8px oklch(from var(--primary) l c h / 0.2);
+}
+
+.chats-filter-chip--active:hover {
+    background: oklch(from var(--primary) l c h / 0.25);
+    box-shadow: 0 0 12px oklch(from var(--primary) l c h / 0.3);
+}
+
+/* Unread chip active: uses ritual-nudge color for consistency with unread badges */
+.chats-filter-chip[aria-pressed="true"]:first-child {
+    background: oklch(from var(--ritual-nudge) l c h / 0.15);
+    border-color: oklch(from var(--ritual-nudge) l c h / 0.5);
+    color: var(--ritual-nudge);
+    box-shadow: 0 0 8px oklch(from var(--ritual-nudge) l c h / 0.2);
+}
+
+/* Filter toggle button — always present in DOM, hidden via CSS on wide sidebar */
+.chats-layout__filter-toggle-row {
+    display: none; /* hidden by default; shown via @container below */
+    padding: 0 0.625rem 0.375rem;
+}
+
+.chats-layout__filter-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-1\.5);
+    padding: 4px 12px;
+    border-radius: 999px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid oklch(from var(--border) l c h / 0.5);
+    background: oklch(from var(--card) l c h / 0.3);
+    color: var(--muted-foreground);
+    transition:
+        background 150ms ease-out,
+        border-color 150ms ease-out,
+        color 150ms ease-out;
+}
+
+.chats-layout__filter-toggle:hover,
+.chats-layout__filter-toggle--open {
+    background: oklch(from var(--card) l c h / 0.55);
+    color: var(--foreground);
+}
+
+.chats-layout__filter-toggle--active {
+    border-color: oklch(from var(--primary) l c h / 0.5);
+    color: var(--primary);
+}
+
+.chats-layout__filter-toggle-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    background: oklch(from var(--primary) l c h / 0.25);
+    color: var(--primary);
+}
+
+/* ── Container query: narrow sidebar (<= 275px) ─────────────────── */
+/* Chips switch to a collapsible dropdown panel driven by filterPanelOpen state */
+
+@container sidebar (max-width: 275px) {
+    /* Show the toggle button row */
+    .chats-layout__filter-toggle-row {
+        display: flex;
+    }
+
+    /* Hide chips by default; reveal when panel is open (.chats-layout__filters--open) */
+    .chats-layout__filters {
+        display: none;
+        flex-wrap: wrap;
+        gap: var(--spacing-1);
+        padding: var(--spacing-1) var(--spacing-3) var(--spacing-2);
+        animation: filter-panel-open 150ms ease-out both;
+    }
+
+    .chats-layout__filters--open {
+        display: flex;
+    }
+}
+
+@keyframes filter-panel-open {
+    from {
+        opacity: 0;
+        transform: translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* prefers-reduced-motion */
+@media (prefers-reduced-motion: reduce) {
+    .chats-layout__search-input-row,
+    .chats-filter-chip,
+    .chats-layout__filter-toggle {
+        transition: none;
+    }
+
+    .chats-layout__filters {
+        animation: none !important;
     }
 }

@@ -9,10 +9,11 @@
  * - < 2 chars: no results area rendered
  */
 
-import { Search, UserX } from "lucide-react"
+import { UserX } from "lucide-react"
 import { useEffect } from "react"
 
 import { SoundWaveLoader } from "@/components/shared/SoundWaveLoader"
+import { SearchInput } from "@/components/ui/SearchInput"
 import { useSearchUsers } from "@/hooks/useSearchUsers"
 
 import "@/styles/components/friends.css"
@@ -53,23 +54,23 @@ export function FriendSearchInput({
     return (
         <div className="friend-search">
             {/* Input wrapper */}
-            <div className="friend-search__input-wrapper">
-                <Search size={16} className="friend-search__icon" aria-hidden="true" />
-                <input
-                    type="search"
-                    className="glass-input glass-input--search friend-search__input"
-                    placeholder="Search users..."
-                    value={query}
-                    onChange={(e) => setQuery(e.target.value)}
-                    aria-label="Search users"
-                    autoComplete="off"
-                />
-                {loading && (
-                    <div className="friend-search__loader">
-                        <SoundWaveLoader size="sm" />
-                    </div>
-                )}
-            </div>
+            <SearchInput
+                wrapperClassName="friend-search__input-wrapper"
+                iconClassName="friend-search__icon"
+                iconSize={16}
+                inputClassName="glass-input glass-input--search friend-search__input"
+                placeholder="Search users..."
+                aria-label="Search users"
+                value={query}
+                onChange={setQuery}
+                suffix={
+                    loading ? (
+                        <div className="friend-search__loader">
+                            <SoundWaveLoader size="sm" />
+                        </div>
+                    ) : null
+                }
+            />
 
             {/* Inline results */}
             {showResults && (

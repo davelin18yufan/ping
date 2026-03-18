@@ -13,6 +13,7 @@ import { LoginForm } from "@components/auth/LoginForm"
 import { createFileRoute, redirect } from "@tanstack/react-router"
 import { LogIn } from "lucide-react"
 
+import AppHeader from "@/components/shared/AppHeader"
 import { AcousticField } from "@/components/ui/acoustic-field"
 import { AnimatedCard } from "@/components/ui/animated-card"
 import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
@@ -47,6 +48,8 @@ function LoginPage() {
 
     return (
         <div className="login-container">
+            <AppHeader placement="top-center" />
+
             {/* Acoustic Field - Interactive sound wave background (Ornate mode only) */}
             {isOrnate && <AcousticField cols={40} rows={40} influenceRadius={100} maxScale={30} />}
 

@@ -23,7 +23,7 @@ import { useQuery } from "@tanstack/react-query"
 import { useNavigate, useRouterState } from "@tanstack/react-router"
 import { useStore } from "@tanstack/react-store"
 import { LogOut } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
+import { type CSSProperties, useEffect, useRef, useState } from "react"
 
 import { AestheticModeToggle } from "@/components/shared/AestheticModeToggle"
 import { SoundWaveLoader } from "@/components/shared/SoundWaveLoader"
@@ -40,7 +40,15 @@ import { uiStore } from "@/stores/uiStore"
 
 type CapsuleState = "minimal" | "default" | "expanded"
 
-export default function AppHeader() {
+interface AppHeaderProps {
+    /** Where the capsule is anchored.
+     *  "bottom-left"  — protected pages: bottom:16 left:16 (overlaps nav rail)
+     *  "top-center"   — auth/guest pages: top:16, horizontally centred
+     */
+    placement?: "bottom-left" | "top-center"
+}
+
+export default function AppHeader({ placement = "bottom-left" }: AppHeaderProps) {
     const [isSigningOut, setIsSigningOut] = useState(false)
     const [isNudging, setIsNudging] = useState(false)
     const isExpanded = useStore(uiStore, (s) => s.headerExpanded)
@@ -131,16 +139,16 @@ export default function AppHeader() {
         }
     }
 
+    const placementStyle: CSSProperties =
+        placement === "top-center"
+            ? { position: "fixed", top: 24, left: "50%", transform: "translateX(-50%)", zIndex: 50 }
+            : { position: "fixed", bottom: 16, left: 16, transform: "none", zIndex: 50 }
+
     return (
         <header
             className={capsuleClass}
-            style={{
-                position: "fixed",
-                top: 16,
-                left: "50%",
-                transform: "translateX(-50%)",
-                zIndex: 50,
-            }}
+            data-placement={placement}
+            style={placementStyle}
             onMouseEnter={() => {
                 cursorInHeaderRef.current = true
                 uiStore.setState((s) => ({ ...s, headerExpanded: true }))

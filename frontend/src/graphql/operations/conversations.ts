@@ -244,3 +244,33 @@ export const UNBLOCK_USER_MUTATION = `
         unblockUser(userId: $userId)
     }
 `
+
+// ============================================================================
+// Sonic Ping
+// ============================================================================
+
+/**
+ * Send a Sonic Ping ritual message to the other participant in a conversation.
+ * Creates a persisted SONIC_PING message and emits a sonicPing:incoming socket event
+ * to all other participants in real time.
+ */
+export const SEND_SONIC_PING_MUTATION = `
+    mutation SendSonicPing($conversationId: ID!) {
+        sendSonicPing(conversationId: $conversationId) {
+            id
+            conversationId
+            content
+            messageType
+            imageUrl
+            createdAt
+            status
+            sender {
+                id
+                name
+                email
+                image
+                isOnline
+            }
+        }
+    }
+`

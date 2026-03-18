@@ -14,7 +14,7 @@ import type { User } from "@/types/friends"
 
 export type ConversationType = "ONE_TO_ONE" | "GROUP"
 
-export type MessageType = "TEXT" | "IMAGE"
+export type MessageType = "TEXT" | "IMAGE" | "SONIC_PING"
 
 export type MessageStatusType = "SENT" | "DELIVERED" | "READ"
 
@@ -72,6 +72,17 @@ export interface MessagePage {
     messages: Message[]
     nextCursor: string | null
     prevCursor: string | null
+}
+
+// ============================================================================
+// Real-time ritual events (emitted by UI actions, interleaved in message list)
+// ============================================================================
+
+/** Emitted when the current user fires a Sonic Ping. Client-side only. */
+export interface SonicPingEvent {
+    id: string
+    timestamp: string
+    recipientName: string
 }
 
 // ============================================================================

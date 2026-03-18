@@ -48,8 +48,42 @@ export function useSocket() {
         // ------------------------------------------------------------------
         socket.on(
             "message:new",
-            ({ message, conversationId }: { message: Message; conversationId: string }) => {
-                // Append message to the last infinite query page
+            ({
+                message,
+                conversationId,
+            }: {
+                message: Record<string, unknown>
+                conversationId: string
+            }) => {
+                // Backend sends senderId string; we need sender: ConversationUser
+                const conversations = queryClient.getQueryData<Conversation[]>(
+                    conversationsQueryOptions.queryKey
+                )
+                const conv = conversations?.find((c) => c.id === conversationId)
+                const senderId =
+                    (message.sender as { id?: string } | undefined)?.id ??
+                    (message.senderId as string | undefined) ??
+                    ""
+                const participant = conv?.participants.find((p) => p.user.id === senderId)
+
+                const enrichedMessage: Message = {
+                    id: message.id as string,
+                    conversationId: message.conversationId as string,
+                    content: message.content as string | null,
+                    messageType: message.messageType as Message["messageType"],
+                    imageUrl: message.imageUrl as string | null,
+                    createdAt: message.createdAt as string,
+                    status: message.status as Message["status"],
+                    sender: participant?.user ?? {
+                        id: senderId,
+                        name: "Unknown",
+                        email: "",
+                        image: null,
+                        isOnline: false,
+                    },
+                }
+
+                // Append to infinite query page
                 queryClient.setQueryData(
                     messagesInfiniteOptions(conversationId).queryKey,
                     (old: { pages: MessagePage[]; pageParams: unknown[] } | undefined) => {
@@ -61,14 +95,14 @@ export function useSocket() {
                                 ...old.pages.slice(0, -1),
                                 {
                                     ...lastPage,
-                                    messages: [...lastPage.messages, message],
+                                    messages: [...lastPage.messages, enrichedMessage],
                                 },
                             ],
                         }
                     }
                 )
 
-                // Patch lastMessage and conditionally increment unreadCount
+                // Patch conversation list
                 queryClient.setQueryData(
                     conversationsQueryOptions.queryKey,
                     (old: Conversation[] | undefined) => {
@@ -78,7 +112,7 @@ export function useSocket() {
                             const isActive = uiStore.state.activeConversationId === conversationId
                             return {
                                 ...conv,
-                                lastMessage: message,
+                                lastMessage: enrichedMessage,
                                 unreadCount: isActive ? conv.unreadCount : conv.unreadCount + 1,
                             }
                         })
@@ -156,6 +190,41 @@ export function useSocket() {
         )
 
         // ------------------------------------------------------------------
+        // message:read
+        // Another client marked messages in a conversation as read.
+        // Update every message the reader did NOT send to READ status so
+        // the sender sees the correct delivery indicator.
+        // ------------------------------------------------------------------
+        socket.on(
+            "message:read",
+            ({
+                conversationId,
+                readByUserId,
+            }: {
+                conversationId: string
+                readByUserId: string
+            }) => {
+                queryClient.setQueryData(
+                    messagesInfiniteOptions(conversationId).queryKey,
+                    (old: { pages: MessagePage[]; pageParams: unknown[] } | undefined) => {
+                        if (!old) return old
+                        return {
+                            ...old,
+                            pages: old.pages.map((page) => ({
+                                ...page,
+                                messages: page.messages.map((msg) =>
+                                    msg.sender.id !== readByUserId
+                                        ? { ...msg, status: "READ" as const }
+                                        : msg
+                                ),
+                            })),
+                        }
+                    }
+                )
+            }
+        )
+
+        // ------------------------------------------------------------------
         // sync:required
         // Server detected a gap (e.g. after reconnect). Invalidate messages for
         // every listed conversation so they refetch from the GraphQL API.
@@ -167,6 +236,39 @@ export function useSocket() {
                 })
             }
         })
+
+        // ------------------------------------------------------------------
+        // sonicPing:incoming
+        // Another user sent a Sonic Ping in a conversation.
+        // If the user is currently viewing that conversation, dispatch a custom
+        // DOM event so ChatRoom can show the incoming overlay animation.
+        // Always invalidate so the persisted SONIC_PING message appears.
+        // ------------------------------------------------------------------
+        socket.on(
+            "sonicPing:incoming",
+            ({
+                conversationId: pingConvId,
+                senderName,
+            }: {
+                conversationId: string
+                senderId: string
+                senderName: string
+            }) => {
+                // Show overlay only if we are in this conversation right now
+                if (uiStore.state.activeConversationId === pingConvId) {
+                    window.dispatchEvent(
+                        new CustomEvent("sonicPing:incoming", {
+                            detail: { conversationId: pingConvId, senderName },
+                        })
+                    )
+                }
+                // Always hydrate the persisted message
+                void queryClient.invalidateQueries({ queryKey: ["messages", pingConvId] })
+                void queryClient.invalidateQueries({
+                    queryKey: ["conversations"],
+                })
+            }
+        )
 
         // Do NOT remove listeners on component unmount — the socket is a
         // module-level singleton and its handlers must stay alive for the

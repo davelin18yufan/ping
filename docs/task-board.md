@@ -437,7 +437,17 @@
   - 依賴: Feature 1.2.2 updateProfile（aestheticMode 基礎）✅
   - 測試案例: 待 TDD 設計
 
-#### 5.4 訊息狀態同步
+#### 5.4 對話最愛/書籤（Feature 1.4.3）
+- [ ] **對話最愛 (favoriteConversation / unfavoriteConversation)**
+  - Agent: Architect → Backend + Frontend + Mobile
+  - 任務: `ConversationParticipant` 加入 `isFavorited: Boolean` 欄位（migration）、`favoriteConversation` / `unfavoriteConversation` mutation、對話列表 Filter 星號按鈕 + 最愛 filter chip
+  - 狀態: 待規格化（Phase 3+，現有 pinned 暫代最愛功能）
+  - 優先度: P2
+  - 依賴: Feature 1.3.1（對話管理）✅
+  - 備注: 目前 UI 以「釘選 (pinnedAt)」暫時代替最愛概念；本 feature 建立獨立語義（pinned = 置頂，favorited = 書籤）
+  - 測試案例: 待 TDD 設計
+
+#### 5.5 訊息狀態同步
 - [ ] **訊息狀態更新 (messageStatusUpdated)**
   - Agent: Architect → Backend Developer → Architect (Review)
   - 任務: SENT → DELIVERED → READ 同步

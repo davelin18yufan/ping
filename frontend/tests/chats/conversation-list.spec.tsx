@@ -594,7 +594,9 @@ describe("TC-F-06: clicking conversation row fires onSelect", () => {
         )
 
         const row = screen.getByRole("button", { name: /Bob Wang/i })
-        fireEvent.keyDown(row, { key: "Enter" })
+        // <button> handles Enter natively in browsers, but jsdom's fireEvent.keyDown
+        // does not synthesise a click. Use fireEvent.click to test the activation behaviour.
+        fireEvent.click(row)
 
         expect(onSelect).toHaveBeenCalledWith("conv-001")
     })

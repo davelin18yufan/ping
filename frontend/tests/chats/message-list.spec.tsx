@@ -647,14 +647,12 @@ describe("TC-F-13: MessageBubble status icons for own messages", () => {
         )
 
         // SENT → Check icon (12px). The SVG has aria-hidden=true.
-        // The bubble should contain the check icon in a status row.
-        // We check that the bubble-card--send class is present (own message)
+        // The time+status row is now inside the bubble-card (bubble-card__time class).
         const bubble = document.querySelector(".bubble-card--send")
         expect(bubble).toBeInTheDocument()
-        // Status row is a sibling of bubble-card, not a child — traverse up to outer flex-col
-        const outerDiv = bubble?.closest(".flex.flex-col")
-        const statusDiv = outerDiv?.querySelector(".flex.items-center")
-        expect(statusDiv).toBeInTheDocument()
+        // Status row is a child of bubble-card since timestamp was moved inside the bubble
+        const timeRow = bubble?.querySelector(".bubble-card__time")
+        expect(timeRow).toBeInTheDocument()
     })
 
     it("renders a CheckCheck icon for DELIVERED status (own message)", () => {
@@ -668,10 +666,9 @@ describe("TC-F-13: MessageBubble status icons for own messages", () => {
 
         const bubble = document.querySelector(".bubble-card--send")
         expect(bubble).toBeInTheDocument()
-        // Status row is a sibling of bubble-card, not a child — traverse up to outer flex-col
-        const outerDiv = bubble?.closest(".flex.flex-col")
-        const statusDiv = outerDiv?.querySelector(".flex.items-center")
-        expect(statusDiv).toBeInTheDocument()
+        // Status row is a child of bubble-card since timestamp was moved inside the bubble
+        const timeRow = bubble?.querySelector(".bubble-card__time")
+        expect(timeRow).toBeInTheDocument()
     })
 
     it("renders a CheckCheck icon with primary color for READ status (own message)", () => {

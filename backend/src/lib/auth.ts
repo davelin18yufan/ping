@@ -163,9 +163,13 @@ export async function verifySession(
             return null
         }
 
-        // In test environment, verify session directly via Prisma.
-        // This allows tests to create sessions without going through the Better Auth OAuth flow.
-        if (process.env.NODE_ENV === "test") {
+        // In test environment, or for dev-session-* tokens in development,
+        // verify session directly via Prisma. Better Auth's getSession does not
+        // recognize tokens inserted manually (not via OAuth flow).
+        const isDevBypass =
+            process.env.NODE_ENV === "development" && sessionToken.startsWith("dev-session-")
+
+        if (process.env.NODE_ENV === "test" || isDevBypass) {
             const session = await prisma.session.findUnique({
                 where: {
                     token: sessionToken,
@@ -234,8 +238,12 @@ export async function verifySessionFromCookie(cookieHeader: string): Promise<str
             return null
         }
 
-        // In test environment, verify session directly via Prisma (same as verifySession).
-        if (process.env.NODE_ENV === "test") {
+        // In test environment, or for dev-session-* tokens in development,
+        // verify session directly via Prisma (same bypass as verifySession).
+        const isDevBypass =
+            process.env.NODE_ENV === "development" && sessionToken.startsWith("dev-session-")
+
+        if (process.env.NODE_ENV === "test" || isDevBypass) {
             const session = await prisma.session.findUnique({
                 where: {
                     token: sessionToken,

@@ -14,7 +14,7 @@ import { createYoga } from "graphql-yoga"
 import { useDisableIntrospection } from "@graphql-yoga/plugin-disable-introspection"
 import { maxDepthPlugin } from "@escape.tech/graphql-armor-max-depth"
 import type { PrismaClient } from "@generated/prisma/client"
-import { authHandler } from "./lib/auth"
+import { authHandler, parseCookie } from "./lib/auth"
 import { sessionMiddleware, getAuthUserId, withPrisma } from "./middleware"
 import { schema } from "./graphql/schema"
 import { buildGraphQLContext } from "./graphql/context"
@@ -108,6 +108,43 @@ app.use("*", withPrisma)
 // ============================================================================
 // Better Auth Routes
 // ============================================================================
+
+/**
+ * Dev-only session override for /api/auth/get-session.
+ *
+ * Intercepts session checks for manually-created dev-session-* tokens BEFORE
+ * Better Auth's catch-all handler. Better Auth's internal session validation
+ * does not recognize tokens that were inserted directly into the DB (i.e. not
+ * created via OAuth flow), so we handle them with a direct Prisma lookup and
+ * return the same JSON shape that Better Auth would return on success.
+ *
+ * This route is registered before /api/auth/** so Hono matches it first.
+ * ONLY active when NODE_ENV=development.
+ */
+if (process.env.NODE_ENV === "development") {
+    app.get("/api/auth/get-session", async (c) => {
+        const cookieHeader = c.req.header("cookie") ?? ""
+        const sessionToken = parseCookie(cookieHeader, "better-auth.session_token")
+
+        if (!sessionToken?.startsWith("dev-session-")) {
+            // Not a dev token — let Better Auth handle it normally
+            return authHandler(c.req.raw)
+        }
+
+        const prismaClient = c.get("prisma")
+        const session = await prismaClient.session.findUnique({
+            where: { token: sessionToken },
+            include: { user: true },
+        })
+
+        if (!session || session.expiresAt < new Date()) {
+            return c.json(null)
+        }
+
+        const { user, ...sessionData } = session
+        return c.json({ session: sessionData, user })
+    })
+}
 
 /**
  * All Better Auth routes are handled under /api/auth/*

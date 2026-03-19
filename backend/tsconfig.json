@@ -39,6 +39,6 @@
             "@generated/*": ["generated/*"]
         }
     },
-    "include": ["src/**/*", "prisma/**/*", "tests/**/*", "*.ts"],
+    "include": ["src/**/*", "prisma/**/*", "tests/**/*", "scripts/**/*"],
     "exclude": ["node_modules", "dist", "build", "generated"]
 }

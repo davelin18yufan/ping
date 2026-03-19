@@ -7,6 +7,7 @@
       "Bash(* lint *)",
       "Bash(* format *)",
       "Bash(git status)",
+      "Bash(git log)",
       "Bash(cmd.exe //C \"pnpm lint\")",
       "Bash(find *)",
       "Bash(Read *)"

@@ -50,19 +50,12 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
 
     const [showInfo, setShowInfo] = useState(false)
     const [sendError, setSendError] = useState<string | null>(null)
-    const [incomingSenderName, setIncomingSenderName] = useState<string | null>(null)
-    const incomingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+    // Name of the sender whose Sonic Ping triggered the incoming overlay.
+    // null = overlay hidden; string = overlay visible for 1.6 s.
+    const [sonicPingFrom, setSonicPingFrom] = useState<string | null>(null)
+    const sonicPingOverlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const { data: conversation } = useQuery(conversationQueryOptions(conversationId))
-
-    // Register this conversation as the currently-active one so
-    // Socket handlers suppress unread badge increments while we are viewing it.
-    useEffect(() => {
-        uiStore.setState((s) => ({ ...s, activeConversationId: conversationId }))
-        return () => {
-            uiStore.setState((s) => ({ ...s, activeConversationId: null }))
-        }
-    }, [conversationId])
 
     // Mark messages as read whenever the active conversation changes.
     const markReadMutation = useMutation({
@@ -80,12 +73,37 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
         },
     })
 
+    // On entering a conversation:
+    //  1. Register as active so socket handlers suppress unread increments.
+    //  2. Mark existing messages as read immediately.
+    // Both actions share the same [conversationId] trigger — merging into one
+    // effect avoids two separate effect runs on every conversation switch.
     useEffect(() => {
+        uiStore.setState((s) => ({ ...s, activeConversationId: conversationId }))
         markReadMutation.mutate()
-        // Only re-fire when the conversation changes; markReadMutation reference
-        // is stable across renders so it is safe to omit from deps.
+        return () => {
+            uiStore.setState((s) => ({ ...s, activeConversationId: null }))
+        }
+        // markReadMutation ref is stable across renders; only conversationId drives re-runs.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [conversationId])
+
+    // Subscribe to the active conversation's unreadCount from the list cache.
+    // When a conversations refetch (e.g. triggered by sendMutation.onSuccess)
+    // overwrites the socket-patched 0 with the DB's stale count, this effect
+    // fires markRead again to keep the DB and cache in sync while we are here.
+    const { data: liveUnreadCount } = useQuery({
+        ...conversationsQueryOptions,
+        select: (convs) => convs.find((c) => c.id === conversationId)?.unreadCount ?? 0,
+    })
+
+    useEffect(() => {
+        if ((liveUnreadCount ?? 0) > 0) {
+            markReadMutation.mutate()
+        }
+        // markReadMutation ref is stable; liveUnreadCount drives re-runs.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [liveUnreadCount])
 
     // Listen for incoming Sonic Ping custom DOM event dispatched by useSocket.
     // Show the overlay for 1600 ms then clear it.
@@ -94,15 +112,15 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
             const { senderName } = (
                 e as CustomEvent<{ conversationId: string; senderName: string }>
             ).detail
-            setIncomingSenderName(senderName)
-            if (incomingTimeoutRef.current) clearTimeout(incomingTimeoutRef.current)
-            incomingTimeoutRef.current = setTimeout(() => setIncomingSenderName(null), 1600)
+            setSonicPingFrom(senderName)
+            if (sonicPingOverlayTimerRef.current) clearTimeout(sonicPingOverlayTimerRef.current)
+            sonicPingOverlayTimerRef.current = setTimeout(() => setSonicPingFrom(null), 1600)
         }
 
         window.addEventListener("sonicPing:incoming", handleIncoming)
         return () => {
             window.removeEventListener("sonicPing:incoming", handleIncoming)
-            if (incomingTimeoutRef.current) clearTimeout(incomingTimeoutRef.current)
+            if (sonicPingOverlayTimerRef.current) clearTimeout(sonicPingOverlayTimerRef.current)
         }
     }, [])
 
@@ -243,12 +261,16 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
             </motion.div>
 
             {/* Incoming Sonic Ping overlay — visible for 1.6 s after receiving a ping */}
-            {incomingSenderName && (
-                <div className="sonic-incoming-overlay" aria-live="polite">
+            {sonicPingFrom && (
+                <div
+                    className="sonic-incoming-overlay"
+                    aria-live="polite"
+                    aria-label={`${sonicPingFrom} sent a Sonic Ping`}
+                >
                     <span
                         className="sonic-incoming-overlay__text"
-                        // Key on a timestamp so the animation replays for rapid successive pings
-                        key={incomingSenderName + String(Date.now())}
+                        // Key on sender+time so the animation replays for rapid successive pings
+                        key={sonicPingFrom + String(Date.now())}
                     >
                         Anybody home?
                     </span>

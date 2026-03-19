@@ -1170,10 +1170,15 @@
     }
 
     /* ============================================================
-       Sonic Ping Event Marker (in-chat ritual message)
+       Interaction Event Marker (in-chat ritual message)
+       Generic wrapper for Sonic Ping, future apology/celebrate/etc.
+       Color is driven by --interaction-color CSS custom property.
+       Default: var(--ritual-nudge) (cyan). Override per-event via
+       inline style="--interaction-color: var(--ritual-celebrate)" etc.
        ============================================================ */
 
-    .sonic-ping-event {
+    .interaction-event {
+        --interaction-color: var(--ritual-nudge); /* default: Sonic Ping cyan */
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -1182,46 +1187,46 @@
         user-select: none;
     }
 
-    .sonic-ping-event::before,
-    .sonic-ping-event::after {
+    .interaction-event::before,
+    .interaction-event::after {
         content: "";
         flex: 1;
         height: 1px;
         background: linear-gradient(
             90deg,
             transparent,
-            oklch(from var(--ritual-nudge) l c h / 0.35),
+            oklch(from var(--interaction-color) l c h / 0.35),
             transparent
         );
     }
 
-    .sonic-ping-event__badge {
+    .interaction-event__badge {
         display: flex;
         align-items: center;
         gap: 0.3125rem;
         padding: 0.25rem 0.75rem;
         border-radius: 999px;
-        background: oklch(from var(--ritual-nudge) l c h / 0.08);
-        border: 1px solid oklch(from var(--ritual-nudge) l c h / 0.28);
-        color: var(--ritual-nudge);
+        background: oklch(from var(--interaction-color) l c h / 0.08);
+        border: 1px solid oklch(from var(--interaction-color) l c h / 0.28);
+        color: var(--interaction-color);
         font-size: 0.6875rem;
         font-weight: 500;
         white-space: nowrap;
         box-shadow:
-            0 0 8px oklch(from var(--ritual-nudge) l c h / 0.12),
-            inset 0 0 12px oklch(from var(--ritual-nudge) l c h / 0.06);
+            0 0 8px oklch(from var(--interaction-color) l c h / 0.12),
+            inset 0 0 12px oklch(from var(--interaction-color) l c h / 0.06);
         letter-spacing: 0.025em;
     }
 
-    .sonic-ping-event__time {
-        color: oklch(from var(--ritual-nudge) l c h / 0.55);
+    .interaction-event__time {
+        color: oklch(from var(--interaction-color) l c h / 0.55);
         font-size: 0.625rem;
         font-weight: 400;
         margin-left: 0.25rem;
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .sonic-ping-event__badge {
+        .interaction-event__badge {
             box-shadow: none;
         }
     }

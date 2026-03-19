@@ -482,6 +482,12 @@
             transform: translateX(-50%) !important;
         }
 
+        /* Hide the capsule header when inside a chat room (/chats/:id) on mobile —
+           it overlaps the chat room content at this viewport width. */
+        [data-in-chat-room] .capsule-header {
+            display: none;
+        }
+
         .capsule-header[data-placement="bottom-left"].capsule-header--nudge {
             animation: capsule-nudge-mobile var(--duration-480) var(--ease-spring);
         }

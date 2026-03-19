@@ -28,17 +28,17 @@
 import { useMutationState } from "@tanstack/react-query"
 import { useStore } from "@tanstack/react-store"
 import { Zap } from "lucide-react"
-import { motion } from "motion/react"
 import type { ReactNode } from "react"
 import { useEffect, useMemo, useRef } from "react"
 import { VList, type VListHandle } from "virtua"
 
 import { useMessages } from "@/hooks/useMessages"
-import { cn, formatMessageTime } from "@/lib/utils"
+import { cn } from "@/lib/utils"
 import { uiStore } from "@/stores/uiStore"
 import type { ConversationType, Message } from "@/types/conversations"
 import type { DateItem, ListItem, MessageItem, PendingItem, TypingItem } from "@/types/messageList"
 
+import { InteractionEvent } from "./InteractionEvent"
 import { MessageBubble } from "./MessageBubble"
 import { TypingIndicator } from "./TypingIndicator"
 
@@ -163,24 +163,15 @@ function DateSeparatorRow({ item }: { item: DateItem }) {
 }
 
 function SonicPingMessageRow({ message, isOwn }: { message: Message; isOwn: boolean }) {
+    const label = isOwn ? "You sent a Sonic Ping" : `${message.sender.name} sent a Sonic Ping`
     return (
-        <motion.div
-            className={cn(
-                "sonic-ping-event",
-                isOwn ? "sonic-ping-event--own" : "sonic-ping-event--received"
-            )}
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
-        >
-            <span className="sonic-ping-event__badge">
-                <Zap size={10} aria-hidden="true" />
-                {isOwn ? "You sent a Sonic Ping" : `${message.sender.name} sent a Sonic Ping`}
-                <span className="sonic-ping-event__time">
-                    {formatMessageTime(message.createdAt)}
-                </span>
-            </span>
-        </motion.div>
+        <InteractionEvent
+            message={message}
+            isOwn={isOwn}
+            icon={<Zap size={10} aria-hidden="true" />}
+            label={label}
+            // colorVar omitted → uses CSS default var(--ritual-nudge)
+        />
     )
 }
 
@@ -353,13 +344,25 @@ export function MessageList({ conversationId, currentUserId, conversationType }:
     // heights in its first layout pass, preventing newest message from
     // landing in the middle of the viewport on initial conversation load.
     useEffect(() => {
-        if (messages.length > 0) {
-            const raf = requestAnimationFrame(() => {
-                listRef.current?.scrollToIndex(messages.length - 1, { smooth: false })
-            })
-            return () => cancelAnimationFrame(raf)
-        }
-    }, [messages.length])
+        if (messages.length === 0) return
+        const raf = requestAnimationFrame(() => {
+            // items.length accounts for date separators; +1 clears the top sentinel.
+            // An out-of-bounds index scrolls virtua to the very last item safely.
+            listRef.current?.scrollToIndex(items.length + 1, { smooth: false })
+        })
+        return () => cancelAnimationFrame(raf)
+    }, [messages.length]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Reveal typing indicator when it appears.
+    // Kept separate from the messages effect so it can animate smoothly
+    // without clobbering the hard-scroll used for new messages.
+    useEffect(() => {
+        if (typingUsers.length === 0) return
+        const raf = requestAnimationFrame(() => {
+            listRef.current?.scrollToIndex(items.length + 1, { smooth: true })
+        })
+        return () => cancelAnimationFrame(raf)
+    }, [typingUsers.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
     // IntersectionObserver at top sentinel to load older messages on scroll up
     useEffect(() => {
@@ -396,7 +399,7 @@ export function MessageList({ conversationId, currentUserId, conversationType }:
             <VList
                 ref={listRef}
                 className="flex-1"
-                style={{ padding: "0.5rem 1rem", overscrollBehavior: "contain" }}
+                style={{ padding: "0.5rem 1rem 2rem", overscrollBehavior: "contain" }}
             >
                 {/* Top sentinel — triggers loading older messages when visible */}
                 <div ref={topSentinelRef} style={{ height: 1 }} aria-hidden="true" />

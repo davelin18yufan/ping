@@ -123,6 +123,71 @@ app.on(["POST", "GET"], "/api/auth/**", (c) => {
 })
 
 // ============================================================================
+//! Dev-only Routes (development environment only)
+//! Remove after MVP
+// ============================================================================
+
+/**
+ * /dev/login/:name — instantly log in as a seeded test user.
+ *
+ * Creates (or refreshes) a session in the DB and sets the
+ * better-auth.session_token cookie with the same attributes that Better Auth
+ * uses (HttpOnly, SameSite=Lax), then redirects to the frontend.
+ *
+ * Usage: open http://localhost:3000/dev/login/alice in any browser window.
+ *
+ * ONLY available when NODE_ENV=development.
+ */
+if (process.env.NODE_ENV === "development") {
+    const DEV_USERS: Record<string, string> = {
+        alice: "alice@ping.dev",
+        bob: "bob@ping.dev",
+        charlie: "charlie@ping.dev",
+        diana: "diana@ping.dev",
+    }
+    const FRONTEND_URL = process.env.FRONTEND_URL ?? "http://localhost:5173"
+    const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 7 days in seconds
+
+    app.get("/dev/login/:name", async (c) => {
+        const name = c.req.param("name").toLowerCase()
+        const email = DEV_USERS[name]
+
+        if (!email) {
+            return c.json(
+                { error: `Unknown user "${name}". Valid: ${Object.keys(DEV_USERS).join(", ")}` },
+                404
+            )
+        }
+
+        const prismaClient = c.get("prisma")
+        const user = await prismaClient.user.findUnique({ where: { email } })
+
+        if (!user) {
+            return c.json(
+                { error: `User "${name}" not in DB. Run: cd backend && bun run db:seed` },
+                404
+            )
+        }
+
+        const token = `dev-session-${name}`
+        const expiresAt = new Date(Date.now() + SESSION_MAX_AGE * 1000)
+
+        await prismaClient.session.upsert({
+            where: { token },
+            update: { expiresAt, updatedAt: new Date() },
+            create: { id: `dev-${name}-session`, token, userId: user.id, expiresAt },
+        })
+
+        // Set cookie with same attributes as Better Auth (HttpOnly, SameSite=Lax)
+        c.header(
+            "Set-Cookie",
+            `better-auth.session_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_MAX_AGE}`
+        )
+        return c.redirect(FRONTEND_URL, 302)
+    })
+}
+
+// ============================================================================
 // Public Routes
 // ============================================================================
 

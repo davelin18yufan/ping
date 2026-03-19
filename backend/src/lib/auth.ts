@@ -163,8 +163,8 @@ export async function verifySession(
             return null
         }
 
-        // In test environment, verify session directly via Prisma
-        // This allows tests to create sessions without Better Auth OAuth flow
+        // In test environment, verify session directly via Prisma.
+        // This allows tests to create sessions without going through the Better Auth OAuth flow.
         if (process.env.NODE_ENV === "test") {
             const session = await prisma.session.findUnique({
                 where: {
@@ -183,7 +183,7 @@ export async function verifySession(
             return { userId: session.userId, sessionId: session.id }
         }
 
-        // In production/development, verify session with Better Auth
+        // In production/development (non-bypass), verify session with Better Auth
         const sessionData = await auth.api.getSession({
             headers: request.headers,
         })
@@ -234,8 +234,7 @@ export async function verifySessionFromCookie(cookieHeader: string): Promise<str
             return null
         }
 
-        // In test environment, verify session directly via Prisma
-        // This allows tests to create sessions without Better Auth OAuth flow
+        // In test environment, verify session directly via Prisma (same as verifySession).
         if (process.env.NODE_ENV === "test") {
             const session = await prisma.session.findUnique({
                 where: {
@@ -254,7 +253,7 @@ export async function verifySessionFromCookie(cookieHeader: string): Promise<str
             return session.userId
         }
 
-        // In production/development, verify session with Better Auth
+        // In production/development (non-bypass), verify session with Better Auth
         // Create minimal Headers object for Better Auth API
         const headers = new Headers()
         headers.set("cookie", cookieHeader)

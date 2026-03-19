@@ -8,8 +8,11 @@
  *   bun run scripts/dev-session.ts charlie      # create session for charlie
  *   bun run scripts/dev-session.ts --clear      # delete all dev sessions
  *
- * After running, the script prints a one-liner to paste in the browser console
- * of an incognito window to log in as that user instantly.
+ * After running, the script prints a URL to open in any browser window.
+ * The backend sets the session cookie server-side (HttpOnly, SameSite=Lax)
+ * and redirects to the frontend — no console paste required.
+ *
+ * Requires the backend dev server to be running (NODE_ENV=development).
  *
  * Safety: only runs when DATABASE_URL points to a local/dev database
  * (host must be localhost or 127.0.0.1 or a Docker service name).
@@ -56,12 +59,14 @@ function makeToken(name: SeededUser): string {
     return `${DEV_TOKEN_PREFIX}${name}`
 }
 
-function printCookieSnippet(token: string, name: string): void {
-    console.log(`\nOpen an incognito window at http://localhost:5173, then paste in the console:\n`)
+const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:3000"
+
+function printLoginUrl(name: string): void {
     console.log(
-        `  document.cookie = "better-auth.session_token=${token}; path=/; max-age=604800"; location.reload()\n`
+        `\nOpen this URL in any browser window (incognito recommended for multi-user testing):\n`
     )
-    console.log(`You will be logged in as ${name}.`)
+    console.log(`  ${BACKEND_URL}/dev/login/${name}\n`)
+    console.log(`The backend will set the session cookie and redirect you to the frontend.`)
 }
 
 // ─── Commands ─────────────────────────────────────────────────────────────────
@@ -119,7 +124,7 @@ async function createSession(name: SeededUser): Promise<void> {
     })
 
     console.log(`Session created for ${user.name} (${user.email})`)
-    printCookieSnippet(token, user.name)
+    printLoginUrl(name)
 }
 
 async function clearSessions(): Promise<void> {

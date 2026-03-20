@@ -22,5 +22,8 @@
     "github"
   ],
   "outputStyle": "Explanatory",
-  "spinnerTipsEnabled": true
+  "spinnerTipsEnabled": true,
+  "enabledPlugins": {
+    "impeccable@impeccable": true
+  }
 }

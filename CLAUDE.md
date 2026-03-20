@@ -160,12 +160,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 框架架構則須遵照 `tanstack-start` , `tanstack-router` 的規範
 - 請求主體用 `tanstack-query` 規範
 
-**UI/UX 設計規範**：
-- ✅ 必須執行 `/web-design-guidelines` 和 `/frontend-design` Skills
-- ✅ 使用 oklch 顏色系統
-- ✅ 使用設計系統 CSS classes（`.glass-button`、`.glass-card`、`.glass-input`）
-- ✅ 複雜樣式用 CSS + CSS 變數（簡單修改用 Tailwind utilities）
-- ❌ 禁止硬編碼顏色、重複樣式、inline styles
+**UI/UX 設計規範**：執行 `/web-design-guidelines` 和 `/frontend-design` Skills，遵守本文末 **Design Context** 與 `.impeccable.md` 的規範。
 
 ---
 
@@ -342,132 +337,22 @@ try {
 
 ### 前端 UI/UX 設計規範
 
-**🚨 強制性要求（MANDATORY）🚨**：
-**所有前端 UI 的修改、製作、調整都必須遵照以下流程，不得跳過任何步驟**：
+**UI 工作前必須執行**：`/web-design-guidelines` → `/frontend-design` → 閱讀 `.impeccable.md`（設計 Context）。
 
-#### 設計核心文件（必讀）
-1. **`/docs/design-philosophy.md`** - Ping 設計哲學與核心原則
-   - 三大核心原則：儀式優先、輕盈即時、關係空間
-   - 視覺設計語言（Modern Dark Elegance）
-   - 色彩系統（Dark Mode 為主、Light Mode 為輔）
-   - 字型系統、間距、陰影、動畫原則
-   - 元件設計優先級（Phase 1-3）
-   - 可訪問性原則（WCAG AAA）
+**Design Token 同步規則**（新增/修改 token 時兩邊都要更新）：
 
-2. **`/docs/design-system.md`** - 統一 Design System 使用指南
-   - Design Tokens（顏色、間距、字型、陰影、圓角）
-   - Primitive Components（Headless 元件）
-   - UI Components（Web + Mobile）
-   - 使用指南與最佳實踐
+| 平台 | 來源 | 格式 |
+|------|------|------|
+| Web | `@shared/design-tokens/css/*.css` | `var(--token)` |
+| Mobile | `@shared/design-tokens/*.ts` | TS import |
 
-3. **設計系統 CSS 元件（必須使用）**
-   - 所有 UI 元件**必須使用**這些設計系統定義的 classes，不得自行撰寫重複樣式
-
-4. **🔴 修改任何樣式前必須先檢查 Shared 樣式架構（MANDATORY）**
-
-   **平台消費方式不同，但 Source of Truth 相同**：
-
-   | 平台 | 讀取來源 | 格式 |
-   |------|----------|------|
-   | **Web (Frontend)** | `@shared/design-tokens/css/*.css` | CSS custom properties (`var(--token)`) |
-   | **Mobile (React Native)** | `@shared/design-tokens/*.ts` | TypeScript exports（`colors.ts`、`effects.ts` 等） |
-
-   **⚠️ 新增或修改任何 Token 時，兩邊都必須同步更新**：
-   - CSS 檔案（Web 用）：`@shared/design-tokens/css/`
-   - TS 檔案（Mobile 用）：`@shared/design-tokens/*.ts`
-
-   **在撰寫任何新 CSS 變數或樣式值之前，必須依序檢查**：
-   ```
-   Web 側: @shared/design-tokens/css/colors.css → effects.css → animations.css → spacing.css
-   Mobile 側: @shared/design-tokens/colors.ts  → effects.ts  → animations.ts  → spacing.ts
-   ```
-
-   **決策流程**：
-   - ✅ Token 已存在 → Web 用 `var(--token-name)`，Mobile 用 TS import
-   - ✅ Token 需新增 → **同時**更新對應的 `.css` 和 `.ts` 兩個檔案
-   - ❌ 禁止在元件 CSS 中硬編碼數值（例如 `oklch(0.72 0.18 145)`），必須提取為 shared token
-   - ❌ 禁止只更新 CSS 忘記同步 TS（或反之）
-   - ❌ 禁止直接跳到元件 CSS 撰寫樣式，必須先完成上方檢查
-
-
-#### 🔴 強制執行 Skills（BLOCKING REQUIREMENT）
-**在開始任何 UI 工作前，必須先執行以下 Skills，不得跳過**：
-
-1. **`/web-design-guidelines`** - UI/UX 專業設計 Skill（必須優先執行）
-   - **何時執行**：任何 UI/UX 的修改、製作、調整、審查、改進
-   - **包含**：50 種風格、21 種調色盤、50 種字型配對、20 種圖表、8 種技術棧
-   - **涵蓋**：React、Next.js、Vue、Svelte、SwiftUI、React Native、Flutter、Tailwind
-   - **用途**：確保設計符合專業標準，檢查設計一致性
-
-2. **`/frontend-design`** - 前端設計 Skill（必須執行）
-   - **何時執行**：建立新元件、新頁面、重大 UI 調整
-   - **目的**：產生高設計品質、避免通用 AI 美學
-   - **用途**：確保視覺設計獨特且符合品牌風格
-
-**執行順序（強制）**：
-```
-1. 收到 UI 任務
-   ↓
-2. 執行 /web-design-guidelines（檢查設計標準）
-   ↓
-3. 執行 /frontend-design（產生設計方案）
-   ↓
-4. 閱讀設計核心文件
-   ↓
-5. 使用設計系統 CSS classes 實作和共用基礎元件 `/shared/`
-   ↓
-6. 執行設計交付檢查
-   ↓
-7. 提交程式碼
-```
-
-#### 設計流程規範
-**Fullstack Frontend Developer 在實作任何 UI 元件前必須**：
-
-1. **強制執行 Skills**：
-   - ✅ 先執行 `/web-design-guidelines` 檢查設計標準
-   - ✅ 再執行 `/frontend-design` 產生設計方案
-   - ❌ 不得跳過，不得自行判斷
-
-2. **閱讀設計核心文件**：
-   - 確認 `/docs/design-philosophy.md` 的相關設計原則
-   - 檢查 `/docs/design-system.md` 的 Design Tokens 與元件規範
-
-3. **使用設計系統 CSS classes**：
-   - ✅ 使用 `.glass-button`、`.glass-card`、`.glass-input` 等已定義樣式
-   - ✅ 使用 Design Tokens (`var(--primary)`, `var(--card)`, 等)
-   - ❌ 不得撰寫重複的 inline styles 或自訂 classes
-   - ❌ 不得使用硬編碼顏色（例如 `bg-blue-500`）
-
-4. **遵循設計原則**：
-   - ✅ Dark Mode 為主（macOS Glassmorphism：鋼灰色 + Messages 藍）
-   - ✅ Light Mode 為輔（日式溫暖風格：米色 + 柔和色調）
-   - ✅ 使用 Design Tokens（`@shared/design-tokens`）
-   - ✅ 儀式感互動（進房特效、訊息送出動畫、情緒儀式）
-   - ✅ 流暢動畫（150-300ms，ease-out/ease-in）
-   - ✅ 可訪問性（WCAG AAA、鍵盤導航、螢幕閱讀器）
-   - ✅ 無障礙設計（Reduced Motion、色盲友善、觸控友善）
-
-5. **設計交付檢查**：
-   - [ ] 執行過 `/web-design-guidelines` 和 `/frontend-design` Skills
-   - [ ] 使用設計系統 CSS classes（不得有重複樣式）
-   - [ ] 無 emoji 用作圖示（使用 Lucide React / Heroicons）
-   - [ ] 所有圖示來自一致的圖示集
-   - [ ] Hover 狀態不造成 layout shift
-   - [ ] Dark/Light 兩種模式都正確顯示
-   - [ ] 轉場動畫流暢（150-300ms）
-   - [ ] TypeScript 類型完整
-   - [ ] 通過 Linter/Formatter 檢查
-
-#### 禁止事項（嚴格執行）
-- ❌ **未執行 `/web-design-guidelines` 和 `/frontend-design` 就開始實作 UI**
-- ❌ 未參考設計核心文件就直接實作 UI
-- ❌ 撰寫重複的 CSS 樣式（必須使用設計系統 classes）
-- ❌ 使用硬編碼顏色（例如 `bg-blue-500`），必須使用 Design Tokens
-- ❌ 使用 inline styles 取代設計系統 classes
-- ❌ 跳過 Skills 執行，自行判斷設計方向
-- ❌ 違反設計哲學的三大核心原則
-- ❌ 純白背景（Light Mode 必須使用柔和色調）
+**設計交付檢查**：
+- [ ] 執行過 `/web-design-guidelines` 和 `/frontend-design`
+- [ ] 使用 `.glass-button`、`.glass-card`、`.glass-input` 等設計系統 classes
+- [ ] 無硬編碼顏色，無 inline styles，無重複樣式
+- [ ] 圖示只用 Lucide React，無 emoji 圖示
+- [ ] Hover 不造成 layout shift，Dark/Light 兩模式正確
+- [ ] `prefers-reduced-motion` 有處理，WCAG AAA 對比度
 
 ---
 
@@ -544,3 +429,41 @@ A：看 `MULTI_AGENT_PLAN.md` 的狀態欄，每天更新。
 - 程式碼中不准出現表情符號
 - 有疑慮的地方必須要發問
 - 各技術框架要使用相對應存在的 SKILL
+
+---
+
+## Design Context
+
+> Maintained by `/impeccable:teach-impeccable`. Full detail in `.impeccable.md`.
+
+### Users
+Close friends and intimate personal circles. Used in moments of genuine connection — checking in, sharing a laugh, making up, celebrating. Often one-handed, on a commute or sofa. The interface should feel like a familiar space that belongs to *this* relationship.
+
+### Brand Personality
+**溫暖 · 儀式感 · 親密** (Warm · Ritual · Intimate). Understated confidence. Makes small things feel special. A message sent is a moment, not a data transfer.
+
+### Aesthetic Direction
+macOS Glassmorphism — "Steel Frost" dark (`oklch(0.18 0.005 240)`) + "Kyoto Sunrise" warm light (`oklch(0.96 0.010 70)`). Messages blue primary (`oklch(0.60 0.18 250)`). Ritual colors: cyan (nudge), blue-purple (apology), gold (celebration), pink (reconciliation). Typography: Montserrat + Inter + JetBrains Mono. Spring physics animations via `motion/react`.
+
+### Anti-References
+- **Slack** — corporate, cold, transactional. No utility-first sterility.
+- **LINE** — chaotic sticker culture, ad-cluttered, visually noisy. Fix the clutter, keep the warmth.
+- **Pure minimalism** — white backgrounds, no animation, no personality. Restraint ≠ emptiness.
+
+### Design Principles
+1. **Ritual over Transaction** — Every interaction is a moment. The `InteractionEvent` pattern is the heart of this.
+2. **Warm Precision** — Exact spacing, perfect timing, curated glassmorphism. Imprecise warmth is sloppiness.
+3. **Clean ≠ Stripped** — Hierarchy and restraint, not removal. Every element earns its place.
+4. **Depth through Layering** — Color, motion, and space communicate relationship state, not just messages.
+5. **Both Platforms, One Soul** — Web glassmorphism and Mobile NativeWind feel like siblings. Same token, same soul.
+
+### Current Priority
+**Polish and refinement** — Architecture is solid. The gap between "works" and "delights" is in the details: consistent spacing, perfectly-timed micro-interactions, ritual animations that make users stop and notice.
+
+### Technical Constraints (Design)
+- OKLCH colors only. CSS relative color syntax: `oklch(from var(--token) l c h / 0.5)`.
+- All tokens from `@shared/design-tokens`. No hardcoded colors in components.
+- Icons: Lucide React only. No emoji as icons.
+- Use `.glass-button`, `.glass-card`, `.glass-input`. Extend via `--interaction-color` pattern.
+- Respect `prefers-reduced-motion` and `[data-aesthetic="minimal"]` in all animations.
+- WCAG AAA target: contrast > 7:1, full keyboard nav, ARIA labels.

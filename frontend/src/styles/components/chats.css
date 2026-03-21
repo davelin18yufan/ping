@@ -914,6 +914,8 @@
         transform: none !important;
         transition: none !important;
         background: oklch(from var(--card) l c h / 0.5) !important;
+        position: relative;
+        z-index: 10;
     }
 
     .chat-room__header:hover {
@@ -1329,10 +1331,20 @@
         position: absolute;
         inset: 0;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: 4px;
         pointer-events: none;
         z-index: 20;
+    }
+
+    .sonic-incoming-overlay__sender {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--muted-foreground);
+        opacity: 0;
+        animation: sonic-overlay-fade 1.5s ease-out forwards;
     }
 
     .sonic-incoming-overlay__text {
@@ -1604,4 +1616,233 @@
     .chats-layout__filters {
         animation: none !important;
     }
+}
+
+/* ============================================================
+   Ritual System Phase 3 — Sender Animations + Overlay + Picker
+   ============================================================ */
+
+/* ── Sender feedback animations (applied to .chat-room-outer) ── */
+
+@keyframes ritual-apology-droop {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    40% {
+        transform: translateY(6px);
+    }
+    70% {
+        transform: translateY(3px);
+    }
+}
+
+.chat-room-outer.is-ritual-apology {
+    animation: ritual-apology-droop 500ms ease-out both;
+}
+
+@keyframes ritual-celebrate-burst {
+    0% {
+        transform: scale(1);
+    }
+    30% {
+        transform: scale(1.04);
+    }
+    60% {
+        transform: scale(0.98);
+    }
+    100% {
+        transform: scale(1);
+    }
+}
+
+.chat-room-outer.is-ritual-celebrate {
+    animation: ritual-celebrate-burst 400ms var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1))
+        both;
+}
+
+@keyframes ritual-taunt-jitter {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    15% {
+        transform: translateX(-6px);
+    }
+    30% {
+        transform: translateX(6px);
+    }
+    45% {
+        transform: translateX(-5px);
+    }
+    60% {
+        transform: translateX(5px);
+    }
+    75% {
+        transform: translateX(-3px);
+    }
+    90% {
+        transform: translateX(3px);
+    }
+}
+
+.chat-room-outer.is-ritual-taunt {
+    animation: ritual-taunt-jitter 350ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@keyframes ritual-longing-pulse {
+    0%,
+    100% {
+        transform: scale(1);
+    }
+    25% {
+        transform: scale(1.02);
+    }
+    50% {
+        transform: scale(1);
+    }
+    75% {
+        transform: scale(1.015);
+    }
+}
+
+.chat-room-outer.is-ritual-longing {
+    animation: ritual-longing-pulse 600ms ease-in-out both;
+}
+
+@keyframes ritual-question-bounce {
+    0%,
+    100% {
+        transform: translateY(0);
+    }
+    30% {
+        transform: translateY(-8px);
+    }
+    55% {
+        transform: translateY(2px);
+    }
+    75% {
+        transform: translateY(-4px);
+    }
+}
+
+.chat-room-outer.is-ritual-question {
+    animation: ritual-question-bounce 450ms var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1))
+        both;
+}
+
+@keyframes ritual-rejection-push {
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+    25% {
+        transform: translateX(8px);
+    }
+    50% {
+        transform: translateX(4px);
+    }
+    75% {
+        transform: translateX(6px);
+    }
+}
+
+.chat-room-outer.is-ritual-rejection {
+    animation: ritual-rejection-push 400ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .chat-room-outer[class*="is-ritual-"] {
+        animation: none !important;
+    }
+}
+
+[data-aesthetic="minimal"] .chat-room-outer[class*="is-ritual-"] {
+    animation: none;
+}
+
+/* ── Per-ritual incoming overlay text styles ── */
+
+.ritual-overlay--apology .sonic-incoming-overlay__text {
+    text-shadow: 0 0 20px oklch(from var(--ritual-apology) l c h / 0.6);
+}
+
+.ritual-overlay--celebrate .sonic-incoming-overlay__text {
+    font-size: 3rem;
+    text-shadow: 0 0 20px oklch(from var(--ritual-celebrate) l c h / 0.6);
+}
+
+.ritual-overlay--taunt .sonic-incoming-overlay__text {
+    text-shadow: 0 0 20px oklch(from var(--ritual-taunt) l c h / 0.6);
+}
+
+.ritual-overlay--longing .sonic-incoming-overlay__text {
+    text-shadow: 0 0 20px oklch(from var(--ritual-reconcile) l c h / 0.6);
+}
+
+.ritual-overlay--question .sonic-incoming-overlay__text {
+    text-shadow: 0 0 20px oklch(from var(--ritual-question) l c h / 0.6);
+}
+
+.ritual-overlay--rejection .sonic-incoming-overlay__text {
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 20px oklch(from var(--ritual-reject) l c h / 0.6);
+}
+
+/* ── Ritual Picker popover ── */
+
+.ritual-picker {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 60;
+    background: var(--glass-background-hover);
+    backdrop-filter: blur(var(--blur-lg, 16px)) saturate(var(--glass-saturation-md, 160%));
+    -webkit-backdrop-filter: blur(var(--blur-lg, 16px)) saturate(var(--glass-saturation-md, 160%));
+    border: 1px solid oklch(from var(--border) l c h / 0.5);
+    border-radius: var(--radius-xl, 14px);
+    box-shadow:
+        0 4px 24px var(--shadow-overlay-xl, oklch(0 0 0 / 0.25)),
+        0 1px 0 var(--shadow-highlight-sm, oklch(1 0 0 / 0.06)) inset;
+    padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    animation: picker-appear var(--duration-fast, 150ms)
+        var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) both;
+}
+
+.ritual-picker__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 8px;
+    border: none;
+    border-radius: var(--radius-sm, 8px);
+    background: transparent;
+    cursor: pointer;
+    transition: background var(--duration-fast, 150ms) var(--ease-out, ease-out);
+    min-width: 64px;
+}
+
+.ritual-picker__item:hover {
+    background: oklch(from var(--ritual-item-color, var(--primary)) l c h / 0.12);
+}
+
+.ritual-picker__item:focus-visible {
+    outline: 2px solid var(--ritual-item-color, var(--primary));
+    outline-offset: 1px;
+}
+
+.ritual-picker__icon {
+    color: var(--ritual-item-color, var(--foreground));
+}
+
+.ritual-picker__label {
+    font-size: 0.625rem;
+    font-weight: 500;
+    color: var(--muted-foreground);
 }

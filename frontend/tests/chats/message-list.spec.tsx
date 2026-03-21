@@ -765,6 +765,166 @@ describe("TC-F-14: message alignment based on isOwn prop", () => {
 })
 
 // ---------------------------------------------------------------------------
+// TC-F-16: Ritual messages render as InteractionEvent pills (not bubbles)
+// ---------------------------------------------------------------------------
+
+describe("TC-F-16: ritual messageType renders InteractionEvent instead of MessageBubble", () => {
+    function makeRitualMessage(
+        id: string,
+        messageType: string,
+        sender: typeof mockUserBob | typeof mockUserAlice = mockUserBob
+    ) {
+        return {
+            id,
+            conversationId: "conv-001",
+            sender,
+            content: null,
+            messageType,
+            imageUrl: null,
+            createdAt: new Date().toISOString(),
+            status: "DELIVERED" as const,
+        }
+    }
+
+    const ritualCases = [
+        {
+            type: "SONIC_PING",
+            ownLabel: "You sent a Sonic Ping",
+            otherLabel: "Bob Wang sent a Sonic Ping",
+        },
+        { type: "APOLOGY", ownLabel: "你道歉了", otherLabel: "Bob Wang 說對不起" },
+        { type: "CELEBRATE", ownLabel: "你恭喜了對方", otherLabel: "Bob Wang 恭喜你" },
+        { type: "TAUNT", ownLabel: "你嗆了對方", otherLabel: "Bob Wang 嗆了你" },
+        { type: "LONGING", ownLabel: "你想對方了", otherLabel: "Bob Wang 想你了" },
+        { type: "QUESTION", ownLabel: "你問: 幹嘛？", otherLabel: "Bob Wang 問: 幹嘛？" },
+        { type: "REJECTION", ownLabel: "你拒絕了", otherLabel: "Bob Wang 拒絕了" },
+    ]
+
+    for (const { type, ownLabel, otherLabel } of ritualCases) {
+        it(`${type}: own message shows labelOwn "${ownLabel}"`, async () => {
+            const msg = makeRitualMessage(`msg-${type}-own`, type, mockUserAlice)
+
+            const { useMessages } = await import("@/hooks/useMessages")
+            ;(useMessages as Mock).mockReturnValue({
+                messages: [msg],
+                fetchNextPage: mockFetchNextPage,
+                hasNextPage: false,
+                isFetchingNextPage: false,
+            })
+
+            const queryClient = createTestQueryClient()
+            render(
+                <QueryClientProvider client={queryClient}>
+                    <MessageList
+                        conversationId="conv-001"
+                        currentUserId="user-alice"
+                        conversationType="ONE_TO_ONE"
+                    />
+                </QueryClientProvider>
+            )
+
+            expect(screen.getByLabelText(ownLabel)).toBeInTheDocument()
+            // Must NOT render a chat bubble
+            expect(document.querySelector(".bubble-card")).not.toBeInTheDocument()
+        })
+
+        it(`${type}: received message shows labelOther "${otherLabel}"`, async () => {
+            const msg = makeRitualMessage(`msg-${type}-other`, type, mockUserBob)
+
+            const { useMessages } = await import("@/hooks/useMessages")
+            ;(useMessages as Mock).mockReturnValue({
+                messages: [msg],
+                fetchNextPage: mockFetchNextPage,
+                hasNextPage: false,
+                isFetchingNextPage: false,
+            })
+
+            const queryClient = createTestQueryClient()
+            render(
+                <QueryClientProvider client={queryClient}>
+                    <MessageList
+                        conversationId="conv-001"
+                        currentUserId="user-alice"
+                        conversationType="ONE_TO_ONE"
+                    />
+                </QueryClientProvider>
+            )
+
+            expect(screen.getByLabelText(otherLabel)).toBeInTheDocument()
+            expect(document.querySelector(".bubble-card")).not.toBeInTheDocument()
+        })
+    }
+})
+
+// ---------------------------------------------------------------------------
+// TC-F-17: Ritual messages break sequence grouping (not grouped with TEXT)
+// ---------------------------------------------------------------------------
+
+describe("TC-F-17: ritual messages interrupt sequence grouping", () => {
+    it("a ritual message between two TEXT messages creates three separate sequence groups", async () => {
+        const { useMessages } = await import("@/hooks/useMessages")
+        ;(useMessages as Mock).mockReturnValue({
+            messages: [
+                {
+                    id: "msg-001",
+                    conversationId: "conv-001",
+                    sender: mockUserBob,
+                    content: "Before ritual",
+                    messageType: "TEXT",
+                    imageUrl: null,
+                    createdAt: new Date().toISOString(),
+                    status: "DELIVERED",
+                },
+                {
+                    id: "msg-002",
+                    conversationId: "conv-001",
+                    sender: mockUserBob,
+                    content: null,
+                    messageType: "SONIC_PING",
+                    imageUrl: null,
+                    createdAt: new Date().toISOString(),
+                    status: "DELIVERED",
+                },
+                {
+                    id: "msg-003",
+                    conversationId: "conv-001",
+                    sender: mockUserBob,
+                    content: "After ritual",
+                    messageType: "TEXT",
+                    imageUrl: null,
+                    createdAt: new Date().toISOString(),
+                    status: "DELIVERED",
+                },
+            ],
+            fetchNextPage: mockFetchNextPage,
+            hasNextPage: false,
+            isFetchingNextPage: false,
+        })
+
+        const queryClient = createTestQueryClient()
+        render(
+            <QueryClientProvider client={queryClient}>
+                <MessageList
+                    conversationId="conv-001"
+                    currentUserId="user-alice"
+                    conversationType="ONE_TO_ONE"
+                />
+            </QueryClientProvider>
+        )
+
+        // TEXT messages appear as bubbles
+        expect(screen.getByText("Before ritual")).toBeInTheDocument()
+        expect(screen.getByText("After ritual")).toBeInTheDocument()
+        // SONIC_PING appears as interaction event pill
+        expect(screen.getByLabelText("Bob Wang sent a Sonic Ping")).toBeInTheDocument()
+        // No bubble-card for the ritual row
+        const bubbles = document.querySelectorAll(".bubble-card")
+        // Two TEXT messages → two bubbles; ritual → zero bubbles means exactly 2
+        expect(bubbles.length).toBe(2)
+    })
+})
+
+// ---------------------------------------------------------------------------
 // TC-F-15: sync:required invalidates message queries
 // ---------------------------------------------------------------------------
 

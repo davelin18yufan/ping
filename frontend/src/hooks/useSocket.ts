@@ -270,6 +270,36 @@ export function useSocket() {
             }
         )
 
+        // ------------------------------------------------------------------
+        // ritual:incoming
+        // Another user sent a ritual interaction in a conversation.
+        // If the user is currently viewing that conversation, dispatch a custom
+        // DOM event so ChatRoom can show the incoming ritual overlay.
+        // Always invalidate so the persisted ritual message appears.
+        // ------------------------------------------------------------------
+        socket.on(
+            "ritual:incoming",
+            ({
+                conversationId: rc,
+                senderName,
+                ritualType,
+            }: {
+                conversationId: string
+                senderName: string
+                ritualType: string
+            }) => {
+                if (uiStore.state.activeConversationId === rc) {
+                    window.dispatchEvent(
+                        new CustomEvent("ritual:incoming", {
+                            detail: { conversationId: rc, senderName, ritualType },
+                        })
+                    )
+                }
+                void queryClient.invalidateQueries({ queryKey: ["messages", rc] })
+                void queryClient.invalidateQueries({ queryKey: ["conversations"] })
+            }
+        )
+
         // Do NOT remove listeners on component unmount — the socket is a
         // module-level singleton and its handlers must stay alive for the
         // entire session. Listeners are naturally cleaned up when the socket

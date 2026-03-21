@@ -274,3 +274,29 @@ export const SEND_SONIC_PING_MUTATION = `
         }
     }
 `
+
+/**
+ * Send a ritual interaction message to another participant.
+ * Creates a persisted ritual message and emits a ritual:incoming socket event
+ * to all other participants in real time.
+ */
+export const SEND_RITUAL_MUTATION = `
+    mutation SendRitual($conversationId: ID!, $ritualType: RitualType!) {
+        sendRitual(conversationId: $conversationId, ritualType: $ritualType) {
+            id
+            conversationId
+            content
+            messageType
+            imageUrl
+            createdAt
+            status
+            sender {
+                id
+                name
+                email
+                image
+                isOnline
+            }
+        }
+    }
+`

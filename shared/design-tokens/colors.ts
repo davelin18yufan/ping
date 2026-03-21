@@ -1,5 +1,17 @@
 import type { ColorTokens } from "./types"
 
+// ─── Ritual color constants (flat exports for Mobile / NativeWind) ────────────
+// Mirror of CSS token values in @shared/design-tokens/css/colors.css
+// Used by RN components that cannot consume CSS custom properties.
+
+export const ritualNudge    = "oklch(0.65 0.18 200)"
+export const ritualApology  = "oklch(0.60 0.20 270)"
+export const ritualCelebrate = "oklch(0.85 0.15 85)"
+export const ritualReconcile = "oklch(0.70 0.25 340)"
+export const ritualTaunt    = "oklch(0.65 0.22 40)"
+export const ritualQuestion = "oklch(0.70 0.14 160)"
+export const ritualReject   = "oklch(0.55 0.25 15)"
+
 /**
  * Design System Color Tokens - Ping UI/UX Redesign (macOS Glassmorphism)
  * Uses OKLCH color space for better perceptual uniformity

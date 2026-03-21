@@ -27,7 +27,7 @@
 
 import { useMutationState } from "@tanstack/react-query"
 import { useStore } from "@tanstack/react-store"
-import { Zap } from "lucide-react"
+import { Flame, Heart, HeartCrack, HelpCircle, PartyPopper, XCircle, Zap } from "lucide-react"
 import type { ReactNode } from "react"
 import { useEffect, useMemo, useRef } from "react"
 import { VList, type VListHandle } from "virtua"
@@ -104,8 +104,10 @@ function buildItems(
             lastDateLabel = dateLabel
         }
 
-        // SONIC_PING messages are rendered as ritual event markers, not bubbles
-        if (msg.messageType === "SONIC_PING") {
+        // Ritual event messages are rendered as event markers, not chat bubbles.
+        // They are always standalone (isFirstInSequence + isLastInSequence = true)
+        // and do not count as neighbours for adjacent bubble sequence detection.
+        if (msg.messageType in RITUAL_ROW_CONFIG) {
             result.push({
                 kind: "message",
                 key: msg.id,
@@ -116,12 +118,14 @@ function buildItems(
             return
         }
 
-        // Sequence detection: look at adjacent non-sonic-ping message neighbours
+        // Sequence detection: look at adjacent non-ritual message neighbours
         const prevMsg = sortedMessages
             .slice(0, i)
             .reverse()
-            .find((m) => m.messageType !== "SONIC_PING")
-        const nextMsg = sortedMessages.slice(i + 1).find((m) => m.messageType !== "SONIC_PING")
+            .find((m) => !(m.messageType in RITUAL_ROW_CONFIG))
+        const nextMsg = sortedMessages
+            .slice(i + 1)
+            .find((m) => !(m.messageType in RITUAL_ROW_CONFIG))
 
         result.push({
             kind: "message",
@@ -162,17 +166,63 @@ function DateSeparatorRow({ item }: { item: DateItem }) {
     )
 }
 
-function SonicPingMessageRow({ message, isOwn }: { message: Message; isOwn: boolean }) {
-    const label = isOwn ? "You sent a Sonic Ping" : `${message.sender.name} sent a Sonic Ping`
-    return (
-        <InteractionEvent
-            message={message}
-            isOwn={isOwn}
-            icon={<Zap size={10} aria-hidden="true" />}
-            label={label}
-            // colorVar omitted → uses CSS default var(--ritual-nudge)
-        />
-    )
+// ─── RITUAL_ROW_CONFIG — unified map for all ritual message types ─────────────
+// Replaces the standalone SonicPingMessageRow.
+// To add a new ritual: add an entry here — no other changes needed in MessageList.
+
+const RITUAL_ROW_CONFIG: Partial<
+    Record<
+        string,
+        {
+            icon: ReactNode
+            labelOwn: string
+            labelOther: (name: string) => string
+            colorVar: string
+        }
+    >
+> = {
+    SONIC_PING: {
+        icon: <Zap size={10} aria-hidden="true" />,
+        labelOwn: "You sent a Sonic Ping",
+        labelOther: (n) => `${n} sent a Sonic Ping`,
+        colorVar: "var(--ritual-nudge)",
+    },
+    APOLOGY: {
+        icon: <HeartCrack size={10} aria-hidden="true" />,
+        labelOwn: "你道歉了",
+        labelOther: (n) => `${n} 說對不起`,
+        colorVar: "var(--ritual-apology)",
+    },
+    CELEBRATE: {
+        icon: <PartyPopper size={10} aria-hidden="true" />,
+        labelOwn: "你恭喜了對方",
+        labelOther: (n) => `${n} 恭喜你`,
+        colorVar: "var(--ritual-celebrate)",
+    },
+    TAUNT: {
+        icon: <Flame size={10} aria-hidden="true" />,
+        labelOwn: "你嗆了對方",
+        labelOther: (n) => `${n} 嗆了你`,
+        colorVar: "var(--ritual-taunt)",
+    },
+    LONGING: {
+        icon: <Heart size={10} aria-hidden="true" />,
+        labelOwn: "你想對方了",
+        labelOther: (n) => `${n} 想你了`,
+        colorVar: "var(--ritual-reconcile)",
+    },
+    QUESTION: {
+        icon: <HelpCircle size={10} aria-hidden="true" />,
+        labelOwn: "你問: 幹嘛？",
+        labelOther: (n) => `${n} 問: 幹嘛？`,
+        colorVar: "var(--ritual-question)",
+    },
+    REJECTION: {
+        icon: <XCircle size={10} aria-hidden="true" />,
+        labelOwn: "你拒絕了",
+        labelOther: (n) => `${n} 拒絕了`,
+        colorVar: "var(--ritual-reject)",
+    },
 }
 
 function PendingMessageRow({
@@ -214,9 +264,19 @@ function MessageRow({ item, ctx }: { item: MessageItem; ctx: RenderContext }) {
 
     const isOwn = msg.sender.id === currentUserId
 
-    // Render SONIC_PING messages as event markers, not chat bubbles
-    if (msg.messageType === "SONIC_PING") {
-        return <SonicPingMessageRow message={msg} isOwn={isOwn} />
+    // Render all ritual-type messages as interaction event markers, not chat bubbles
+    const ritualConfig = RITUAL_ROW_CONFIG[msg.messageType]
+    if (ritualConfig) {
+        const label = isOwn ? ritualConfig.labelOwn : ritualConfig.labelOther(msg.sender.name ?? "")
+        return (
+            <InteractionEvent
+                message={msg}
+                isOwn={isOwn}
+                icon={ritualConfig.icon}
+                label={label}
+                colorVar={ritualConfig.colorVar}
+            />
+        )
     }
 
     const isGroupReceived = conversationType === "GROUP" && !isOwn

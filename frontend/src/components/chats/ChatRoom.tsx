@@ -20,7 +20,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 import { ArrowLeft, Info, Users } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 
 import {
     MARK_READ_MUTATION,
@@ -33,11 +33,13 @@ import { cn } from "@/lib/utils"
 import { uiStore } from "@/stores/uiStore"
 import type { Conversation, Message } from "@/types/conversations"
 
+import { ChatRoomOverlays } from "./ChatRoomOverlays"
 import { ContactAvatar } from "./ContactAvatar"
 import { DirectInfoPanel } from "./DirectInfoPanel"
 import { GroupInfoPanel } from "./GroupInfoPanel"
 import { MessageInput } from "./MessageInput"
 import { MessageList } from "./MessageList"
+import { RitualPickerButton } from "./RitualPickerButton"
 import { SonicPingButton } from "./SonicPingButton"
 
 interface ChatRoomProps {
@@ -50,10 +52,6 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
 
     const [showInfo, setShowInfo] = useState(false)
     const [sendError, setSendError] = useState<string | null>(null)
-    // Name of the sender whose Sonic Ping triggered the incoming overlay.
-    // null = overlay hidden; string = overlay visible for 1.6 s.
-    const [sonicPingFrom, setSonicPingFrom] = useState<string | null>(null)
-    const sonicPingOverlayTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const { data: conversation } = useQuery(conversationQueryOptions(conversationId))
 
@@ -104,25 +102,6 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
         // markReadMutation ref is stable; liveUnreadCount drives re-runs.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [liveUnreadCount])
-
-    // Listen for incoming Sonic Ping custom DOM event dispatched by useSocket.
-    // Show the overlay for 1600 ms then clear it.
-    useEffect(() => {
-        const handleIncoming = (e: Event) => {
-            const { senderName } = (
-                e as CustomEvent<{ conversationId: string; senderName: string }>
-            ).detail
-            setSonicPingFrom(senderName)
-            if (sonicPingOverlayTimerRef.current) clearTimeout(sonicPingOverlayTimerRef.current)
-            sonicPingOverlayTimerRef.current = setTimeout(() => setSonicPingFrom(null), 1600)
-        }
-
-        window.addEventListener("sonicPing:incoming", handleIncoming)
-        return () => {
-            window.removeEventListener("sonicPing:incoming", handleIncoming)
-            if (sonicPingOverlayTimerRef.current) clearTimeout(sonicPingOverlayTimerRef.current)
-        }
-    }, [])
 
     // Send message mutation (mutationKey powers useMutationState in MessageList)
     const sendMutation = useMutation({
@@ -212,6 +191,8 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                 <div className="flex items-center gap-1">
                     {/* Sonic Ping — only for 1:1 conversations */}
                     {isOneToOne && <SonicPingButton conversationId={conversationId} />}
+                    {/* Ritual picker — only for 1:1 conversations */}
+                    {isOneToOne && <RitualPickerButton conversationId={conversationId} />}
                     {conversation && (
                         <button
                             type="button"
@@ -260,22 +241,7 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                 />
             </motion.div>
 
-            {/* Incoming Sonic Ping overlay — visible for 1.6 s after receiving a ping */}
-            {sonicPingFrom && (
-                <div
-                    className="sonic-incoming-overlay"
-                    aria-live="polite"
-                    aria-label={`${sonicPingFrom} sent a Sonic Ping`}
-                >
-                    <span
-                        className="sonic-incoming-overlay__text"
-                        // Key on sender+time so the animation replays for rapid successive pings
-                        key={sonicPingFrom + String(Date.now())}
-                    >
-                        Anybody home?
-                    </span>
-                </div>
-            )}
+            <ChatRoomOverlays />
 
             {/* Message input */}
             <div className="shrink-0">

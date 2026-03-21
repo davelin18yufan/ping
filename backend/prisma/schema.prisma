@@ -200,6 +200,12 @@ enum MessageType {
   TEXT
   IMAGE
   SONIC_PING
+  APOLOGY
+  CELEBRATE
+  TAUNT
+  LONGING
+  QUESTION
+  REJECTION
 }
 
 enum MessageStatusType {

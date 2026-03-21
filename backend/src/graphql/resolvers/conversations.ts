@@ -42,6 +42,50 @@ import type { SortOrder } from "@generated/prisma/internal/prismaNamespace"
 
 type MessageParent = MessageRecord
 
+// ---------------------------------------------------------------------------
+// Private helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Create a ritual message (content: null) and return both the MessageParent
+ * and the sender's display name in a single DB round-trip by selecting the
+ * sender relation inside message.create.
+ * Used by sendSonicPing and sendRitual to avoid a separate user.findUnique call.
+ */
+async function persistRitualMessage(
+    prisma: GraphQLContext["prisma"],
+    conversationId: string,
+    senderId: string,
+    messageType: MessageType
+): Promise<{ messageParent: MessageParent; senderName: string | null }> {
+    const message = await prisma.message.create({
+        data: { conversationId, senderId, content: null, messageType },
+        select: {
+            id: true,
+            conversationId: true,
+            senderId: true,
+            content: true,
+            messageType: true,
+            imageUrl: true,
+            createdAt: true,
+            sender: { select: { name: true } },
+        },
+    })
+
+    const messageParent: MessageParent = {
+        id: message.id,
+        conversationId: message.conversationId,
+        senderId: message.senderId,
+        content: message.content,
+        messageType: message.messageType,
+        imageUrl: message.imageUrl,
+        createdAt: message.createdAt.toISOString(),
+        status: MessageStatusType.SENT,
+    }
+
+    return { messageParent, senderName: message.sender?.name ?? null }
+}
+
 // Raw shape returned by Prisma message.findMany select in the messages resolver
 type RawMessageRow = {
     id: string
@@ -929,7 +973,7 @@ const Mutation = {
     /**
      * Send a Sonic Ping ritual message to a conversation.
      * Persists a SONIC_PING type message (no content) and broadcasts via Socket.io:
-     *   - message:new   — same payload as sendMessage for real-time message list updates
+     *   - message:new       — same payload as sendMessage for real-time message list updates
      *   - sonicPing:incoming — dedicated event carrying senderId and senderName
      */
     sendSonicPing: async (
@@ -946,41 +990,13 @@ const Mutation = {
             })
         }
 
-        const sender = await context.prisma.user.findUnique({
-            where: { id: userId },
-            select: { name: true },
-        })
+        const { messageParent, senderName } = await persistRitualMessage(
+            context.prisma,
+            args.conversationId,
+            userId,
+            MessageType.SONIC_PING
+        )
 
-        const message = await context.prisma.message.create({
-            data: {
-                conversationId: args.conversationId,
-                senderId: userId,
-                content: null,
-                messageType: MessageType.SONIC_PING,
-            },
-            select: {
-                id: true,
-                conversationId: true,
-                senderId: true,
-                content: true,
-                messageType: true,
-                imageUrl: true,
-                createdAt: true,
-            },
-        })
-
-        const messageParent: MessageParent = {
-            id: message.id,
-            conversationId: message.conversationId,
-            senderId: message.senderId,
-            content: message.content,
-            messageType: message.messageType,
-            imageUrl: message.imageUrl,
-            createdAt: message.createdAt.toISOString(),
-            status: MessageStatusType.SENT,
-        }
-
-        // Broadcast via Socket.io (non-fatal if not initialized)
         try {
             const io = getIO()
             io.to(args.conversationId).emit("message:new", {
@@ -990,7 +1006,62 @@ const Mutation = {
             io.to(args.conversationId).emit("sonicPing:incoming", {
                 conversationId: args.conversationId,
                 senderId: userId,
-                senderName: sender?.name ?? null,
+                senderName,
+            })
+        } catch {
+            // Non-fatal in test environment
+        }
+
+        return messageParent
+    },
+
+    /**
+     * Send a ritual interaction message to a conversation.
+     * Persists as Message with matching messageType (content: null) and
+     * broadcasts two Socket.io events to the conversation room:
+     *   - message:new    — standard message payload for real-time message list
+     *   - ritual:incoming — { conversationId, senderId, senderName, ritualType }
+     */
+    sendRitual: async (
+        _parent: unknown,
+        args: { conversationId: string; ritualType: string },
+        context: GraphQLContext
+    ): Promise<MessageParent> => {
+        const userId = requireAuth(context)
+
+        const participant = await getParticipant(context.prisma, args.conversationId, userId)
+        if (!participant) {
+            throw new GraphQLError("Not a participant of this conversation", {
+                extensions: { code: "FORBIDDEN", status: 403 },
+            })
+        }
+
+        // Map RitualType string → MessageType enum value
+        const messageType = MessageType[args.ritualType as keyof typeof MessageType]
+        if (!messageType) {
+            throw new GraphQLError(`Invalid ritual type: ${args.ritualType}`, {
+                extensions: { code: "BAD_REQUEST", status: 400 },
+            })
+        }
+
+        const { messageParent, senderName } = await persistRitualMessage(
+            context.prisma,
+            args.conversationId,
+            userId,
+            messageType
+        )
+
+        try {
+            const io = getIO()
+            io.to(args.conversationId).emit("message:new", {
+                message: messageParent,
+                conversationId: args.conversationId,
+            })
+            io.to(args.conversationId).emit("ritual:incoming", {
+                conversationId: args.conversationId,
+                senderId: userId,
+                senderName,
+                ritualType: args.ritualType,
             })
         } catch {
             // Non-fatal in test environment

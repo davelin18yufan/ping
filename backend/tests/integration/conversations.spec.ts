@@ -25,6 +25,17 @@
  * TC-B-20: messages returns cursor-based pagination with nextCursor
  * TC-B-21: blockUser blocks user and removes friendship
  * TC-B-22: all operations without auth return UNAUTHENTICATED
+ *
+ * Phase 3 — Ritual System
+ * TC-B-23: sendSonicPing persists SONIC_PING message with null content
+ * TC-B-24: sendSonicPing from non-participant returns FORBIDDEN
+ * TC-B-25: sendSonicPing without auth returns UNAUTHENTICATED
+ * TC-B-26: sendRitual(APOLOGY) persists APOLOGY messageType with null content
+ * TC-B-27: sendRitual persists correct messageType for all 6 ritual types
+ * TC-B-28: sendRitual from non-participant returns FORBIDDEN
+ * TC-B-29: sendRitual without auth returns UNAUTHENTICATED
+ * TC-B-30: ritual message is retrievable via messages query
+ * TC-B-31: TEXT messages still send correctly after a ritual in the same conversation
  */
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test"
@@ -890,5 +901,262 @@ describe("Feature 1.3.1 - Conversations (Backend)", () => {
         )
         expect(mutResult.errors).toBeDefined()
         expect(mutResult.errors?.[0]?.extensions?.code).toBe("UNAUTHENTICATED")
+    })
+
+    // =========================================================================
+    // Phase 3 — Ritual System (TC-B-23 … TC-B-31)
+    // =========================================================================
+
+    // -------------------------------------------------------------------------
+    // TC-B-23: sendSonicPing persists SONIC_PING message with null content
+    // -------------------------------------------------------------------------
+    test("TC-B-23: sendSonicPing persists a SONIC_PING message with null content", async () => {
+        await createFriendship(prisma, USER_ALICE.id, USER_BOB.id)
+        const convId = await createOneToOneConversation(prisma, USER_ALICE.id, USER_BOB.id)
+        const aliceToken = await createSession(prisma, USER_ALICE.id)
+
+        const result = await gqlMutation(
+            `mutation Ping($conversationId: ID!) {
+                sendSonicPing(conversationId: $conversationId) {
+                    id content messageType status
+                    sender { id }
+                }
+            }`,
+            { conversationId: convId },
+            aliceToken
+        )
+
+        expect(result.errors).toBeUndefined()
+        const msg = result.data?.sendSonicPing as {
+            id: string
+            content: string | null
+            messageType: string
+            status: string
+            sender: { id: string }
+        }
+        expect(msg.messageType).toBe("SONIC_PING")
+        expect(msg.content).toBeNull()
+        expect(msg.status).toBe("SENT")
+        expect(msg.sender.id).toBe(USER_ALICE.id)
+
+        // Verify DB record
+        const dbMsg = await prisma.message.findUnique({ where: { id: msg.id } })
+        expect(dbMsg?.messageType).toBe("SONIC_PING")
+        expect(dbMsg?.content).toBeNull()
+    })
+
+    // -------------------------------------------------------------------------
+    // TC-B-24: sendSonicPing — non-participant returns FORBIDDEN
+    // -------------------------------------------------------------------------
+    test("TC-B-24: sendSonicPing from non-participant returns FORBIDDEN", async () => {
+        await createFriendship(prisma, USER_ALICE.id, USER_BOB.id)
+        const convId = await createOneToOneConversation(prisma, USER_ALICE.id, USER_BOB.id)
+        // Carol is NOT a participant
+        const carolToken = await createSession(prisma, USER_CAROL.id)
+
+        const result = await gqlMutation(
+            `mutation Ping($conversationId: ID!) {
+                sendSonicPing(conversationId: $conversationId) { id }
+            }`,
+            { conversationId: convId },
+            carolToken
+        )
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("FORBIDDEN")
+    })
+
+    // -------------------------------------------------------------------------
+    // TC-B-25: sendSonicPing — unauthenticated returns UNAUTHENTICATED
+    // -------------------------------------------------------------------------
+    test("TC-B-25: sendSonicPing without auth returns UNAUTHENTICATED", async () => {
+        const result = await gqlMutation(
+            `mutation { sendSonicPing(conversationId: "any-id") { id } }`,
+            {}
+        )
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("UNAUTHENTICATED")
+    })
+
+    // -------------------------------------------------------------------------
+    // TC-B-26: sendRitual — APOLOGY persists correct messageType and null content
+    // -------------------------------------------------------------------------
+    test("TC-B-26: sendRitual(APOLOGY) persists APOLOGY messageType with null content", async () => {
+        await createFriendship(prisma, USER_ALICE.id, USER_BOB.id)
+        const convId = await createOneToOneConversation(prisma, USER_ALICE.id, USER_BOB.id)
+        const aliceToken = await createSession(prisma, USER_ALICE.id)
+
+        const result = await gqlMutation(
+            `mutation Ritual($conversationId: ID!, $ritualType: RitualType!) {
+                sendRitual(conversationId: $conversationId, ritualType: $ritualType) {
+                    id content messageType status
+                    sender { id }
+                }
+            }`,
+            { conversationId: convId, ritualType: "APOLOGY" },
+            aliceToken
+        )
+
+        expect(result.errors).toBeUndefined()
+        const msg = result.data?.sendRitual as {
+            id: string
+            content: string | null
+            messageType: string
+            status: string
+            sender: { id: string }
+        }
+        expect(msg.messageType).toBe("APOLOGY")
+        expect(msg.content).toBeNull()
+        expect(msg.status).toBe("SENT")
+        expect(msg.sender.id).toBe(USER_ALICE.id)
+
+        // Verify DB record has correct messageType
+        const dbMsg = await prisma.message.findUnique({ where: { id: msg.id } })
+        expect(dbMsg?.messageType).toBe("APOLOGY")
+        expect(dbMsg?.content).toBeNull()
+    })
+
+    // -------------------------------------------------------------------------
+    // TC-B-27: sendRitual — all 6 ritual types persist correctly (spot check each)
+    // -------------------------------------------------------------------------
+    test("TC-B-27: sendRitual persists correct messageType for each of the 6 ritual types", async () => {
+        await createFriendship(prisma, USER_ALICE.id, USER_BOB.id)
+        const convId = await createOneToOneConversation(prisma, USER_ALICE.id, USER_BOB.id)
+        const aliceToken = await createSession(prisma, USER_ALICE.id)
+
+        const ritualTypes = ["APOLOGY", "CELEBRATE", "TAUNT", "LONGING", "QUESTION", "REJECTION"]
+
+        for (const ritualType of ritualTypes) {
+            const result = await gqlMutation(
+                `mutation Ritual($conversationId: ID!, $ritualType: RitualType!) {
+                    sendRitual(conversationId: $conversationId, ritualType: $ritualType) {
+                        id messageType content
+                    }
+                }`,
+                { conversationId: convId, ritualType },
+                aliceToken
+            )
+
+            expect(result.errors).toBeUndefined()
+            const msg = result.data?.sendRitual as {
+                id: string
+                messageType: string
+                content: string | null
+            }
+            expect(msg.messageType).toBe(ritualType)
+            expect(msg.content).toBeNull()
+
+            const dbMsg = await prisma.message.findUnique({ where: { id: msg.id } })
+            expect(dbMsg?.messageType).toBe(ritualType)
+        }
+    })
+
+    // -------------------------------------------------------------------------
+    // TC-B-28: sendRitual — non-participant returns FORBIDDEN
+    // -------------------------------------------------------------------------
+    test("TC-B-28: sendRitual from non-participant returns FORBIDDEN", async () => {
+        await createFriendship(prisma, USER_ALICE.id, USER_BOB.id)
+        const convId = await createOneToOneConversation(prisma, USER_ALICE.id, USER_BOB.id)
+        // Carol is not a participant
+        const carolToken = await createSession(prisma, USER_CAROL.id)
+
+        const result = await gqlMutation(
+            `mutation Ritual($conversationId: ID!, $ritualType: RitualType!) {
+                sendRitual(conversationId: $conversationId, ritualType: $ritualType) { id }
+            }`,
+            { conversationId: convId, ritualType: "CELEBRATE" },
+            carolToken
+        )
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("FORBIDDEN")
+    })
+
+    // -------------------------------------------------------------------------
+    // TC-B-29: sendRitual — unauthenticated returns UNAUTHENTICATED
+    // -------------------------------------------------------------------------
+    test("TC-B-29: sendRitual without auth returns UNAUTHENTICATED", async () => {
+        const result = await gqlMutation(
+            `mutation { sendRitual(conversationId: "any-id", ritualType: CELEBRATE) { id } }`,
+            {}
+        )
+
+        expect(result.errors).toBeDefined()
+        expect(result.errors?.[0]?.extensions?.code).toBe("UNAUTHENTICATED")
+    })
+
+    // -------------------------------------------------------------------------
+    // TC-B-30: sendRitual — ritual message appears in messages query
+    // -------------------------------------------------------------------------
+    test("TC-B-30: sendRitual message is retrievable via messages query", async () => {
+        await createFriendship(prisma, USER_ALICE.id, USER_BOB.id)
+        const convId = await createOneToOneConversation(prisma, USER_ALICE.id, USER_BOB.id)
+        const aliceToken = await createSession(prisma, USER_ALICE.id)
+
+        // Send a ritual
+        const ritualResult = await gqlMutation(
+            `mutation Ritual($conversationId: ID!, $ritualType: RitualType!) {
+                sendRitual(conversationId: $conversationId, ritualType: $ritualType) { id }
+            }`,
+            { conversationId: convId, ritualType: "LONGING" },
+            aliceToken
+        )
+        const ritualId = (ritualResult.data?.sendRitual as { id: string }).id
+
+        // Retrieve messages
+        const msgsResult = await gqlMutation(
+            `query Messages($conversationId: ID!) {
+                messages(conversationId: $conversationId) {
+                    messages { id messageType content }
+                }
+            }`,
+            { conversationId: convId },
+            aliceToken
+        )
+
+        expect(msgsResult.errors).toBeUndefined()
+        const msgs = (
+            msgsResult.data?.messages as {
+                messages: Array<{ id: string; messageType: string; content: string | null }>
+            }
+        ).messages
+        const ritual = msgs.find((m) => m.id === ritualId)
+        expect(ritual).toBeDefined()
+        expect(ritual?.messageType).toBe("LONGING")
+        expect(ritual?.content).toBeNull()
+    })
+
+    // -------------------------------------------------------------------------
+    // TC-B-31: sendRitual — ritual message does NOT break subsequent TEXT messages
+    // -------------------------------------------------------------------------
+    test("TC-B-31: TEXT messages still send correctly after a ritual in the same conversation", async () => {
+        await createFriendship(prisma, USER_ALICE.id, USER_BOB.id)
+        const convId = await createOneToOneConversation(prisma, USER_ALICE.id, USER_BOB.id)
+        const aliceToken = await createSession(prisma, USER_ALICE.id)
+
+        // Send ritual then TEXT
+        await gqlMutation(
+            `mutation Ritual($conversationId: ID!, $ritualType: RitualType!) {
+                sendRitual(conversationId: $conversationId, ritualType: $ritualType) { id }
+            }`,
+            { conversationId: convId, ritualType: "TAUNT" },
+            aliceToken
+        )
+
+        const textResult = await gqlMutation(
+            `mutation Send($conversationId: ID!, $content: String!) {
+                sendMessage(conversationId: $conversationId, content: $content) {
+                    id content messageType
+                }
+            }`,
+            { conversationId: convId, content: "Still works!" },
+            aliceToken
+        )
+
+        expect(textResult.errors).toBeUndefined()
+        const msg = textResult.data?.sendMessage as { content: string; messageType: string }
+        expect(msg.content).toBe("Still works!")
+        expect(msg.messageType).toBe("TEXT")
     })
 })

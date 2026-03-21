@@ -173,6 +173,25 @@ export const schema = createSchema({
         TEXT
         IMAGE
         SONIC_PING
+        APOLOGY
+        CELEBRATE
+        TAUNT
+        LONGING
+        QUESTION
+        REJECTION
+      }
+
+      """
+      Ritual interaction type — maps 1-to-1 with ritual MessageType values.
+      Used as input for the sendRitual mutation.
+      """
+      enum RitualType {
+        APOLOGY
+        CELEBRATE
+        TAUNT
+        LONGING
+        QUESTION
+        REJECTION
       }
 
       """
@@ -552,6 +571,14 @@ export const schema = createSchema({
         Emits message:new and sonicPing:incoming to the conversation room.
         """
         sendSonicPing(conversationId: ID!): Message!
+
+        """
+        Send a ritual interaction message. Persists as Message with matching
+        messageType and broadcasts ritual:incoming via Socket.io.
+        Emits message:new (same payload as sendMessage) and ritual:incoming
+        carrying conversationId, senderId, senderName, and ritualType.
+        """
+        sendRitual(conversationId: ID!, ritualType: RitualType!): Message!
 
         """
         Mark all unread messages in a conversation as READ for the current user.

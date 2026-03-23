@@ -22,7 +22,12 @@
 
 import { GraphQLError } from "graphql"
 import type { GraphQLContext } from "../context"
-import type { ParticipantRecord, ConversationParent, MessageRecord, RitualLabelRecord } from "../types"
+import type {
+    ParticipantRecord,
+    ConversationParent,
+    MessageRecord,
+    RitualLabelRecord,
+} from "../types"
 import {
     requireAuth,
     getParticipant,
@@ -170,14 +175,23 @@ const Query = {
             convIds.length > 0
                 ? await context.prisma.conversationRitualLabel.findMany({
                       where: { conversationId: { in: convIds } },
-                      select: { conversationId: true, ritualType: true, labelOwn: true, labelOther: true },
+                      select: {
+                          conversationId: true,
+                          ritualType: true,
+                          labelOwn: true,
+                          labelOther: true,
+                      },
                   })
                 : []
 
         const labelsByConvId = new Map<string, RitualLabelRecord[]>()
         for (const label of ritualLabelsRaw) {
             const list = labelsByConvId.get(label.conversationId) ?? []
-            list.push({ ritualType: label.ritualType, labelOwn: label.labelOwn, labelOther: label.labelOther })
+            list.push({
+                ritualType: label.ritualType,
+                labelOwn: label.labelOwn,
+                labelOther: label.labelOther,
+            })
             labelsByConvId.set(label.conversationId, list)
         }
 
@@ -216,7 +230,9 @@ const Query = {
 
         const conv = await context.prisma.conversation.findUnique({
             where: { id: args.id },
-            include: { ritualLabels: { select: { ritualType: true, labelOwn: true, labelOther: true } } },
+            include: {
+                ritualLabels: { select: { ritualType: true, labelOwn: true, labelOther: true } },
+            },
         })
         if (!conv) return null
 
@@ -879,15 +895,14 @@ const Mutation = {
             args.settings?.onlyOwnerCanEdit !== undefined
         )
             updateData.onlyOwnerCanEdit = args.settings.onlyOwnerCanEdit
-        if (
-            args.settings?.allowRituals !== null &&
-            args.settings?.allowRituals !== undefined
-        )
+        if (args.settings?.allowRituals !== null && args.settings?.allowRituals !== undefined)
             updateData.allowRituals = args.settings.allowRituals
 
         const updated = await context.prisma.conversation.update({
             where: { id: args.conversationId },
-            include: { ritualLabels: { select: { ritualType: true, labelOwn: true, labelOther: true } } },
+            include: {
+                ritualLabels: { select: { ritualType: true, labelOwn: true, labelOther: true } },
+            },
             data: updateData,
         })
 
@@ -1168,7 +1183,10 @@ const Mutation = {
      */
     setRitualLabel: async (
         _parent: unknown,
-        args: { conversationId: string; input: { ritualType: string; labelOwn: string; labelOther: string } },
+        args: {
+            conversationId: string
+            input: { ritualType: string; labelOwn: string; labelOther: string }
+        },
         context: GraphQLContext
     ): Promise<RitualLabelRecord> => {
         const userId = requireAuth(context)

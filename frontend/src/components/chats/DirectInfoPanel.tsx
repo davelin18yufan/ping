@@ -164,7 +164,10 @@ export function DirectInfoPanel({ participant, conversationId, onClose }: Direct
             initial={{ x: "100%", opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: "100%", opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
+            transition={{
+                duration: 0.3,
+                ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
+            }}
             className="absolute inset-y-0 right-0 w-72 glass-card rounded-none border-y-0 border-r-0 flex flex-col z-20"
             role="complementary"
             aria-label="Contact information"
@@ -228,7 +231,9 @@ export function DirectInfoPanel({ participant, conversationId, onClose }: Direct
                                         size="xl"
                                     />
                                     <div className="text-center">
-                                        <p className="text-sm font-semibold">{participant.user.name}</p>
+                                        <p className="text-sm font-semibold">
+                                            {participant.user.name}
+                                        </p>
                                         <p
                                             className="text-xs mt-0.5"
                                             style={{

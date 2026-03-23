@@ -115,10 +115,7 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
     const memberIds = conversation.participants.map((p) => p.user.id)
 
     const ritualLabelMap = useMemo(
-        () =>
-            new Map(
-                (effectiveConversation.ritualLabels ?? []).map((l) => [l.ritualType, l])
-            ),
+        () => new Map((effectiveConversation.ritualLabels ?? []).map((l) => [l.ritualType, l])),
         [effectiveConversation.ritualLabels]
     )
 
@@ -247,7 +244,10 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
             initial={{ x: "100%", opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: "100%", opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
+            transition={{
+                duration: 0.3,
+                ease: [0.16, 1, 0.3, 1] as [number, number, number, number],
+            }}
             className="absolute inset-y-0 right-0 w-72 glass-card rounded-none border-y-0 border-r-0 flex flex-col z-20"
             role="complementary"
             aria-label="Group information"
@@ -333,7 +333,10 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                                                                 height: "1.75rem",
                                                             }}
                                                         >
-                                                            <UserMinus size={12} aria-hidden="true" />
+                                                            <UserMinus
+                                                                size={12}
+                                                                aria-hidden="true"
+                                                            />
                                                         </button>
                                                     )}
                                             </div>
@@ -405,7 +408,10 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                                                     style={
                                                         inviteIds.length === 0 ||
                                                         inviteMutation.isPending
-                                                            ? { opacity: 0.5, cursor: "not-allowed" }
+                                                            ? {
+                                                                  opacity: 0.5,
+                                                                  cursor: "not-allowed",
+                                                              }
                                                             : {
                                                                   background:
                                                                       "oklch(from var(--primary) l c h / 0.2)",
@@ -654,9 +660,7 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                             type="button"
                             className="glass-button glass-button--destructive flex-1"
                             disabled={
-                                (isOwner &&
-                                    conversation.participants.length > 1 &&
-                                    !successorId) ||
+                                (isOwner && conversation.participants.length > 1 && !successorId) ||
                                 leaveMutation.isPending
                             }
                             onClick={() => leaveMutation.mutate()}

@@ -1102,7 +1102,7 @@ describe("Feature 1.3.1 - Conversations (Backend)", () => {
             { conversationId: convId, ritualType: "LONGING" },
             aliceToken
         )
-        const ritualId = (ritualResult.data?.sendRitual as { id: string }).id
+        const ritualId = (ritualResult.data!.sendRitual as { id: string }).id
 
         // Retrieve messages
         const msgsResult = await gqlMutation(
@@ -1117,7 +1117,7 @@ describe("Feature 1.3.1 - Conversations (Backend)", () => {
 
         expect(msgsResult.errors).toBeUndefined()
         const msgs = (
-            msgsResult.data?.messages as {
+            msgsResult.data!.messages as {
                 messages: Array<{ id: string; messageType: string; content: string | null }>
             }
         ).messages

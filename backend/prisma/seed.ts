@@ -16,7 +16,7 @@
  * Re-run safe: skips existing records (upsert / skipDuplicates).
  */
 
-import { PrismaClient, type Conversation, type User } from "../generated/prisma/client"
+import { PrismaClient, MessageType, type Conversation, type User } from "../generated/prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 
 const databaseUrl = process.env.DATABASE_URL
@@ -26,7 +26,7 @@ const adapter = new PrismaPg({ connectionString: databaseUrl })
 const prisma = new PrismaClient({ adapter })
 
 // dave lin's user ID (Google OAuth account)
-const DAVE_ID = "MMjB5N0Ud0t3VUV7H0chbH4lzu43pbOC"
+const DAVE_ID = "aZy6ZVV0lt0By16h7fNjtljAJ576dU2f"
 
 // ─── Helper ───────────────────────────────────────────────────────────────────
 
@@ -36,7 +36,24 @@ async function addMessage(conv: Conversation, sender: User, content: string, min
             conversationId: conv.id,
             senderId: sender.id,
             content,
-            messageType: "TEXT",
+            messageType: MessageType.TEXT,
+            createdAt: new Date(Date.now() - minutesAgo * 60 * 1000),
+        },
+    })
+}
+
+async function addRitual(
+    conv: Conversation,
+    sender: User,
+    ritualType: MessageType,
+    minutesAgo: number
+) {
+    return prisma.message.create({
+        data: {
+            conversationId: conv.id,
+            senderId: sender.id,
+            content: null,
+            messageType: ritualType,
             createdAt: new Date(Date.now() - minutesAgo * 60 * 1000),
         },
     })
@@ -45,7 +62,7 @@ async function addMessage(conv: Conversation, sender: User, content: string, min
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
 async function main() {
-    // Verify dave's account exists
+    // Verify dave's account exists (created via Google OAuth login)
     const dave = await prisma.user.findUniqueOrThrow({
         where: { id: DAVE_ID },
     })
@@ -138,19 +155,26 @@ async function main() {
     })
     await addMessage(daveAliceConv, alice, "Hey Dave! Did you see the new UI changes?", 120)
     await addMessage(daveAliceConv, dave, "Just checked — the glassmorphism looks great!", 115)
+    await addRitual(daveAliceConv, alice, MessageType.SONIC_PING, 113)
     await addMessage(
         daveAliceConv,
         alice,
-        "Right? The Sonic Ping animation is my favourite part 😄",
+        "Right? The Sonic Ping animation is my favourite part!",
         110
     )
+    await addRitual(daveAliceConv, dave, MessageType.CELEBRATE, 108)
     await addMessage(
         daveAliceConv,
         dave,
         "Agreed. Let me know when the mobile version is ready.",
         100
     )
+    await addRitual(daveAliceConv, alice, MessageType.LONGING, 50)
+    await addMessage(daveAliceConv, alice, "Miss working on this together.", 48)
+    await addRitual(daveAliceConv, dave, MessageType.QUESTION, 35)
     await addMessage(daveAliceConv, alice, "Will do! Probably by Friday.", 30)
+    await addRitual(daveAliceConv, alice, MessageType.APOLOGY, 10)
+    await addMessage(daveAliceConv, alice, "Sorry, pushed to next Monday actually!", 9)
 
     // ── 4. dave ↔ Bob  (1:1) ─────────────────────────────────────────────────
 
@@ -167,8 +191,11 @@ async function main() {
     })
     await addMessage(daveBobConv, dave, "Bob, can you push the backend changes today?", 200)
     await addMessage(daveBobConv, bob, "On it. Should be done in an hour.", 195)
-    await addMessage(daveBobConv, dave, "Perfect, thanks!", 190)
-    await addMessage(daveBobConv, bob, "Done — PR is up for review 🚀", 60)
+    await addRitual(daveBobConv, bob, MessageType.TAUNT, 193)
+    await addMessage(daveBobConv, bob, "Easy for someone who doesn't write the hard parts ;)", 192)
+    await addRitual(daveBobConv, dave, MessageType.REJECTION, 191)
+    await addMessage(daveBobConv, dave, "Not taking that. Get back to work!", 190)
+    await addMessage(daveBobConv, bob, "Done — PR is up for review", 60)
     await addMessage(daveBobConv, dave, "Nice, reviewing now.", 55)
     console.log("  1:1 conversations: dave↔Alice, dave↔Bob")
 

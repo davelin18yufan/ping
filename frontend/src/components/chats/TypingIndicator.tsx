@@ -74,6 +74,10 @@ export function TypingIndicator({ usernames }: TypingIndicatorProps) {
             aria-label={label}
             className="flex items-center gap-2 px-3 py-1 text-xs text-muted-foreground"
         >
+            {/* Label first so the name is immediately readable, especially in groups */}
+            <span className="text-xs text-muted-foreground italic">{label}</span>
+
+            {/* Animated dots after the label */}
             <div className="flex items-center gap-1" aria-hidden="true">
                 {DOT_DELAYS.map((delay, i) =>
                     isMinimal ? (
@@ -89,7 +93,6 @@ export function TypingIndicator({ usernames }: TypingIndicatorProps) {
                     )
                 )}
             </div>
-            <span className="text-xs text-muted-foreground italic">{label}</span>
         </div>
     )
 }

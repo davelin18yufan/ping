@@ -4,7 +4,10 @@
     "scripts": {
         "dev": "bun run --hot src/index.ts",
         "db:migrate": "bunx --bun prisma migrate dev --name",
+        "db:migrate:test": "bun run scripts/migrate-test-db.ts",
         "db:seed": "bunx --bun prisma db seed",
+        "db:dev-session": "bun run scripts/dev-session.ts",
+        "db:print-schema": "bun run scripts/print-schema.ts",
         "db:studio": "bunx --bun prisma studio",
         "db:generate": "bunx --bun prisma generate",
         "test": "bun test",

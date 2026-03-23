@@ -118,7 +118,6 @@
 
         /* Shrink to content, cap at 70% of parent */
         width: fit-content;
-        max-width: 70%;
 
         /* Align to left */
         margin-right: auto;

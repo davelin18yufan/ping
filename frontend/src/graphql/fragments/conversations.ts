@@ -67,6 +67,7 @@ export const CONVERSATION_PARTICIPANT_FIELDS = `
  * Core conversation payload.
  * Includes the last message (for conversation list previews) and all participants.
  * Group settings are null for ONE_TO_ONE conversations.
+ * Ritual fields: allowRituals (group toggle) and ritualLabels (per-conversation overrides).
  *
  * Assembles all three dependency fragments exactly once.
  */
@@ -78,6 +79,12 @@ export const CONVERSATION_BASIC_FIELDS = `
         pinnedAt
         unreadCount
         createdAt
+        allowRituals
+        ritualLabels {
+            ritualType
+            labelOwn
+            labelOther
+        }
         lastMessage {
             ...MessageFields
         }

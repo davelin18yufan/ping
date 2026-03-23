@@ -14,7 +14,7 @@ import { createYoga } from "graphql-yoga"
 import { useDisableIntrospection } from "@graphql-yoga/plugin-disable-introspection"
 import { maxDepthPlugin } from "@escape.tech/graphql-armor-max-depth"
 import type { PrismaClient } from "@generated/prisma/client"
-import { authHandler } from "./lib/auth"
+import { authHandler, parseCookie } from "./lib/auth"
 import { sessionMiddleware, getAuthUserId, withPrisma } from "./middleware"
 import { schema } from "./graphql/schema"
 import { buildGraphQLContext } from "./graphql/context"
@@ -110,17 +110,113 @@ app.use("*", withPrisma)
 // ============================================================================
 
 /**
- * All Better Auth routes are handled under /api/auth/*
+ * All Better Auth routes are handled under /api/auth/**
  *
  * Available endpoints:
  * - POST /api/auth/sign-in/social - OAuth sign-in
  * - POST /api/auth/sign-out - Sign out
- * - GET  /api/auth/session - Get current session
+ * - GET  /api/auth/get-session - Get current session
  * - GET  /api/auth/callback/* - OAuth callbacks
+ *
+ * Dev-only shortcut: when NODE_ENV=development, GET /api/auth/get-session
+ * checks for a dev-session-* token and resolves it directly via Prisma.
+ * Better Auth does not recognise tokens inserted manually into the DB
+ * (i.e. not created via OAuth), so this bypass lets seeded test users
+ * authenticate without going through a real OAuth flow.
+ * All other requests fall through to authHandler as normal.
  */
-app.on(["POST", "GET"], "/api/auth/**", (c) => {
+app.on(["POST", "GET"], "/api/auth/**", async (c) => {
+    const isDev = process.env.NODE_ENV === "development"
+    const isGetSession =
+        c.req.method === "GET" && new URL(c.req.url).pathname === "/api/auth/get-session"
+
+    if (isDev && isGetSession) {
+        const cookieHeader = c.req.header("cookie") ?? ""
+        const sessionToken = parseCookie(cookieHeader, "better-auth.session_token")
+
+        if (sessionToken?.startsWith("dev-session-")) {
+            const prismaClient = c.get("prisma")
+            const session = await prismaClient.session.findUnique({
+                where: { token: sessionToken },
+                include: { user: true },
+            })
+
+            if (!session || session.expiresAt < new Date()) {
+                return c.json(null)
+            }
+
+            const { user, ...sessionData } = session
+            return c.json({ session: sessionData, user })
+        }
+    }
+
     return authHandler(c.req.raw)
 })
+
+// ============================================================================
+//! Dev-only Routes (development environment only)
+//! Remove after MVP
+// ============================================================================
+
+/**
+ * /dev/login/:name — instantly log in as a seeded test user.
+ *
+ * Creates (or refreshes) a session in the DB and sets the
+ * better-auth.session_token cookie with the same attributes that Better Auth
+ * uses (HttpOnly, SameSite=Lax), then redirects to the frontend.
+ *
+ * Usage: open http://localhost:3000/dev/login/alice in any browser window.
+ *
+ * ONLY available when NODE_ENV=development.
+ */
+if (process.env.NODE_ENV === "development") {
+    const DEV_USERS: Record<string, string> = {
+        alice: "alice@ping.dev",
+        bob: "bob@ping.dev",
+        charlie: "charlie@ping.dev",
+        diana: "diana@ping.dev",
+    }
+    const FRONTEND_URL = process.env.FRONTEND_URL ?? "http://localhost:5173"
+    const SESSION_MAX_AGE = 60 * 60 * 24 * 7 // 7 days in seconds
+
+    app.get("/dev/login/:name", async (c) => {
+        const name = c.req.param("name").toLowerCase()
+        const email = DEV_USERS[name]
+
+        if (!email) {
+            return c.json(
+                { error: `Unknown user "${name}". Valid: ${Object.keys(DEV_USERS).join(", ")}` },
+                404
+            )
+        }
+
+        const prismaClient = c.get("prisma")
+        const user = await prismaClient.user.findUnique({ where: { email } })
+
+        if (!user) {
+            return c.json(
+                { error: `User "${name}" not in DB. Run: cd backend && bun run db:seed` },
+                404
+            )
+        }
+
+        const token = `dev-session-${name}`
+        const expiresAt = new Date(Date.now() + SESSION_MAX_AGE * 1000)
+
+        await prismaClient.session.upsert({
+            where: { token },
+            update: { expiresAt, updatedAt: new Date() },
+            create: { id: `dev-${name}-session`, token, userId: user.id, expiresAt },
+        })
+
+        // Set cookie with same attributes as Better Auth (HttpOnly, SameSite=Lax)
+        c.header(
+            "Set-Cookie",
+            `better-auth.session_token=${token}; Path=/; HttpOnly; SameSite=Lax; Max-Age=${SESSION_MAX_AGE}`
+        )
+        return c.redirect(FRONTEND_URL, 302)
+    })
+}
 
 // ============================================================================
 // Public Routes

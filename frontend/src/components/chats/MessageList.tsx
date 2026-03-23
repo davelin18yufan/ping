@@ -27,18 +27,19 @@
 
 import { useMutationState } from "@tanstack/react-query"
 import { useStore } from "@tanstack/react-store"
-import { Zap } from "lucide-react"
-import { motion } from "motion/react"
+import { Flame, Heart, HeartCrack, HelpCircle, PartyPopper, XCircle, Zap } from "lucide-react"
 import type { ReactNode } from "react"
 import { useEffect, useMemo, useRef } from "react"
 import { VList, type VListHandle } from "virtua"
 
 import { useMessages } from "@/hooks/useMessages"
-import { cn, formatMessageTime } from "@/lib/utils"
+import type { ResolvedRitualLabels } from "@/lib/ritualLabels"
+import { cn } from "@/lib/utils"
 import { uiStore } from "@/stores/uiStore"
 import type { ConversationType, Message } from "@/types/conversations"
 import type { DateItem, ListItem, MessageItem, PendingItem, TypingItem } from "@/types/messageList"
 
+import { InteractionEvent } from "./InteractionEvent"
 import { MessageBubble } from "./MessageBubble"
 import { TypingIndicator } from "./TypingIndicator"
 
@@ -56,6 +57,7 @@ interface RenderContext {
     /** Returns true for messages that arrived after the view mounted (animate in). */
     isNewMessage: (createdAt: string) => boolean
     typingUsers: string[]
+    ritualLabels?: ResolvedRitualLabels
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -104,8 +106,10 @@ function buildItems(
             lastDateLabel = dateLabel
         }
 
-        // SONIC_PING messages are rendered as ritual event markers, not bubbles
-        if (msg.messageType === "SONIC_PING") {
+        // Ritual event messages are rendered as event markers, not chat bubbles.
+        // They are always standalone (isFirstInSequence + isLastInSequence = true)
+        // and do not count as neighbours for adjacent bubble sequence detection.
+        if (msg.messageType in RITUAL_ROW_CONFIG) {
             result.push({
                 kind: "message",
                 key: msg.id,
@@ -116,12 +120,14 @@ function buildItems(
             return
         }
 
-        // Sequence detection: look at adjacent non-sonic-ping message neighbours
+        // Sequence detection: look at adjacent non-ritual message neighbours
         const prevMsg = sortedMessages
             .slice(0, i)
             .reverse()
-            .find((m) => m.messageType !== "SONIC_PING")
-        const nextMsg = sortedMessages.slice(i + 1).find((m) => m.messageType !== "SONIC_PING")
+            .find((m) => !(m.messageType in RITUAL_ROW_CONFIG))
+        const nextMsg = sortedMessages
+            .slice(i + 1)
+            .find((m) => !(m.messageType in RITUAL_ROW_CONFIG))
 
         result.push({
             kind: "message",
@@ -162,26 +168,63 @@ function DateSeparatorRow({ item }: { item: DateItem }) {
     )
 }
 
-function SonicPingMessageRow({ message, isOwn }: { message: Message; isOwn: boolean }) {
-    return (
-        <motion.div
-            className={cn(
-                "sonic-ping-event",
-                isOwn ? "sonic-ping-event--own" : "sonic-ping-event--received"
-            )}
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.4, ease: [0.34, 1.56, 0.64, 1] }}
-        >
-            <span className="sonic-ping-event__badge">
-                <Zap size={10} aria-hidden="true" />
-                {isOwn ? "You sent a Sonic Ping" : `${message.sender.name} sent a Sonic Ping`}
-                <span className="sonic-ping-event__time">
-                    {formatMessageTime(message.createdAt)}
-                </span>
-            </span>
-        </motion.div>
-    )
+// ─── RITUAL_ROW_CONFIG — unified map for all ritual message types ─────────────
+// Replaces the standalone SonicPingMessageRow.
+// To add a new ritual: add an entry here — no other changes needed in MessageList.
+
+const RITUAL_ROW_CONFIG: Partial<
+    Record<
+        string,
+        {
+            icon: ReactNode
+            labelOwn: string
+            labelOther: (name: string) => string
+            colorVar: string
+        }
+    >
+> = {
+    SONIC_PING: {
+        icon: <Zap size={10} aria-hidden="true" />,
+        labelOwn: "You sent a Sonic Ping",
+        labelOther: (n) => `${n} sent a Sonic Ping`,
+        colorVar: "var(--ritual-nudge)",
+    },
+    APOLOGY: {
+        icon: <HeartCrack size={10} aria-hidden="true" />,
+        labelOwn: "你道歉了",
+        labelOther: (n) => `${n} 說對不起`,
+        colorVar: "var(--ritual-apology)",
+    },
+    CELEBRATE: {
+        icon: <PartyPopper size={10} aria-hidden="true" />,
+        labelOwn: "你恭喜了對方",
+        labelOther: (n) => `${n} 恭喜你`,
+        colorVar: "var(--ritual-celebrate)",
+    },
+    TAUNT: {
+        icon: <Flame size={10} aria-hidden="true" />,
+        labelOwn: "你嗆了對方",
+        labelOther: (n) => `${n} 嗆了你`,
+        colorVar: "var(--ritual-taunt)",
+    },
+    LONGING: {
+        icon: <Heart size={10} aria-hidden="true" />,
+        labelOwn: "你想對方了",
+        labelOther: (n) => `${n} 想你了`,
+        colorVar: "var(--ritual-reconcile)",
+    },
+    QUESTION: {
+        icon: <HelpCircle size={10} aria-hidden="true" />,
+        labelOwn: "你問: 幹嘛？",
+        labelOther: (n) => `${n} 問: 幹嘛？`,
+        colorVar: "var(--ritual-question)",
+    },
+    REJECTION: {
+        icon: <XCircle size={10} aria-hidden="true" />,
+        labelOwn: "你拒絕了",
+        labelOther: (n) => `${n} 拒絕了`,
+        colorVar: "var(--ritual-reject)",
+    },
 }
 
 function PendingMessageRow({
@@ -219,13 +262,28 @@ function PendingMessageRow({
 
 function MessageRow({ item, ctx }: { item: MessageItem; ctx: RenderContext }) {
     const { message: msg, isFirstInSequence, isLastInSequence } = item
-    const { currentUserId, conversationType, isNewMessage } = ctx
+    const { currentUserId, conversationType, isNewMessage, ritualLabels } = ctx
 
     const isOwn = msg.sender.id === currentUserId
 
-    // Render SONIC_PING messages as event markers, not chat bubbles
-    if (msg.messageType === "SONIC_PING") {
-        return <SonicPingMessageRow message={msg} isOwn={isOwn} />
+    // Render all ritual-type messages as interaction event markers, not chat bubbles.
+    // Prefer resolved ritualLabels from props; fall back to hardcoded RITUAL_ROW_CONFIG.
+    const ritualConfig = RITUAL_ROW_CONFIG[msg.messageType]
+    if (ritualConfig) {
+        const resolvedEntry = ritualLabels?.[msg.messageType]
+        const label = isOwn
+            ? (resolvedEntry?.labelOwn ?? ritualConfig.labelOwn)
+            : (resolvedEntry?.labelOther(msg.sender.name ?? "") ??
+              ritualConfig.labelOther(msg.sender.name ?? ""))
+        return (
+            <InteractionEvent
+                message={msg}
+                isOwn={isOwn}
+                icon={ritualConfig.icon}
+                label={label}
+                colorVar={ritualConfig.colorVar}
+            />
+        )
     }
 
     const isGroupReceived = conversationType === "GROUP" && !isOwn
@@ -304,11 +362,18 @@ interface MessageListProps {
     conversationId: string
     currentUserId: string
     conversationType: ConversationType
+    /** Resolved ritual label overrides from the conversation. Falls back to hardcoded defaults. */
+    ritualLabels?: ResolvedRitualLabels
 }
 
 // ─── MessageList ──────────────────────────────────────────────────────────────
 
-export function MessageList({ conversationId, currentUserId, conversationType }: MessageListProps) {
+export function MessageList({
+    conversationId,
+    currentUserId,
+    conversationType,
+    ritualLabels,
+}: MessageListProps) {
     const { messages, fetchNextPage, hasNextPage, isFetchingNextPage } = useMessages(conversationId)
     const typingUsers = useStore(uiStore, (s) => s.typingMap[conversationId] ?? [])
 
@@ -353,13 +418,25 @@ export function MessageList({ conversationId, currentUserId, conversationType }:
     // heights in its first layout pass, preventing newest message from
     // landing in the middle of the viewport on initial conversation load.
     useEffect(() => {
-        if (messages.length > 0) {
-            const raf = requestAnimationFrame(() => {
-                listRef.current?.scrollToIndex(messages.length - 1, { smooth: false })
-            })
-            return () => cancelAnimationFrame(raf)
-        }
-    }, [messages.length])
+        if (messages.length === 0) return
+        const raf = requestAnimationFrame(() => {
+            // items.length accounts for date separators; +1 clears the top sentinel.
+            // An out-of-bounds index scrolls virtua to the very last item safely.
+            listRef.current?.scrollToIndex(items.length + 1, { smooth: false })
+        })
+        return () => cancelAnimationFrame(raf)
+    }, [messages.length]) // eslint-disable-line react-hooks/exhaustive-deps
+
+    // Reveal typing indicator when it appears.
+    // Kept separate from the messages effect so it can animate smoothly
+    // without clobbering the hard-scroll used for new messages.
+    useEffect(() => {
+        if (typingUsers.length === 0) return
+        const raf = requestAnimationFrame(() => {
+            listRef.current?.scrollToIndex(items.length + 1, { smooth: true })
+        })
+        return () => cancelAnimationFrame(raf)
+    }, [typingUsers.length]) // eslint-disable-line react-hooks/exhaustive-deps
 
     // IntersectionObserver at top sentinel to load older messages on scroll up
     useEffect(() => {
@@ -382,8 +459,15 @@ export function MessageList({ conversationId, currentUserId, conversationType }:
     )
 
     const ctx: RenderContext = useMemo(
-        () => ({ conversationId, currentUserId, conversationType, isNewMessage, typingUsers }),
-        [conversationId, currentUserId, conversationType, isNewMessage, typingUsers]
+        () => ({
+            conversationId,
+            currentUserId,
+            conversationType,
+            isNewMessage,
+            typingUsers,
+            ritualLabels,
+        }),
+        [conversationId, currentUserId, conversationType, isNewMessage, typingUsers, ritualLabels]
     )
 
     return (
@@ -396,7 +480,7 @@ export function MessageList({ conversationId, currentUserId, conversationType }:
             <VList
                 ref={listRef}
                 className="flex-1"
-                style={{ padding: "0.5rem 1rem", overscrollBehavior: "contain" }}
+                style={{ padding: "0.5rem 1rem 2rem", overscrollBehavior: "contain" }}
             >
                 {/* Top sentinel — triggers loading older messages when visible */}
                 <div ref={topSentinelRef} style={{ height: 1 }} aria-hidden="true" />

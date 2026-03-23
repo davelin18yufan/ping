@@ -173,6 +173,25 @@ export const schema = createSchema({
         TEXT
         IMAGE
         SONIC_PING
+        APOLOGY
+        CELEBRATE
+        TAUNT
+        LONGING
+        QUESTION
+        REJECTION
+      }
+
+      """
+      Ritual interaction type — maps 1-to-1 with ritual MessageType values.
+      Used as input for the sendRitual mutation.
+      """
+      enum RitualType {
+        APOLOGY
+        CELEBRATE
+        TAUNT
+        LONGING
+        QUESTION
+        REJECTION
       }
 
       """
@@ -199,6 +218,25 @@ export const schema = createSchema({
         onlyOwnerCanInvite: Boolean!
         onlyOwnerCanKick: Boolean!
         onlyOwnerCanEdit: Boolean!
+      }
+
+      """
+      Custom label for a ritual type within a conversation.
+      labelOwn: shown to the sender. labelOther: shown to recipients.
+      """
+      type RitualLabel {
+        ritualType: MessageType!
+        labelOwn: String!
+        labelOther: String!
+      }
+
+      """
+      Input for setting a custom ritual label within a conversation.
+      """
+      input SetRitualLabelInput {
+        ritualType: RitualType!
+        labelOwn: String!
+        labelOther: String!
       }
 
       """
@@ -239,6 +277,14 @@ export const schema = createSchema({
         Group permission settings — null for ONE_TO_ONE conversations
         """
         settings: GroupSettings
+        """
+        Whether rituals are enabled for this conversation (GROUP only; always ignored for ONE_TO_ONE).
+        """
+        allowRituals: Boolean!
+        """
+        Custom ritual labels configured for this conversation. Empty if none have been set.
+        """
+        ritualLabels: [RitualLabel!]!
         createdAt: String!
       }
 
@@ -300,6 +346,7 @@ export const schema = createSchema({
         onlyOwnerCanInvite: Boolean
         onlyOwnerCanKick: Boolean
         onlyOwnerCanEdit: Boolean
+        allowRituals: Boolean
       }
 
       """
@@ -554,9 +601,23 @@ export const schema = createSchema({
         sendSonicPing(conversationId: ID!): Message!
 
         """
+        Send a ritual interaction message. Persists as Message with matching
+        messageType and broadcasts ritual:incoming via Socket.io.
+        Emits message:new (same payload as sendMessage) and ritual:incoming
+        carrying conversationId, senderId, senderName, and ritualType.
+        """
+        sendRitual(conversationId: ID!, ritualType: RitualType!): Message!
+
+        """
         Mark all unread messages in a conversation as READ for the current user.
         """
         markMessagesAsRead(conversationId: ID!): Boolean!
+
+        """
+        Set a custom label for one ritual type in a conversation.
+        Caller must be a participant. For GROUP conversations, only OWNER may call this when allowRituals=true.
+        """
+        setRitualLabel(conversationId: ID!, input: SetRitualLabelInput!): RitualLabel!
 
         """
         Block a user. Automatically removes any existing friendship.

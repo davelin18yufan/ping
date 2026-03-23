@@ -22,7 +22,12 @@
 
 import { GraphQLError } from "graphql"
 import type { GraphQLContext } from "../context"
-import type { ParticipantRecord, ConversationParent, MessageRecord } from "../types"
+import type {
+    ParticipantRecord,
+    ConversationParent,
+    MessageRecord,
+    RitualLabelRecord,
+} from "../types"
 import {
     requireAuth,
     getParticipant,
@@ -41,6 +46,50 @@ import {
 import type { SortOrder } from "@generated/prisma/internal/prismaNamespace"
 
 type MessageParent = MessageRecord
+
+// ---------------------------------------------------------------------------
+// Private helpers
+// ---------------------------------------------------------------------------
+
+/**
+ * Create a ritual message (content: null) and return both the MessageParent
+ * and the sender's display name in a single DB round-trip by selecting the
+ * sender relation inside message.create.
+ * Used by sendSonicPing and sendRitual to avoid a separate user.findUnique call.
+ */
+async function persistRitualMessage(
+    prisma: GraphQLContext["prisma"],
+    conversationId: string,
+    senderId: string,
+    messageType: MessageType
+): Promise<{ messageParent: MessageParent; senderName: string | null }> {
+    const message = await prisma.message.create({
+        data: { conversationId, senderId, content: null, messageType },
+        select: {
+            id: true,
+            conversationId: true,
+            senderId: true,
+            content: true,
+            messageType: true,
+            imageUrl: true,
+            createdAt: true,
+            sender: { select: { name: true } },
+        },
+    })
+
+    const messageParent: MessageParent = {
+        id: message.id,
+        conversationId: message.conversationId,
+        senderId: message.senderId,
+        content: message.content,
+        messageType: message.messageType,
+        imageUrl: message.imageUrl,
+        createdAt: message.createdAt.toISOString(),
+        status: MessageStatusType.SENT,
+    }
+
+    return { messageParent, senderName: message.sender?.name ?? null }
+}
 
 // Raw shape returned by Prisma message.findMany select in the messages resolver
 type RawMessageRow = {
@@ -90,6 +139,7 @@ const Query = {
             onlyOwnerCanInvite: boolean
             onlyOwnerCanKick: boolean
             onlyOwnerCanEdit: boolean
+            allowRituals: boolean
             createdAt: Date
         }
 
@@ -106,6 +156,7 @@ const Query = {
                 c."onlyOwnerCanInvite",
                 c."onlyOwnerCanKick",
                 c."onlyOwnerCanEdit",
+                c."allowRituals",
                 c."createdAt"
             FROM "ConversationParticipant" cp
             JOIN "Conversation" c ON c.id = cp."conversationId"
@@ -118,6 +169,32 @@ const Query = {
                 COALESCE(MAX(m."createdAt"), c."createdAt") DESC
         `
 
+        // Fetch all ritual labels for these conversations in a single query
+        const convIds = rows.map((c) => c.id)
+        const ritualLabelsRaw =
+            convIds.length > 0
+                ? await context.prisma.conversationRitualLabel.findMany({
+                      where: { conversationId: { in: convIds } },
+                      select: {
+                          conversationId: true,
+                          ritualType: true,
+                          labelOwn: true,
+                          labelOther: true,
+                      },
+                  })
+                : []
+
+        const labelsByConvId = new Map<string, RitualLabelRecord[]>()
+        for (const label of ritualLabelsRaw) {
+            const list = labelsByConvId.get(label.conversationId) ?? []
+            list.push({
+                ritualType: label.ritualType,
+                labelOwn: label.labelOwn,
+                labelOther: label.labelOther,
+            })
+            labelsByConvId.set(label.conversationId, list)
+        }
+
         return rows.map((c) => ({
             id: c.id,
             type: c.type as ConversationType,
@@ -126,6 +203,8 @@ const Query = {
             onlyOwnerCanInvite: c.onlyOwnerCanInvite,
             onlyOwnerCanKick: c.onlyOwnerCanKick,
             onlyOwnerCanEdit: c.onlyOwnerCanEdit,
+            allowRituals: c.allowRituals,
+            ritualLabels: labelsByConvId.get(c.id) ?? [],
             createdAt: c.createdAt.toISOString(),
         }))
     },
@@ -151,6 +230,9 @@ const Query = {
 
         const conv = await context.prisma.conversation.findUnique({
             where: { id: args.id },
+            include: {
+                ritualLabels: { select: { ritualType: true, labelOwn: true, labelOther: true } },
+            },
         })
         if (!conv) return null
 
@@ -162,6 +244,12 @@ const Query = {
             onlyOwnerCanInvite: conv.onlyOwnerCanInvite,
             onlyOwnerCanKick: conv.onlyOwnerCanKick,
             onlyOwnerCanEdit: conv.onlyOwnerCanEdit,
+            allowRituals: conv.allowRituals,
+            ritualLabels: conv.ritualLabels.map((l) => ({
+                ritualType: l.ritualType,
+                labelOwn: l.labelOwn,
+                labelOther: l.labelOther,
+            })),
             createdAt: conv.createdAt.toISOString(),
         }
     },
@@ -344,6 +432,8 @@ const Mutation = {
                 onlyOwnerCanInvite: existing.onlyOwnerCanInvite,
                 onlyOwnerCanKick: existing.onlyOwnerCanKick,
                 onlyOwnerCanEdit: existing.onlyOwnerCanEdit,
+                allowRituals: existing.allowRituals,
+                ritualLabels: [],
                 createdAt: existing.createdAt.toISOString(),
             }
         }
@@ -369,6 +459,8 @@ const Mutation = {
             onlyOwnerCanInvite: conv.onlyOwnerCanInvite,
             onlyOwnerCanKick: conv.onlyOwnerCanKick,
             onlyOwnerCanEdit: conv.onlyOwnerCanEdit,
+            allowRituals: conv.allowRituals,
+            ritualLabels: [],
             createdAt: conv.createdAt.toISOString(),
         }
     },
@@ -431,6 +523,8 @@ const Mutation = {
             onlyOwnerCanInvite: conv.onlyOwnerCanInvite,
             onlyOwnerCanKick: conv.onlyOwnerCanKick,
             onlyOwnerCanEdit: conv.onlyOwnerCanEdit,
+            allowRituals: conv.allowRituals,
+            ritualLabels: [],
             createdAt: conv.createdAt.toISOString(),
         }
     },
@@ -528,6 +622,8 @@ const Mutation = {
             onlyOwnerCanInvite: conv.onlyOwnerCanInvite,
             onlyOwnerCanKick: conv.onlyOwnerCanKick,
             onlyOwnerCanEdit: conv.onlyOwnerCanEdit,
+            allowRituals: conv.allowRituals,
+            ritualLabels: [],
             createdAt: conv.createdAt.toISOString(),
         }
     },
@@ -738,6 +834,7 @@ const Mutation = {
                 onlyOwnerCanInvite?: boolean | null
                 onlyOwnerCanKick?: boolean | null
                 onlyOwnerCanEdit?: boolean | null
+                allowRituals?: boolean | null
             } | null
         },
         context: GraphQLContext
@@ -779,6 +876,7 @@ const Mutation = {
             onlyOwnerCanInvite?: boolean
             onlyOwnerCanKick?: boolean
             onlyOwnerCanEdit?: boolean
+            allowRituals?: boolean
         } = {}
 
         if (args.name !== null && args.name !== undefined) updateData.name = args.name
@@ -797,9 +895,14 @@ const Mutation = {
             args.settings?.onlyOwnerCanEdit !== undefined
         )
             updateData.onlyOwnerCanEdit = args.settings.onlyOwnerCanEdit
+        if (args.settings?.allowRituals !== null && args.settings?.allowRituals !== undefined)
+            updateData.allowRituals = args.settings.allowRituals
 
         const updated = await context.prisma.conversation.update({
             where: { id: args.conversationId },
+            include: {
+                ritualLabels: { select: { ritualType: true, labelOwn: true, labelOther: true } },
+            },
             data: updateData,
         })
 
@@ -811,6 +914,12 @@ const Mutation = {
             onlyOwnerCanInvite: updated.onlyOwnerCanInvite,
             onlyOwnerCanKick: updated.onlyOwnerCanKick,
             onlyOwnerCanEdit: updated.onlyOwnerCanEdit,
+            allowRituals: updated.allowRituals,
+            ritualLabels: updated.ritualLabels.map((l) => ({
+                ritualType: l.ritualType,
+                labelOwn: l.labelOwn,
+                labelOther: l.labelOther,
+            })),
             createdAt: updated.createdAt.toISOString(),
         }
     },
@@ -929,7 +1038,7 @@ const Mutation = {
     /**
      * Send a Sonic Ping ritual message to a conversation.
      * Persists a SONIC_PING type message (no content) and broadcasts via Socket.io:
-     *   - message:new   — same payload as sendMessage for real-time message list updates
+     *   - message:new       — same payload as sendMessage for real-time message list updates
      *   - sonicPing:incoming — dedicated event carrying senderId and senderName
      */
     sendSonicPing: async (
@@ -946,41 +1055,13 @@ const Mutation = {
             })
         }
 
-        const sender = await context.prisma.user.findUnique({
-            where: { id: userId },
-            select: { name: true },
-        })
+        const { messageParent, senderName } = await persistRitualMessage(
+            context.prisma,
+            args.conversationId,
+            userId,
+            MessageType.SONIC_PING
+        )
 
-        const message = await context.prisma.message.create({
-            data: {
-                conversationId: args.conversationId,
-                senderId: userId,
-                content: null,
-                messageType: MessageType.SONIC_PING,
-            },
-            select: {
-                id: true,
-                conversationId: true,
-                senderId: true,
-                content: true,
-                messageType: true,
-                imageUrl: true,
-                createdAt: true,
-            },
-        })
-
-        const messageParent: MessageParent = {
-            id: message.id,
-            conversationId: message.conversationId,
-            senderId: message.senderId,
-            content: message.content,
-            messageType: message.messageType,
-            imageUrl: message.imageUrl,
-            createdAt: message.createdAt.toISOString(),
-            status: MessageStatusType.SENT,
-        }
-
-        // Broadcast via Socket.io (non-fatal if not initialized)
         try {
             const io = getIO()
             io.to(args.conversationId).emit("message:new", {
@@ -990,7 +1071,73 @@ const Mutation = {
             io.to(args.conversationId).emit("sonicPing:incoming", {
                 conversationId: args.conversationId,
                 senderId: userId,
-                senderName: sender?.name ?? null,
+                senderName,
+            })
+        } catch {
+            // Non-fatal in test environment
+        }
+
+        return messageParent
+    },
+
+    /**
+     * Send a ritual interaction message to a conversation.
+     * Persists as Message with matching messageType (content: null) and
+     * broadcasts two Socket.io events to the conversation room:
+     *   - message:new    — standard message payload for real-time message list
+     *   - ritual:incoming — { conversationId, senderId, senderName, ritualType }
+     */
+    sendRitual: async (
+        _parent: unknown,
+        args: { conversationId: string; ritualType: string },
+        context: GraphQLContext
+    ): Promise<MessageParent> => {
+        const userId = requireAuth(context)
+
+        const participant = await getParticipant(context.prisma, args.conversationId, userId)
+        if (!participant) {
+            throw new GraphQLError("Not a participant of this conversation", {
+                extensions: { code: "FORBIDDEN", status: 403 },
+            })
+        }
+
+        // For GROUP conversations, rituals must be explicitly enabled
+        const conversation = await context.prisma.conversation.findUnique({
+            where: { id: args.conversationId },
+            select: { type: true, allowRituals: true },
+        })
+        if (conversation?.type === ConversationType.GROUP && !conversation.allowRituals) {
+            throw new GraphQLError("Rituals are disabled for this group", {
+                extensions: { code: "FORBIDDEN", status: 403 },
+            })
+        }
+
+        // Map RitualType string → MessageType enum value
+        const messageType = MessageType[args.ritualType as keyof typeof MessageType]
+        if (!messageType) {
+            throw new GraphQLError(`Invalid ritual type: ${args.ritualType}`, {
+                extensions: { code: "BAD_REQUEST", status: 400 },
+            })
+        }
+
+        const { messageParent, senderName } = await persistRitualMessage(
+            context.prisma,
+            args.conversationId,
+            userId,
+            messageType
+        )
+
+        try {
+            const io = getIO()
+            io.to(args.conversationId).emit("message:new", {
+                message: messageParent,
+                conversationId: args.conversationId,
+            })
+            io.to(args.conversationId).emit("ritual:incoming", {
+                conversationId: args.conversationId,
+                senderId: userId,
+                senderName,
+                ritualType: args.ritualType,
             })
         } catch {
             // Non-fatal in test environment
@@ -1028,6 +1175,85 @@ const Mutation = {
         })
 
         return true
+    },
+
+    /**
+     * Set a custom label for one ritual type in a conversation.
+     * Participant-only. For GROUP conversations, only OWNER may call this (and only when allowRituals=true).
+     */
+    setRitualLabel: async (
+        _parent: unknown,
+        args: {
+            conversationId: string
+            input: { ritualType: string; labelOwn: string; labelOther: string }
+        },
+        context: GraphQLContext
+    ): Promise<RitualLabelRecord> => {
+        const userId = requireAuth(context)
+
+        const membership = await context.prisma.conversationParticipant.findFirst({
+            where: { conversationId: args.conversationId, userId },
+        })
+        if (!membership) {
+            throw new GraphQLError("Forbidden", { extensions: { code: "FORBIDDEN", status: 403 } })
+        }
+
+        const conversation = await context.prisma.conversation.findUnique({
+            where: { id: args.conversationId },
+            select: { type: true, allowRituals: true },
+        })
+        if (!conversation) {
+            throw new GraphQLError("Conversation not found", {
+                extensions: { code: "NOT_FOUND", status: 404 },
+            })
+        }
+
+        if (conversation.type === ConversationType.GROUP) {
+            if (membership.role !== ParticipantRole.OWNER) {
+                throw new GraphQLError("Only group owners can set ritual labels", {
+                    extensions: { code: "FORBIDDEN", status: 403 },
+                })
+            }
+            if (!conversation.allowRituals) {
+                throw new GraphQLError("Rituals are disabled for this group", {
+                    extensions: { code: "FORBIDDEN", status: 403 },
+                })
+            }
+        }
+
+        const ritualType = MessageType[args.input.ritualType as keyof typeof MessageType]
+        if (!ritualType) {
+            throw new GraphQLError(`Invalid ritual type: ${args.input.ritualType}`, {
+                extensions: { code: "BAD_REQUEST", status: 400 },
+            })
+        }
+
+        const label = await context.prisma.conversationRitualLabel.upsert({
+            where: {
+                conversationId_ritualType: {
+                    conversationId: args.conversationId,
+                    ritualType,
+                },
+            },
+            create: {
+                conversationId: args.conversationId,
+                ritualType,
+                labelOwn: args.input.labelOwn,
+                labelOther: args.input.labelOther,
+                updatedBy: userId,
+            },
+            update: {
+                labelOwn: args.input.labelOwn,
+                labelOther: args.input.labelOther,
+                updatedBy: userId,
+            },
+        })
+
+        return {
+            ritualType: label.ritualType,
+            labelOwn: label.labelOwn,
+            labelOther: label.labelOther,
+        }
     },
 
     /**

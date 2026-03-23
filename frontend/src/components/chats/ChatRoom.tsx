@@ -20,7 +20,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 import { ArrowLeft, Info, Users } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useState } from "react"
 
 import {
     MARK_READ_MUTATION,
@@ -29,15 +29,18 @@ import {
     conversationsQueryOptions,
 } from "@/graphql/options/conversations"
 import { graphqlFetch } from "@/lib/graphql-client"
+import { resolveRitualLabels } from "@/lib/ritualLabels"
 import { cn } from "@/lib/utils"
 import { uiStore } from "@/stores/uiStore"
 import type { Conversation, Message } from "@/types/conversations"
 
+import { ChatRoomOverlays } from "./ChatRoomOverlays"
 import { ContactAvatar } from "./ContactAvatar"
 import { DirectInfoPanel } from "./DirectInfoPanel"
 import { GroupInfoPanel } from "./GroupInfoPanel"
 import { MessageInput } from "./MessageInput"
 import { MessageList } from "./MessageList"
+import { RitualPickerButton } from "./RitualPickerButton"
 import { SonicPingButton } from "./SonicPingButton"
 
 interface ChatRoomProps {
@@ -50,19 +53,8 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
 
     const [showInfo, setShowInfo] = useState(false)
     const [sendError, setSendError] = useState<string | null>(null)
-    const [incomingSenderName, setIncomingSenderName] = useState<string | null>(null)
-    const incomingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
     const { data: conversation } = useQuery(conversationQueryOptions(conversationId))
-
-    // Register this conversation as the currently-active one so
-    // Socket handlers suppress unread badge increments while we are viewing it.
-    useEffect(() => {
-        uiStore.setState((s) => ({ ...s, activeConversationId: conversationId }))
-        return () => {
-            uiStore.setState((s) => ({ ...s, activeConversationId: null }))
-        }
-    }, [conversationId])
 
     // Mark messages as read whenever the active conversation changes.
     const markReadMutation = useMutation({
@@ -80,31 +72,37 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
         },
     })
 
+    // On entering a conversation:
+    //  1. Register as active so socket handlers suppress unread increments.
+    //  2. Mark existing messages as read immediately.
+    // Both actions share the same [conversationId] trigger — merging into one
+    // effect avoids two separate effect runs on every conversation switch.
     useEffect(() => {
+        uiStore.setState((s) => ({ ...s, activeConversationId: conversationId }))
         markReadMutation.mutate()
-        // Only re-fire when the conversation changes; markReadMutation reference
-        // is stable across renders so it is safe to omit from deps.
+        return () => {
+            uiStore.setState((s) => ({ ...s, activeConversationId: null }))
+        }
+        // markReadMutation ref is stable across renders; only conversationId drives re-runs.
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [conversationId])
 
-    // Listen for incoming Sonic Ping custom DOM event dispatched by useSocket.
-    // Show the overlay for 1600 ms then clear it.
-    useEffect(() => {
-        const handleIncoming = (e: Event) => {
-            const { senderName } = (
-                e as CustomEvent<{ conversationId: string; senderName: string }>
-            ).detail
-            setIncomingSenderName(senderName)
-            if (incomingTimeoutRef.current) clearTimeout(incomingTimeoutRef.current)
-            incomingTimeoutRef.current = setTimeout(() => setIncomingSenderName(null), 1600)
-        }
+    // Subscribe to the active conversation's unreadCount from the list cache.
+    // When a conversations refetch (e.g. triggered by sendMutation.onSuccess)
+    // overwrites the socket-patched 0 with the DB's stale count, this effect
+    // fires markRead again to keep the DB and cache in sync while we are here.
+    const { data: liveUnreadCount } = useQuery({
+        ...conversationsQueryOptions,
+        select: (convs) => convs.find((c) => c.id === conversationId)?.unreadCount ?? 0,
+    })
 
-        window.addEventListener("sonicPing:incoming", handleIncoming)
-        return () => {
-            window.removeEventListener("sonicPing:incoming", handleIncoming)
-            if (incomingTimeoutRef.current) clearTimeout(incomingTimeoutRef.current)
+    useEffect(() => {
+        if ((liveUnreadCount ?? 0) > 0) {
+            markReadMutation.mutate()
         }
-    }, [])
+        // markReadMutation ref is stable; liveUnreadCount drives re-runs.
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [liveUnreadCount])
 
     // Send message mutation (mutationKey powers useMutationState in MessageList)
     const sendMutation = useMutation({
@@ -131,6 +129,8 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
     })
 
     const isOneToOne = conversation?.type === "ONE_TO_ONE"
+    const isGroup = conversation?.type === "GROUP"
+    const resolvedLabels = resolveRitualLabels(conversation?.ritualLabels ?? [], isGroup ?? false)
 
     const otherParticipant = isOneToOne
         ? conversation?.participants.find((p) => p.user.id !== currentUserId)
@@ -194,6 +194,10 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                 <div className="flex items-center gap-1">
                     {/* Sonic Ping — only for 1:1 conversations */}
                     {isOneToOne && <SonicPingButton conversationId={conversationId} />}
+                    {/* Ritual picker — 1:1 always; group only when allowRituals is enabled */}
+                    {(isOneToOne || (isGroup && conversation?.allowRituals)) && (
+                        <RitualPickerButton conversationId={conversationId} />
+                    )}
                     {conversation && (
                         <button
                             type="button"
@@ -239,21 +243,11 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                     conversationId={conversationId}
                     currentUserId={currentUserId}
                     conversationType={conversationType}
+                    ritualLabels={resolvedLabels}
                 />
             </motion.div>
 
-            {/* Incoming Sonic Ping overlay — visible for 1.6 s after receiving a ping */}
-            {incomingSenderName && (
-                <div className="sonic-incoming-overlay" aria-live="polite">
-                    <span
-                        className="sonic-incoming-overlay__text"
-                        // Key on a timestamp so the animation replays for rapid successive pings
-                        key={incomingSenderName + String(Date.now())}
-                    >
-                        Anybody home?
-                    </span>
-                </div>
-            )}
+            <ChatRoomOverlays />
 
             {/* Message input */}
             <div className="shrink-0">

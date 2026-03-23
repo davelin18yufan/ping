@@ -914,6 +914,8 @@
         transform: none !important;
         transition: none !important;
         background: oklch(from var(--card) l c h / 0.5) !important;
+        position: relative;
+        z-index: 10;
     }
 
     .chat-room__header:hover {
@@ -1170,10 +1172,15 @@
     }
 
     /* ============================================================
-       Sonic Ping Event Marker (in-chat ritual message)
+       Interaction Event Marker (in-chat ritual message)
+       Generic wrapper for Sonic Ping, future apology/celebrate/etc.
+       Color is driven by --interaction-color CSS custom property.
+       Default: var(--ritual-nudge) (cyan). Override per-event via
+       inline style="--interaction-color: var(--ritual-celebrate)" etc.
        ============================================================ */
 
-    .sonic-ping-event {
+    .interaction-event {
+        --interaction-color: var(--ritual-nudge); /* default: Sonic Ping cyan */
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -1182,46 +1189,46 @@
         user-select: none;
     }
 
-    .sonic-ping-event::before,
-    .sonic-ping-event::after {
+    .interaction-event::before,
+    .interaction-event::after {
         content: "";
         flex: 1;
         height: 1px;
         background: linear-gradient(
             90deg,
             transparent,
-            oklch(from var(--ritual-nudge) l c h / 0.35),
+            oklch(from var(--interaction-color) l c h / 0.35),
             transparent
         );
     }
 
-    .sonic-ping-event__badge {
+    .interaction-event__badge {
         display: flex;
         align-items: center;
         gap: 0.3125rem;
         padding: 0.25rem 0.75rem;
         border-radius: 999px;
-        background: oklch(from var(--ritual-nudge) l c h / 0.08);
-        border: 1px solid oklch(from var(--ritual-nudge) l c h / 0.28);
-        color: var(--ritual-nudge);
+        background: oklch(from var(--interaction-color) l c h / 0.08);
+        border: 1px solid oklch(from var(--interaction-color) l c h / 0.28);
+        color: var(--interaction-color);
         font-size: 0.6875rem;
         font-weight: 500;
         white-space: nowrap;
         box-shadow:
-            0 0 8px oklch(from var(--ritual-nudge) l c h / 0.12),
-            inset 0 0 12px oklch(from var(--ritual-nudge) l c h / 0.06);
+            0 0 8px oklch(from var(--interaction-color) l c h / 0.12),
+            inset 0 0 12px oklch(from var(--interaction-color) l c h / 0.06);
         letter-spacing: 0.025em;
     }
 
-    .sonic-ping-event__time {
-        color: oklch(from var(--ritual-nudge) l c h / 0.55);
+    .interaction-event__time {
+        color: oklch(from var(--interaction-color) l c h / 0.55);
         font-size: 0.625rem;
         font-weight: 400;
         margin-left: 0.25rem;
     }
 
     @media (prefers-reduced-motion: reduce) {
-        .sonic-ping-event__badge {
+        .interaction-event__badge {
             box-shadow: none;
         }
     }
@@ -1324,10 +1331,20 @@
         position: absolute;
         inset: 0;
         display: flex;
+        flex-direction: column;
         align-items: center;
         justify-content: center;
+        gap: 4px;
         pointer-events: none;
         z-index: 20;
+    }
+
+    .sonic-incoming-overlay__sender {
+        font-size: 0.75rem;
+        font-weight: 500;
+        color: var(--muted-foreground);
+        opacity: 0;
+        animation: sonic-overlay-fade 1.5s ease-out forwards;
     }
 
     .sonic-incoming-overlay__text {
@@ -1599,4 +1616,218 @@
     .chats-layout__filters {
         animation: none !important;
     }
+}
+
+/* ============================================================
+   Ritual System Phase 3 — Sender Animations + Overlay + Picker
+   ============================================================ */
+
+/* ── Sender feedback animations (applied to .chat-room-outer) ── */
+
+/* APOLOGY — brightness dims only, no position movement */
+@keyframes ritual-apology-dim {
+    0% {
+        filter: brightness(1);
+    }
+    45% {
+        filter: brightness(0.82);
+    }
+    100% {
+        filter: brightness(1);
+    }
+}
+
+.chat-room-outer.is-ritual-apology {
+    animation: ritual-apology-dim 650ms cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+/* CELEBRATE — brightness flash only, no scale */
+@keyframes ritual-celebrate-flash {
+    0% {
+        filter: brightness(1);
+    }
+    12% {
+        filter: brightness(1.28);
+    }
+    45% {
+        filter: brightness(1.12);
+    }
+    70% {
+        filter: brightness(1.22);
+    }
+    100% {
+        filter: brightness(1);
+    }
+}
+
+.chat-room-outer.is-ritual-celebrate {
+    animation: ritual-celebrate-flash 550ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* TAUNT — no animation */
+.chat-room-outer.is-ritual-taunt {
+}
+
+/* LONGING — pink bubble gradient fades in/out at bottom of chat room, no movement */
+@keyframes ritual-longing-fade {
+    0% {
+        opacity: 0;
+    }
+    20% {
+        opacity: 1;
+    }
+    75% {
+        opacity: 0.9;
+    }
+    100% {
+        opacity: 0;
+    }
+}
+
+.chat-room-outer.is-ritual-longing {
+    position: relative;
+}
+
+.chat-room-outer.is-ritual-longing::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 15;
+
+    /* Three radial blob clusters at the bottom create an organic bubble shape */
+    background:
+        radial-gradient(
+            ellipse 55% 35% at 22% 95%,
+            oklch(from var(--ritual-reconcile) l c h / 0.65) 0%,
+            transparent 60%
+        ),
+        radial-gradient(
+            ellipse 38% 28% at 72% 90%,
+            oklch(from var(--ritual-reconcile) l c h / 0.55) 0%,
+            transparent 55%
+        ),
+        radial-gradient(
+            ellipse 48% 22% at 48% 98%,
+            oklch(from var(--ritual-reconcile) l c h / 0.5) 0%,
+            transparent 50%
+        ),
+        linear-gradient(
+            to top,
+            oklch(from var(--ritual-reconcile) l c h / 0.5) 0%,
+            oklch(from var(--ritual-reconcile) l c h / 0.22) 32%,
+            oklch(from var(--ritual-reconcile) l c h / 0.06) 58%,
+            transparent 78%
+        );
+
+    animation: ritual-longing-fade 760ms cubic-bezier(0.25, 1, 0.5, 1) both;
+}
+
+/* QUESTION — no panel animation; ChatRoomOverlays overlay handles display */
+
+/* REJECTION — no animation */
+.chat-room-outer.is-ritual-rejection {
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .chat-room-outer[class*="is-ritual-"] {
+        animation: none !important;
+    }
+
+    .chat-room-outer.is-ritual-longing::before {
+        display: none;
+    }
+}
+
+[data-aesthetic="minimal"] .chat-room-outer[class*="is-ritual-"] {
+    animation: none;
+}
+
+[data-aesthetic="minimal"] .chat-room-outer.is-ritual-longing::before {
+    display: none;
+}
+
+/* ── Per-ritual incoming overlay text styles ── */
+
+.ritual-overlay--apology .sonic-incoming-overlay__text {
+    text-shadow: 0 0 20px oklch(from var(--ritual-apology) l c h / 0.6);
+}
+
+.ritual-overlay--celebrate .sonic-incoming-overlay__text {
+    text-shadow: 0 0 20px oklch(from var(--ritual-celebrate) l c h / 0.6);
+}
+
+.ritual-overlay--taunt .sonic-incoming-overlay__text {
+    text-shadow: 0 0 20px oklch(from var(--ritual-taunt) l c h / 0.6);
+}
+
+.ritual-overlay--longing .sonic-incoming-overlay__text {
+    text-shadow: 0 0 20px oklch(from var(--ritual-reconcile) l c h / 0.6);
+}
+
+.ritual-overlay--question .sonic-incoming-overlay__text {
+    text-shadow: 0 0 20px oklch(from var(--ritual-question) l c h / 0.6);
+}
+
+.ritual-overlay--rejection .sonic-incoming-overlay__text {
+    font-weight: 900;
+    letter-spacing: -0.02em;
+    text-shadow: 0 0 20px oklch(from var(--ritual-reject) l c h / 0.6);
+}
+
+/* ── Ritual Picker popover ── */
+
+.ritual-picker {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 60;
+    background: var(--glass-background-hover);
+    backdrop-filter: blur(var(--blur-lg, 16px)) saturate(var(--glass-saturation-md, 160%));
+    -webkit-backdrop-filter: blur(var(--blur-lg, 16px)) saturate(var(--glass-saturation-md, 160%));
+    border: 1px solid oklch(from var(--border) l c h / 0.5);
+    border-radius: var(--radius-xl, 14px);
+    box-shadow:
+        0 4px 24px var(--shadow-overlay-xl, oklch(0 0 0 / 0.25)),
+        0 1px 0 var(--shadow-highlight-sm, oklch(1 0 0 / 0.06)) inset;
+    padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 4px;
+    animation: picker-appear var(--duration-fast, 150ms)
+        var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) both;
+}
+
+.ritual-picker__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 10px 8px;
+    border: none;
+    border-radius: var(--radius-sm, 8px);
+    background: transparent;
+    cursor: pointer;
+    transition: background var(--duration-fast, 150ms) var(--ease-out, ease-out);
+    min-width: 64px;
+}
+
+.ritual-picker__item:hover {
+    background: oklch(from var(--ritual-item-color, var(--primary)) l c h / 0.12);
+}
+
+.ritual-picker__item:focus-visible {
+    outline: 2px solid var(--ritual-item-color, var(--primary));
+    outline-offset: 1px;
+}
+
+.ritual-picker__icon {
+    color: var(--ritual-item-color, var(--foreground));
+}
+
+.ritual-picker__label {
+    font-size: 0.625rem;
+    font-weight: 500;
+    color: var(--muted-foreground);
 }

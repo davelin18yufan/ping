@@ -34,6 +34,7 @@ model User {
   conversationParticipants ConversationParticipant[]
   blacklistAsBlocker       Blacklist[]               @relation("BlacklistBlocker")
   blacklistAsBlocked       Blacklist[]               @relation("BlacklistBlocked")
+  ritualLabelUpdates       ConversationRitualLabel[]
 }
 
 model Account {
@@ -115,10 +116,27 @@ model Conversation {
   onlyOwnerCanInvite Boolean          @default(false)
   onlyOwnerCanKick   Boolean          @default(true)
   onlyOwnerCanEdit   Boolean          @default(false)
+  allowRituals       Boolean          @default(false)
   createdAt          DateTime         @default(now())
 
   participants ConversationParticipant[]
   messages     Message[]
+  ritualLabels ConversationRitualLabel[]
+}
+
+model ConversationRitualLabel {
+  id             String      @id @default(cuid())
+  conversationId String
+  ritualType     MessageType
+  labelOwn       String
+  labelOther     String
+  updatedBy      String
+  updatedAt      DateTime    @updatedAt
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  updater      User         @relation(fields: [updatedBy], references: [id])
+
+  @@unique([conversationId, ritualType])
 }
 
 model ConversationParticipant {

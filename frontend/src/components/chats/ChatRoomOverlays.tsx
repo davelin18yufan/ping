@@ -17,12 +17,12 @@ interface RitualOverlay {
 }
 
 const RITUAL_OVERLAY_MAP: Record<string, { text: string; cssClass: string }> = {
-    APOLOGY: { text: "嗚嗚嗚…", cssClass: "ritual-overlay--apology" },
-    CELEBRATE: { text: "🎉🎉🎉", cssClass: "ritual-overlay--celebrate" },
-    TAUNT: { text: "哈哈哈！", cssClass: "ritual-overlay--taunt" },
-    LONGING: { text: "想你了…", cssClass: "ritual-overlay--longing" },
-    QUESTION: { text: "幹嘛？", cssClass: "ritual-overlay--question" },
-    REJECTION: { text: "不要！", cssClass: "ritual-overlay--rejection" },
+    APOLOGY: { text: "…", cssClass: "ritual-overlay--apology" },
+    CELEBRATE: { text: "✦✦✦", cssClass: "ritual-overlay--celebrate" },
+    TAUNT: { text: "!!!", cssClass: "ritual-overlay--taunt" },
+    LONGING: { text: "♡", cssClass: "ritual-overlay--longing" },
+    QUESTION: { text: "？", cssClass: "ritual-overlay--question" },
+    REJECTION: { text: "×", cssClass: "ritual-overlay--rejection" },
 }
 
 const OVERLAY_DURATION = 1600

@@ -38,6 +38,12 @@ export interface GroupSettings {
     onlyOwnerCanEdit: boolean
 }
 
+export interface RitualLabel {
+    ritualType: string
+    labelOwn: string
+    labelOther: string
+}
+
 export interface ConversationParticipant {
     user: ConversationUser
     role: ParticipantRole
@@ -66,6 +72,8 @@ export interface Conversation {
     pinnedAt: string | null
     settings: GroupSettings | null
     createdAt: string
+    allowRituals: boolean
+    ritualLabels: RitualLabel[]
 }
 
 export interface MessagePage {

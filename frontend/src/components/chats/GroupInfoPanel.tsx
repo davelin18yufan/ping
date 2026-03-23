@@ -1,13 +1,17 @@
 /**
  * GroupInfoPanel — slide-in side panel showing group members and management.
  *
- * Enters from the right (Motion x: "100%" → 0) with AnimatePresence exit.
+ * Navigation stack: main → ritualList → ritualForm (per type).
+ * Each step slides in from the right (forward) or left (backward).
+ * No opacity transitions — pure position slide only.
  *
  * Features:
  *   - Member list with role labels.
  *   - OWNER can kick non-owner members (confirmKick dialog).
  *   - Any member can leave (confirmLeave dialog).
  *   - If the OWNER leaves and there are other members, they must choose a successor.
+ *   - OWNER: allowRituals toggle to enable the ritual picker for the group.
+ *   - OWNER + allowRituals: Ritual Labels nav item → slide into label editor.
  *
  * Accessibility:
  *   - role="complementary" + aria-label on the panel.
@@ -17,21 +21,38 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
-import { LogOut, UserMinus, UserPlus, X } from "lucide-react"
-import { motion } from "motion/react"
-import { useState } from "react"
+import { ChevronLeft, ChevronRight, LogOut, UserMinus, UserPlus, X } from "lucide-react"
+import { AnimatePresence, motion } from "motion/react"
+import { useMemo, useRef, useState } from "react"
 
 import {
     INVITE_TO_GROUP_MUTATION,
     LEAVE_GROUP_MUTATION,
     REMOVE_FROM_GROUP_MUTATION,
+    SET_RITUAL_LABEL_MUTATION,
+    UPDATE_GROUP_SETTINGS_MUTATION,
+    conversationQueryOptions,
 } from "@/graphql/options/conversations"
 import { friendsListQueryOptions } from "@/graphql/options/friends"
 import { graphqlFetch } from "@/lib/graphql-client"
+import {
+    DEFAULT_GROUP_RITUAL_LABELS,
+    RITUAL_LABEL_TYPES,
+    RITUAL_ZH_MAP,
+    isRitualForm,
+} from "@/lib/ritualLabels"
+import type { RitualTypeId } from "@/lib/ritualLabels"
 import type { Conversation } from "@/types/conversations"
 
 import { ChatSettings } from "./ChatSettings"
 import { FriendPickerSearch } from "./FriendPickerSearch"
+import {
+    RitualLabelFormView,
+    RitualLabelListView,
+    type PanelView,
+    slideTransition,
+    slideVariants,
+} from "./RitualLabelViews"
 
 interface GroupInfoPanelProps {
     conversation: Conversation
@@ -57,10 +78,69 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
     const [inviteIds, setInviteIds] = useState<string[]>([])
     const [inviteError, setInviteError] = useState<string | null>(null)
 
+    // Navigation stack
+    const [panelView, setPanelView] = useState<PanelView>("main")
+    const navDir = useRef<"forward" | "backward">("forward")
+
+    function goTo(view: PanelView) {
+        navDir.current = "forward"
+        setPanelView(view)
+    }
+
+    function goBack(view: PanelView) {
+        navDir.current = "backward"
+        setPanelView(view)
+    }
+
+    // Ritual labels draft state
+    const [draftLabels, setDraftLabels] = useState<
+        Record<RitualTypeId, { labelOwn: string; labelOther: string }>
+    >(() => {
+        const init = {} as Record<RitualTypeId, { labelOwn: string; labelOther: string }>
+        for (const { id } of RITUAL_LABEL_TYPES) {
+            const defaults = DEFAULT_GROUP_RITUAL_LABELS[id]
+            init[id] = {
+                labelOwn: defaults?.labelOwn ?? "",
+                labelOther: defaults?.labelOther("TA") ?? "",
+            }
+        }
+        return init
+    })
+
     const { data: friends = [] } = useQuery(friendsListQueryOptions)
 
-    // IDs already in the group — exclude from invite picker
+    const { data: liveConversation } = useQuery(conversationQueryOptions(conversation.id))
+    const effectiveConversation = liveConversation ?? conversation
+
     const memberIds = conversation.participants.map((p) => p.user.id)
+
+    const ritualLabelMap = useMemo(
+        () =>
+            new Map(
+                (effectiveConversation.ritualLabels ?? []).map((l) => [l.ritualType, l])
+            ),
+        [effectiveConversation.ritualLabels]
+    )
+
+    function getEffectiveLabelOwn(ritualType: RitualTypeId): string {
+        const dbLabel = ritualLabelMap.get(ritualType)
+        if (dbLabel) return dbLabel.labelOwn
+        return DEFAULT_GROUP_RITUAL_LABELS[ritualType]?.labelOwn ?? ""
+    }
+
+    function getEffectiveLabelOther(ritualType: RitualTypeId): string {
+        const dbLabel = ritualLabelMap.get(ritualType)
+        if (dbLabel) return dbLabel.labelOther.replace("{name}", "TA")
+        return DEFAULT_GROUP_RITUAL_LABELS[ritualType]?.labelOther("TA") ?? ""
+    }
+
+    function getDraftOwn(ritualType: RitualTypeId): string {
+        return draftLabels[ritualType]?.labelOwn ?? getEffectiveLabelOwn(ritualType)
+    }
+
+    function getDraftOther(ritualType: RitualTypeId): string {
+        return draftLabels[ritualType]?.labelOther ?? getEffectiveLabelOther(ritualType)
+    }
 
     const inviteMutation = useMutation({
         mutationFn: (userIds: string[]) =>
@@ -84,7 +164,6 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
         },
     })
 
-    // Remove from group mutation
     const kickMutation = useMutation({
         mutationFn: (userId: string) =>
             graphqlFetch<{ removeFromGroup: boolean }>(REMOVE_FROM_GROUP_MUTATION, {
@@ -104,7 +183,6 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
         },
     })
 
-    // Leave group mutation
     const leaveMutation = useMutation({
         mutationFn: () =>
             graphqlFetch<{ leaveGroup: boolean }>(LEAVE_GROUP_MUTATION, {
@@ -121,20 +199,55 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
         },
     })
 
-    function handleKick(userId: string) {
-        kickMutation.mutate(userId)
+    const allowRitualsMutation = useMutation({
+        mutationFn: (allowRituals: boolean) =>
+            graphqlFetch<{ updateGroupSettings: Conversation }>(UPDATE_GROUP_SETTINGS_MUTATION, {
+                conversationId: conversation.id,
+                settings: { allowRituals },
+            }),
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: ["conversations"] })
+            void queryClient.invalidateQueries({ queryKey: ["conversation", conversation.id] })
+        },
+    })
+
+    const setRitualLabelMutation = useMutation({
+        mutationFn: ({
+            ritualType,
+            labelOwn,
+            labelOther,
+        }: {
+            ritualType: RitualTypeId
+            labelOwn: string
+            labelOther: string
+        }) =>
+            graphqlFetch<{
+                setRitualLabel: { ritualType: string; labelOwn: string; labelOther: string }
+            }>(SET_RITUAL_LABEL_MUTATION, {
+                conversationId: conversation.id,
+                input: { ritualType, labelOwn, labelOther },
+            }),
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: ["conversation", conversation.id] })
+            void queryClient.invalidateQueries({ queryKey: ["conversations"] })
+        },
+    })
+
+    function handleLabelBlur(ritualType: RitualTypeId) {
+        const labelOwn = getDraftOwn(ritualType)
+        const rawOther = getDraftOther(ritualType)
+        const labelOther = rawOther.replace("TA", "{name}")
+        setRitualLabelMutation.mutate({ ritualType, labelOwn, labelOther })
     }
 
-    function handleLeave() {
-        leaveMutation.mutate()
-    }
+    const selectedRitualZh = isRitualForm(panelView) ? RITUAL_ZH_MAP.get(panelView) : undefined
 
     return (
         <motion.div
             initial={{ x: "100%", opacity: 0 }}
             animate={{ x: 0, opacity: 1 }}
             exit={{ x: "100%", opacity: 0 }}
-            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
+            transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] as [number, number, number, number] }}
             className="absolute inset-y-0 right-0 w-72 glass-card rounded-none border-y-0 border-r-0 flex flex-col z-20"
             role="complementary"
             aria-label="Group information"
@@ -142,7 +255,24 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
         >
             {/* Header */}
             <div className="flex items-center justify-between px-4 py-3 border-b border-border shrink-0">
-                <h3 className="text-sm font-semibold">Group Info</h3>
+                {panelView === "main" ? (
+                    <h3 className="text-sm font-semibold">Group Info</h3>
+                ) : (
+                    <button
+                        type="button"
+                        onClick={() => {
+                            if (isRitualForm(panelView)) goBack("ritualList")
+                            else goBack("main")
+                        }}
+                        className="flex items-center gap-1.5 text-sm font-medium hover:opacity-70 transition-opacity"
+                        aria-label="Go back"
+                    >
+                        <ChevronLeft size={14} aria-hidden="true" />
+                        <span>
+                            {panelView === "ritualList" ? "Ritual Labels" : selectedRitualZh}
+                        </span>
+                    </button>
+                )}
                 <button
                     type="button"
                     onClick={onClose}
@@ -153,137 +283,280 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                 </button>
             </div>
 
-            {/* Members list */}
-            <div className="flex-1 overflow-y-auto px-4 py-3">
-                <p className="text-xs text-muted-foreground mb-2">
-                    Members ({conversation.participants.length})
-                </p>
-                <div className="flex flex-col gap-1">
-                    {conversation.participants.map((participant) => (
-                        <div
-                            key={participant.user.id}
-                            className="flex items-center justify-between py-2 px-1"
+            {/* Navigation body */}
+            <div className="flex-1 overflow-hidden relative">
+                <AnimatePresence custom={navDir.current} mode="wait" initial={false}>
+                    {/* ── Main view ── */}
+                    {panelView === "main" && (
+                        <motion.div
+                            key="main"
+                            custom={navDir.current}
+                            variants={slideVariants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            transition={slideTransition}
+                            className="absolute inset-0 overflow-y-auto"
+                            style={{ scrollbarGutter: "stable" }}
                         >
-                            <span className="text-sm min-w-0 truncate flex-1">
-                                {participant.user.name}
-                            </span>
-                            <div className="flex items-center gap-1 shrink-0">
-                                {participant.role === "OWNER" && (
-                                    <span className="text-xs text-muted-foreground">Owner</span>
-                                )}
-                                {isOwner && participant.user.id !== currentUserId && (
+                            {/* Members list */}
+                            <div className="px-4 py-3">
+                                <p className="text-xs text-muted-foreground mb-2">
+                                    Members ({conversation.participants.length})
+                                </p>
+                                <div className="flex flex-col gap-1">
+                                    {conversation.participants.map((participant) => (
+                                        <div
+                                            key={participant.user.id}
+                                            className="flex items-center justify-between py-2 px-1"
+                                        >
+                                            <span className="text-sm min-w-0 truncate flex-1">
+                                                {participant.user.name}
+                                            </span>
+                                            <div className="flex items-center gap-1 shrink-0">
+                                                {participant.role === "OWNER" && (
+                                                    <span className="text-xs text-muted-foreground">
+                                                        Owner
+                                                    </span>
+                                                )}
+                                                {isOwner &&
+                                                    participant.user.id !== currentUserId && (
+                                                        <button
+                                                            type="button"
+                                                            onClick={() =>
+                                                                setConfirmKick(participant.user.id)
+                                                            }
+                                                            aria-label={`Remove ${participant.user.name} from group`}
+                                                            className="glass-button glass-button--icon glass-button--destructive"
+                                                            style={{
+                                                                width: "1.75rem",
+                                                                height: "1.75rem",
+                                                            }}
+                                                        >
+                                                            <UserMinus size={12} aria-hidden="true" />
+                                                        </button>
+                                                    )}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Invite members (owner only) */}
+                            {isOwner && (
+                                <div className="px-4 py-3 border-t border-border">
+                                    {!showInvite ? (
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowInvite(true)}
+                                            aria-label="Invite members to group"
+                                            className="glass-button w-full flex items-center justify-center gap-2"
+                                        >
+                                            <UserPlus size={14} aria-hidden="true" />
+                                            <span>Invite Members</span>
+                                        </button>
+                                    ) : (
+                                        <div className="flex flex-col gap-2">
+                                            <p className="text-xs font-medium text-muted-foreground">
+                                                Invite Friends
+                                            </p>
+                                            <FriendPickerSearch
+                                                friends={friends}
+                                                selectedIds={inviteIds}
+                                                onToggle={(id) =>
+                                                    setInviteIds((prev) =>
+                                                        prev.includes(id)
+                                                            ? prev.filter((x) => x !== id)
+                                                            : [...prev, id]
+                                                    )
+                                                }
+                                                excludeIds={memberIds}
+                                                placeholder="Search friends\u2026"
+                                                emptyMessage="All friends already in group"
+                                            />
+                                            {inviteError && (
+                                                <p
+                                                    role="alert"
+                                                    className="text-xs"
+                                                    style={{ color: "var(--destructive)" }}
+                                                >
+                                                    {inviteError}
+                                                </p>
+                                            )}
+                                            <div className="flex gap-2 mt-1">
+                                                <button
+                                                    type="button"
+                                                    className="glass-button flex-1"
+                                                    onClick={() => {
+                                                        setShowInvite(false)
+                                                        setInviteIds([])
+                                                        setInviteError(null)
+                                                    }}
+                                                >
+                                                    Cancel
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="glass-button flex-1"
+                                                    disabled={
+                                                        inviteIds.length === 0 ||
+                                                        inviteMutation.isPending
+                                                    }
+                                                    style={
+                                                        inviteIds.length === 0 ||
+                                                        inviteMutation.isPending
+                                                            ? { opacity: 0.5, cursor: "not-allowed" }
+                                                            : {
+                                                                  background:
+                                                                      "oklch(from var(--primary) l c h / 0.2)",
+                                                                  borderColor:
+                                                                      "oklch(from var(--primary) l c h / 0.4)",
+                                                              }
+                                                    }
+                                                    onClick={() => inviteMutation.mutate(inviteIds)}
+                                                >
+                                                    {inviteMutation.isPending
+                                                        ? "Inviting\u2026"
+                                                        : "Invite"}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    )}
+                                </div>
+                            )}
+
+                            {/* allowRituals toggle (owner only) */}
+                            {isOwner && (
+                                <div className="px-4 py-3 border-t border-border">
+                                    <div className="flex items-center justify-between gap-3">
+                                        <div className="flex flex-col min-w-0">
+                                            <span className="text-sm font-medium">
+                                                Ritual Actions
+                                            </span>
+                                            <span className="text-xs text-muted-foreground">
+                                                Allow members to send rituals
+                                            </span>
+                                        </div>
+                                        <button
+                                            type="button"
+                                            role="switch"
+                                            aria-checked={effectiveConversation.allowRituals}
+                                            aria-label="Toggle ritual actions for this group"
+                                            disabled={allowRitualsMutation.isPending}
+                                            onClick={() =>
+                                                allowRitualsMutation.mutate(
+                                                    !effectiveConversation.allowRituals
+                                                )
+                                            }
+                                            className="relative inline-flex shrink-0 h-5 w-9 items-center rounded-full transition-colors focus-visible:outline-none disabled:opacity-50"
+                                            style={{
+                                                background: effectiveConversation.allowRituals
+                                                    ? "oklch(from var(--primary) l c h / 0.8)"
+                                                    : "oklch(from var(--foreground) l c h / 0.15)",
+                                            }}
+                                        >
+                                            <span
+                                                className="inline-block h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform"
+                                                style={{
+                                                    transform: effectiveConversation.allowRituals
+                                                        ? "translateX(1.25rem)"
+                                                        : "translateX(0.175rem)",
+                                                }}
+                                                aria-hidden="true"
+                                            />
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Ritual Labels nav item (owner + allowRituals only) */}
+                            {isOwner && effectiveConversation.allowRituals && (
+                                <div className="border-t border-border">
                                     <button
                                         type="button"
-                                        onClick={() => setConfirmKick(participant.user.id)}
-                                        aria-label={`Remove ${participant.user.name} from group`}
-                                        className="glass-button glass-button--icon glass-button--destructive"
-                                        style={{
-                                            width: "1.75rem",
-                                            height: "1.75rem",
-                                        }}
+                                        onClick={() => goTo("ritualList")}
+                                        className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium hover:bg-[oklch(from_var(--foreground)_l_c_h/0.04)] transition-colors"
                                     >
-                                        <UserMinus size={12} aria-hidden="true" />
+                                        <span>Ritual Labels</span>
+                                        <ChevronRight size={14} aria-hidden="true" />
                                     </button>
-                                )}
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            </div>
-
-            {/* Invite members section (owner only) */}
-            {isOwner && (
-                <div className="px-4 py-3 border-t border-border shrink-0">
-                    {!showInvite ? (
-                        <button
-                            type="button"
-                            onClick={() => setShowInvite(true)}
-                            aria-label="Invite members to group"
-                            className="glass-button w-full flex items-center justify-center gap-2"
-                        >
-                            <UserPlus size={14} aria-hidden="true" />
-                            <span>Invite Members</span>
-                        </button>
-                    ) : (
-                        <div className="flex flex-col gap-2">
-                            <p className="text-xs font-medium text-muted-foreground">
-                                Invite Friends
-                            </p>
-                            <FriendPickerSearch
-                                friends={friends}
-                                selectedIds={inviteIds}
-                                onToggle={(id) =>
-                                    setInviteIds((prev) =>
-                                        prev.includes(id)
-                                            ? prev.filter((x) => x !== id)
-                                            : [...prev, id]
-                                    )
-                                }
-                                excludeIds={memberIds}
-                                placeholder="Search friends\u2026"
-                                emptyMessage="All friends already in group"
-                            />
-                            {inviteError && (
-                                <p
-                                    role="alert"
-                                    className="text-xs"
-                                    style={{ color: "var(--destructive)" }}
-                                >
-                                    {inviteError}
-                                </p>
+                                </div>
                             )}
-                            <div className="flex gap-2 mt-1">
+
+                            {/* Chat settings */}
+                            <div className="px-4 py-3 border-t border-border">
+                                <ChatSettings conversationId={conversation.id} />
+                            </div>
+
+                            {/* Leave group */}
+                            <div className="px-4 py-3 border-t border-border">
                                 <button
                                     type="button"
-                                    className="glass-button flex-1"
-                                    onClick={() => {
-                                        setShowInvite(false)
-                                        setInviteIds([])
-                                        setInviteError(null)
-                                    }}
+                                    onClick={() => setConfirmLeave(true)}
+                                    aria-label="Leave this group"
+                                    className="glass-button glass-button--destructive w-full flex items-center justify-center gap-2"
                                 >
-                                    Cancel
-                                </button>
-                                <button
-                                    type="button"
-                                    className="glass-button flex-1"
-                                    disabled={inviteIds.length === 0 || inviteMutation.isPending}
-                                    style={
-                                        inviteIds.length === 0 || inviteMutation.isPending
-                                            ? { opacity: 0.5, cursor: "not-allowed" }
-                                            : {
-                                                  background:
-                                                      "oklch(from var(--primary) l c h / 0.2)",
-                                                  borderColor:
-                                                      "oklch(from var(--primary) l c h / 0.4)",
-                                              }
-                                    }
-                                    onClick={() => inviteMutation.mutate(inviteIds)}
-                                >
-                                    {inviteMutation.isPending ? "Inviting\u2026" : "Invite"}
+                                    <LogOut size={14} aria-hidden="true" />
+                                    <span>Leave Group</span>
                                 </button>
                             </div>
-                        </div>
+                        </motion.div>
                     )}
-                </div>
-            )}
 
-            {/* Customize */}
-            <div className="px-4 py-3 border-t border-border shrink-0">
-                <ChatSettings conversationId={conversation.id} />
-            </div>
+                    {/* ── Ritual list view ── */}
+                    {panelView === "ritualList" && (
+                        <motion.div
+                            key="ritualList"
+                            custom={navDir.current}
+                            variants={slideVariants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            transition={slideTransition}
+                            className="absolute inset-0 overflow-y-auto"
+                            style={{ scrollbarGutter: "stable" }}
+                        >
+                            <RitualLabelListView
+                                getDraftOwn={getDraftOwn}
+                                onSelect={(id) => goTo(id)}
+                            />
+                        </motion.div>
+                    )}
 
-            {/* Leave group button */}
-            <div className="px-4 py-3 border-t border-border shrink-0">
-                <button
-                    type="button"
-                    onClick={() => setConfirmLeave(true)}
-                    aria-label="Leave this group"
-                    className="glass-button glass-button--destructive w-full flex items-center justify-center gap-2"
-                >
-                    <LogOut size={14} aria-hidden="true" />
-                    <span>Leave Group</span>
-                </button>
+                    {/* ── Ritual form view ── */}
+                    {isRitualForm(panelView) && (
+                        <motion.div
+                            key={panelView}
+                            custom={navDir.current}
+                            variants={slideVariants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            transition={slideTransition}
+                            className="absolute inset-0 overflow-y-auto"
+                            style={{ scrollbarGutter: "stable" }}
+                        >
+                            <RitualLabelFormView
+                                otherPrefix="TA"
+                                ownFullValue={getDraftOwn(panelView)}
+                                otherFullValue={getDraftOther(panelView)}
+                                onOwnChange={(v) =>
+                                    setDraftLabels((prev) => ({
+                                        ...prev,
+                                        [panelView]: { ...prev[panelView], labelOwn: v },
+                                    }))
+                                }
+                                onOtherChange={(v) =>
+                                    setDraftLabels((prev) => ({
+                                        ...prev,
+                                        [panelView]: { ...prev[panelView], labelOther: v },
+                                    }))
+                                }
+                                onBlur={() => handleLabelBlur(panelView)}
+                            />
+                        </motion.div>
+                    )}
+                </AnimatePresence>
             </div>
 
             {/* Confirm kick dialog */}
@@ -318,7 +591,7 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                             type="button"
                             className="glass-button glass-button--destructive flex-1"
                             disabled={kickMutation.isPending}
-                            onClick={() => handleKick(confirmKick)}
+                            onClick={() => kickMutation.mutate(confirmKick)}
                         >
                             Remove
                         </button>
@@ -381,10 +654,12 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                             type="button"
                             className="glass-button glass-button--destructive flex-1"
                             disabled={
-                                (isOwner && conversation.participants.length > 1 && !successorId) ||
+                                (isOwner &&
+                                    conversation.participants.length > 1 &&
+                                    !successorId) ||
                                 leaveMutation.isPending
                             }
-                            onClick={handleLeave}
+                            onClick={() => leaveMutation.mutate()}
                         >
                             Leave
                         </button>

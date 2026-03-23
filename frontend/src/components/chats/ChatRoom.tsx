@@ -29,6 +29,7 @@ import {
     conversationsQueryOptions,
 } from "@/graphql/options/conversations"
 import { graphqlFetch } from "@/lib/graphql-client"
+import { resolveRitualLabels } from "@/lib/ritualLabels"
 import { cn } from "@/lib/utils"
 import { uiStore } from "@/stores/uiStore"
 import type { Conversation, Message } from "@/types/conversations"
@@ -128,6 +129,8 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
     })
 
     const isOneToOne = conversation?.type === "ONE_TO_ONE"
+    const isGroup = conversation?.type === "GROUP"
+    const resolvedLabels = resolveRitualLabels(conversation?.ritualLabels ?? [], isGroup ?? false)
 
     const otherParticipant = isOneToOne
         ? conversation?.participants.find((p) => p.user.id !== currentUserId)
@@ -191,8 +194,10 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                 <div className="flex items-center gap-1">
                     {/* Sonic Ping — only for 1:1 conversations */}
                     {isOneToOne && <SonicPingButton conversationId={conversationId} />}
-                    {/* Ritual picker — only for 1:1 conversations */}
-                    {isOneToOne && <RitualPickerButton conversationId={conversationId} />}
+                    {/* Ritual picker — 1:1 always; group only when allowRituals is enabled */}
+                    {(isOneToOne || (isGroup && conversation?.allowRituals)) && (
+                        <RitualPickerButton conversationId={conversationId} />
+                    )}
                     {conversation && (
                         <button
                             type="button"
@@ -238,6 +243,7 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                     conversationId={conversationId}
                     currentUserId={currentUserId}
                     conversationType={conversationType}
+                    ritualLabels={resolvedLabels}
                 />
             </motion.div>
 

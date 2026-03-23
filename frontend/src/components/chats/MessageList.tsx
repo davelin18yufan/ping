@@ -33,6 +33,7 @@ import { useEffect, useMemo, useRef } from "react"
 import { VList, type VListHandle } from "virtua"
 
 import { useMessages } from "@/hooks/useMessages"
+import type { ResolvedRitualLabels } from "@/lib/ritualLabels"
 import { cn } from "@/lib/utils"
 import { uiStore } from "@/stores/uiStore"
 import type { ConversationType, Message } from "@/types/conversations"
@@ -56,6 +57,7 @@ interface RenderContext {
     /** Returns true for messages that arrived after the view mounted (animate in). */
     isNewMessage: (createdAt: string) => boolean
     typingUsers: string[]
+    ritualLabels?: ResolvedRitualLabels
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -260,14 +262,19 @@ function PendingMessageRow({
 
 function MessageRow({ item, ctx }: { item: MessageItem; ctx: RenderContext }) {
     const { message: msg, isFirstInSequence, isLastInSequence } = item
-    const { currentUserId, conversationType, isNewMessage } = ctx
+    const { currentUserId, conversationType, isNewMessage, ritualLabels } = ctx
 
     const isOwn = msg.sender.id === currentUserId
 
-    // Render all ritual-type messages as interaction event markers, not chat bubbles
+    // Render all ritual-type messages as interaction event markers, not chat bubbles.
+    // Prefer resolved ritualLabels from props; fall back to hardcoded RITUAL_ROW_CONFIG.
     const ritualConfig = RITUAL_ROW_CONFIG[msg.messageType]
     if (ritualConfig) {
-        const label = isOwn ? ritualConfig.labelOwn : ritualConfig.labelOther(msg.sender.name ?? "")
+        const resolvedEntry = ritualLabels?.[msg.messageType]
+        const label = isOwn
+            ? (resolvedEntry?.labelOwn ?? ritualConfig.labelOwn)
+            : (resolvedEntry?.labelOther(msg.sender.name ?? "") ??
+              ritualConfig.labelOther(msg.sender.name ?? ""))
         return (
             <InteractionEvent
                 message={msg}
@@ -355,11 +362,18 @@ interface MessageListProps {
     conversationId: string
     currentUserId: string
     conversationType: ConversationType
+    /** Resolved ritual label overrides from the conversation. Falls back to hardcoded defaults. */
+    ritualLabels?: ResolvedRitualLabels
 }
 
 // ─── MessageList ──────────────────────────────────────────────────────────────
 
-export function MessageList({ conversationId, currentUserId, conversationType }: MessageListProps) {
+export function MessageList({
+    conversationId,
+    currentUserId,
+    conversationType,
+    ritualLabels,
+}: MessageListProps) {
     const { messages, fetchNextPage, hasNextPage, isFetchingNextPage } = useMessages(conversationId)
     const typingUsers = useStore(uiStore, (s) => s.typingMap[conversationId] ?? [])
 
@@ -445,8 +459,15 @@ export function MessageList({ conversationId, currentUserId, conversationType }:
     )
 
     const ctx: RenderContext = useMemo(
-        () => ({ conversationId, currentUserId, conversationType, isNewMessage, typingUsers }),
-        [conversationId, currentUserId, conversationType, isNewMessage, typingUsers]
+        () => ({
+            conversationId,
+            currentUserId,
+            conversationType,
+            isNewMessage,
+            typingUsers,
+            ritualLabels,
+        }),
+        [conversationId, currentUserId, conversationType, isNewMessage, typingUsers, ritualLabels]
     )
 
     return (

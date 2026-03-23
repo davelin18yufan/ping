@@ -39,12 +39,12 @@ const RITUALS = [
 ] as const
 
 const RITUAL_ANIMATION: Record<string, { cls: string; duration: number }> = {
-    APOLOGY: { cls: "is-ritual-apology", duration: 500 },
-    CELEBRATE: { cls: "is-ritual-celebrate", duration: 400 },
-    TAUNT: { cls: "is-ritual-taunt", duration: 350 },
-    LONGING: { cls: "is-ritual-longing", duration: 600 },
-    QUESTION: { cls: "is-ritual-question", duration: 450 },
-    REJECTION: { cls: "is-ritual-rejection", duration: 400 },
+    APOLOGY: { cls: "is-ritual-apology", duration: 650 },
+    CELEBRATE: { cls: "is-ritual-celebrate", duration: 550 },
+    TAUNT: { cls: "is-ritual-taunt", duration: 380 },
+    LONGING: { cls: "is-ritual-longing", duration: 760 },
+    QUESTION: { cls: "is-ritual-question", duration: 480 },
+    REJECTION: { cls: "is-ritual-rejection", duration: 450 },
 }
 
 export function RitualPickerButton({ conversationId }: RitualPickerButtonProps) {

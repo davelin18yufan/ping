@@ -106,6 +106,15 @@ export type MessageRecord = {
 // ---------------------------------------------------------------------------
 
 /**
+ * A ritual label record as returned by ConversationRitualLabel resolvers.
+ */
+export type RitualLabelRecord = {
+    ritualType: MessageType
+    labelOwn: string
+    labelOther: string
+}
+
+/**
  * Shape returned by conversation query/mutation resolvers.
  * Used as the parent object for Conversation type resolvers.
  */
@@ -117,6 +126,8 @@ export type ConversationParent = {
     onlyOwnerCanInvite: boolean
     onlyOwnerCanKick: boolean
     onlyOwnerCanEdit: boolean
+    allowRituals: boolean
+    ritualLabels: RitualLabelRecord[]
     createdAt: string
 }
 

@@ -1624,141 +1624,101 @@
 
 /* ── Sender feedback animations (applied to .chat-room-outer) ── */
 
-@keyframes ritual-apology-droop {
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-    40% {
-        transform: translateY(6px);
-    }
-    70% {
-        transform: translateY(3px);
-    }
+/* APOLOGY — brightness dims only, no position movement */
+@keyframes ritual-apology-dim {
+    0%   { filter: brightness(1); }
+    45%  { filter: brightness(0.82); }
+    100% { filter: brightness(1); }
 }
 
 .chat-room-outer.is-ritual-apology {
-    animation: ritual-apology-droop 500ms ease-out both;
+    animation: ritual-apology-dim 650ms cubic-bezier(0.25, 1, 0.5, 1) both;
 }
 
-@keyframes ritual-celebrate-burst {
-    0% {
-        transform: scale(1);
-    }
-    30% {
-        transform: scale(1.04);
-    }
-    60% {
-        transform: scale(0.98);
-    }
-    100% {
-        transform: scale(1);
-    }
+/* CELEBRATE — brightness flash only, no scale */
+@keyframes ritual-celebrate-flash {
+    0%   { filter: brightness(1); }
+    12%  { filter: brightness(1.28); }
+    45%  { filter: brightness(1.12); }
+    70%  { filter: brightness(1.22); }
+    100% { filter: brightness(1); }
 }
 
 .chat-room-outer.is-ritual-celebrate {
-    animation: ritual-celebrate-burst 400ms var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1))
-        both;
+    animation: ritual-celebrate-flash 550ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
-@keyframes ritual-taunt-jitter {
-    0%,
-    100% {
-        transform: translateX(0);
-    }
-    15% {
-        transform: translateX(-6px);
-    }
-    30% {
-        transform: translateX(6px);
-    }
-    45% {
-        transform: translateX(-5px);
-    }
-    60% {
-        transform: translateX(5px);
-    }
-    75% {
-        transform: translateX(-3px);
-    }
-    90% {
-        transform: translateX(3px);
-    }
-}
+/* TAUNT — no animation */
+.chat-room-outer.is-ritual-taunt { }
 
-.chat-room-outer.is-ritual-taunt {
-    animation: ritual-taunt-jitter 350ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-}
-
-@keyframes ritual-longing-pulse {
-    0%,
-    100% {
-        transform: scale(1);
-    }
-    25% {
-        transform: scale(1.02);
-    }
-    50% {
-        transform: scale(1);
-    }
-    75% {
-        transform: scale(1.015);
-    }
+/* LONGING — pink bubble gradient fades in/out at bottom of chat room, no movement */
+@keyframes ritual-longing-fade {
+    0%   { opacity: 0; }
+    20%  { opacity: 1; }
+    75%  { opacity: 0.9; }
+    100% { opacity: 0; }
 }
 
 .chat-room-outer.is-ritual-longing {
-    animation: ritual-longing-pulse 600ms ease-in-out both;
+    position: relative;
 }
 
-@keyframes ritual-question-bounce {
-    0%,
-    100% {
-        transform: translateY(0);
-    }
-    30% {
-        transform: translateY(-8px);
-    }
-    55% {
-        transform: translateY(2px);
-    }
-    75% {
-        transform: translateY(-4px);
-    }
+.chat-room-outer.is-ritual-longing::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 15;
+
+    /* Three radial blob clusters at the bottom create an organic bubble shape */
+    background:
+        radial-gradient(
+            ellipse 55% 35% at 22% 95%,
+            oklch(from var(--ritual-reconcile) l c h / 0.65) 0%,
+            transparent 60%
+        ),
+        radial-gradient(
+            ellipse 38% 28% at 72% 90%,
+            oklch(from var(--ritual-reconcile) l c h / 0.55) 0%,
+            transparent 55%
+        ),
+        radial-gradient(
+            ellipse 48% 22% at 48% 98%,
+            oklch(from var(--ritual-reconcile) l c h / 0.50) 0%,
+            transparent 50%
+        ),
+        linear-gradient(
+            to top,
+            oklch(from var(--ritual-reconcile) l c h / 0.50) 0%,
+            oklch(from var(--ritual-reconcile) l c h / 0.22) 32%,
+            oklch(from var(--ritual-reconcile) l c h / 0.06) 58%,
+            transparent 78%
+        );
+
+    animation: ritual-longing-fade 760ms cubic-bezier(0.25, 1, 0.5, 1) both;
 }
 
-.chat-room-outer.is-ritual-question {
-    animation: ritual-question-bounce 450ms var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1))
-        both;
-}
+/* QUESTION — no panel animation; ChatRoomOverlays overlay handles display */
 
-@keyframes ritual-rejection-push {
-    0%,
-    100% {
-        transform: translateX(0);
-    }
-    25% {
-        transform: translateX(8px);
-    }
-    50% {
-        transform: translateX(4px);
-    }
-    75% {
-        transform: translateX(6px);
-    }
-}
-
-.chat-room-outer.is-ritual-rejection {
-    animation: ritual-rejection-push 400ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-}
+/* REJECTION — no animation */
+.chat-room-outer.is-ritual-rejection { }
 
 @media (prefers-reduced-motion: reduce) {
     .chat-room-outer[class*="is-ritual-"] {
         animation: none !important;
     }
+
+    .chat-room-outer.is-ritual-longing::before {
+        display: none;
+    }
 }
 
 [data-aesthetic="minimal"] .chat-room-outer[class*="is-ritual-"] {
     animation: none;
+}
+
+[data-aesthetic="minimal"] .chat-room-outer.is-ritual-longing::before {
+    display: none;
 }
 
 /* ── Per-ritual incoming overlay text styles ── */
@@ -1768,7 +1728,6 @@
 }
 
 .ritual-overlay--celebrate .sonic-incoming-overlay__text {
-    font-size: 3rem;
     text-shadow: 0 0 20px oklch(from var(--ritual-celebrate) l c h / 0.6);
 }
 

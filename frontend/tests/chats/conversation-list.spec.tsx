@@ -231,6 +231,8 @@ const mockConversation1 = {
     unreadCount: 2,
     pinnedAt: null,
     settings: null,
+    allowRituals: false,
+    ritualLabels: [],
     createdAt: "2026-01-01T00:00:00.000Z",
 }
 
@@ -256,6 +258,8 @@ const mockConversation2 = {
     unreadCount: 0,
     pinnedAt: "2026-02-01T00:00:00.000Z",
     settings: null,
+    allowRituals: false,
+    ritualLabels: [],
     createdAt: "2026-01-01T00:00:00.000Z",
 }
 

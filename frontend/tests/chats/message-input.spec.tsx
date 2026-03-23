@@ -249,6 +249,8 @@ const mockGroupConversation = {
     unreadCount: 0,
     pinnedAt: null,
     settings: { onlyOwnerCanInvite: false, onlyOwnerCanKick: true, onlyOwnerCanEdit: false },
+    allowRituals: false,
+    ritualLabels: [],
     createdAt: "2026-01-01T00:00:00.000Z",
 }
 

@@ -39,7 +39,7 @@
  */
 
 import { describe, test, expect, beforeEach, afterEach } from "bun:test"
-import { PrismaClient } from "@generated/prisma/client"
+import { PrismaClient, MessageType } from "@generated/prisma/client"
 import { createTestPrismaClient } from "@tests/fixtures/prisma"
 import { executeGraphQL, parseGraphQLResponse } from "@tests/fixtures/graphql"
 
@@ -1048,7 +1048,7 @@ describe("Feature 1.3.1 - Conversations (Backend)", () => {
             expect(msg.content).toBeNull()
 
             const dbMsg = await prisma.message.findUnique({ where: { id: msg.id } })
-            expect(dbMsg?.messageType).toBe(ritualType)
+            expect(dbMsg?.messageType).toBe(ritualType as MessageType)
         }
     })
 

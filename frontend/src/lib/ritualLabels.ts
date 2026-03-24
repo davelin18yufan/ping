@@ -114,6 +114,20 @@ export type ResolvedRitualLabels = Record<
  * @param isGroup    - Whether the conversation is a GROUP type.
  * @returns          - Fully resolved label map keyed by ritualType.
  */
+/**
+ * Pure reducer for useOptimistic — upserts a ritual label into the array.
+ * Replaces an existing entry with the same ritualType, or appends a new one.
+ */
+export function mergeRitualLabel(
+    state: Array<{ ritualType: string; labelOwn: string; labelOther: string }>,
+    update: { ritualType: string; labelOwn: string; labelOther: string }
+): Array<{ ritualType: string; labelOwn: string; labelOther: string }> {
+    const exists = state.some((l) => l.ritualType === update.ritualType)
+    return exists
+        ? state.map((l) => (l.ritualType === update.ritualType ? update : l))
+        : [...state, update]
+}
+
 export function resolveRitualLabels(
     dbLabels: Array<{ ritualType: string; labelOwn: string; labelOther: string }>,
     isGroup: boolean

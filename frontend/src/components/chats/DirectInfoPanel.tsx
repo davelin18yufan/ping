@@ -14,7 +14,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
 import { Ban, ChevronLeft, ChevronRight, X } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
-import { useMemo, useRef, useState } from "react"
+import { useMemo, useOptimistic, useRef, useState, useTransition } from "react"
+
 
 import {
     BLOCK_USER_MUTATION,
@@ -24,12 +25,12 @@ import {
 import { graphqlFetch } from "@/lib/graphql-client"
 import {
     DEFAULT_RITUAL_LABELS,
-    RITUAL_LABEL_TYPES,
     RITUAL_ZH_MAP,
     isRitualForm,
+    mergeRitualLabel,
 } from "@/lib/ritualLabels"
 import type { RitualTypeId } from "@/lib/ritualLabels"
-import type { ConversationParticipant } from "@/types/conversations"
+import type { ConversationParticipant, RitualLabel } from "@/types/conversations"
 
 import { ChatSettings } from "./ChatSettings"
 import { ContactAvatar } from "./ContactAvatar"
@@ -68,26 +69,24 @@ export function DirectInfoPanel({ participant, conversationId, onClose }: Direct
         setPanelView(view)
     }
 
-    // Local draft labels keyed by ritualType
+    // Local draft labels — only populated for ritual types the user has edited.
+    // Unedited types fall through to getEffectiveLabelOwn/Other (DB → defaults).
     const [draftLabels, setDraftLabels] = useState<
-        Record<RitualTypeId, { labelOwn: string; labelOther: string }>
-    >(() => {
-        const init = {} as Record<RitualTypeId, { labelOwn: string; labelOther: string }>
-        for (const { id } of RITUAL_LABEL_TYPES) {
-            const defaults = DEFAULT_RITUAL_LABELS[id]
-            init[id] = {
-                labelOwn: defaults?.labelOwn ?? "",
-                labelOther: defaults?.labelOther("TA") ?? "",
-            }
-        }
-        return init
-    })
+        Partial<Record<RitualTypeId, { labelOwn?: string; labelOther?: string }>>
+    >({})
 
     const { data: conversation } = useQuery(conversationQueryOptions(conversationId))
 
+    const [isLabelPending, startLabelTransition] = useTransition()
+
+    const [optimisticLabels, setOptimisticLabel] = useOptimistic<RitualLabel[], RitualLabel>(
+        conversation?.ritualLabels ?? [],
+        mergeRitualLabel
+    )
+
     const ritualLabelMap = useMemo(
-        () => new Map((conversation?.ritualLabels ?? []).map((l) => [l.ritualType, l])),
-        [conversation?.ritualLabels]
+        () => new Map(optimisticLabels.map((l) => [l.ritualType, l])),
+        [optimisticLabels]
     )
 
     function getEffectiveLabelOwn(ritualType: RitualTypeId): string {
@@ -111,35 +110,22 @@ export function DirectInfoPanel({ participant, conversationId, onClose }: Direct
         return draftLabels[ritualType]?.labelOther ?? getEffectiveLabelOther(ritualType)
     }
 
-    const setRitualLabelMutation = useMutation({
-        mutationFn: ({
-            ritualType,
-            labelOwn,
-            labelOther,
-        }: {
-            ritualType: RitualTypeId
-            labelOwn: string
-            labelOther: string
-        }) =>
-            graphqlFetch<{
-                setRitualLabel: { ritualType: string; labelOwn: string; labelOther: string }
-            }>(SET_RITUAL_LABEL_MUTATION, {
-                conversationId,
-                input: { ritualType, labelOwn, labelOther },
-            }),
-        onSuccess: () => {
-            void queryClient.invalidateQueries({ queryKey: ["conversation", conversationId] })
-            void queryClient.invalidateQueries({ queryKey: ["conversations"] })
-        },
-    })
-
-    function handleLabelBlur(ritualType: RitualTypeId) {
+    function handleLabelSave(ritualType: RitualTypeId) {
         const labelOwn = getDraftOwn(ritualType)
         const rawOther = getDraftOther(ritualType)
         const name = participant.user.name ?? "TA"
         const action = rawOther.startsWith(name) ? rawOther.slice(name.length) : rawOther
         const labelOther = "{name}" + action
-        setRitualLabelMutation.mutate({ ritualType, labelOwn, labelOther })
+
+        startLabelTransition(async () => {
+            setOptimisticLabel({ ritualType, labelOwn, labelOther })
+            await graphqlFetch<{ setRitualLabel: RitualLabel }>(SET_RITUAL_LABEL_MUTATION, {
+                conversationId,
+                input: { ritualType, labelOwn, labelOther },
+            })
+            void queryClient.invalidateQueries({ queryKey: ["conversation", conversationId] })
+            void queryClient.invalidateQueries({ queryKey: ["conversations"] })
+        })
     }
 
     const blockMutation = useMutation({
@@ -329,7 +315,8 @@ export function DirectInfoPanel({ participant, conversationId, onClose }: Direct
                                         [panelView]: { ...prev[panelView], labelOther: v },
                                     }))
                                 }
-                                onBlur={() => handleLabelBlur(panelView)}
+                                onSubmit={() => handleLabelSave(panelView)}
+                                isPending={isLabelPending}
                             />
                         </motion.div>
                     )}

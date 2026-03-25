@@ -14,10 +14,9 @@
  * Extension guide — adding a new interactive message type:
  *   1. Define `interface XxxItem { kind: "xxx"; key: string; ... }`
  *   2. Add to `ListItem` union
- *   3. Export an `XxxEvent` data type if needed (like SonicPingEvent)
- *   4. Create a renderer component `function XxxRow(...)`
- *   5. Add `case "xxx"` to `renderListItem()`
- *   6. Feed XxxEvents into `buildItems()` sorted by timestamp
+ *   3. Create a renderer component `function XxxRow(...)`
+ *   4. Add `case "xxx"` to `renderListItem()`
+ *   5. Feed source data into `buildItems()` sorted by timestamp
  *
  * Accessibility:
  *   - role="log" + aria-live="polite" on outer container.
@@ -44,7 +43,6 @@ import { MessageBubble } from "./MessageBubble"
 import { TypingIndicator } from "./TypingIndicator"
 
 // Re-export so consumers can import from a single location if needed
-export type { SonicPingEvent } from "@/types/conversations"
 export type { ListItem } from "@/types/messageList"
 
 // ─── Render context ───────────────────────────────────────────────────────────
@@ -344,9 +342,6 @@ function renderListItem(item: ListItem, ctx: RenderContext): ReactNode {
     switch (item.kind) {
         case "date":
             return <DateSeparatorRow key={item.key} item={item} />
-        case "sonic-ping":
-            // Legacy local-only sonic ping items (kept for type union completeness)
-            return null
         case "pending":
             return <PendingMessageRow key={item.key} item={item} ctx={ctx} />
         case "message":

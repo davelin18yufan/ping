@@ -15,7 +15,7 @@ import { ChevronRight } from "lucide-react"
 import type { RitualTypeId } from "@/lib/ritualLabels"
 import { RITUAL_LABEL_TYPES } from "@/lib/ritualLabels"
 
-export type PanelView = "main" | "ritualList" | RitualTypeId
+export type PanelView = "main" | "ritualList" | "chatSettings" | RitualTypeId
 
 // ── Animation ──────────────────────────────────────────────────────────────
 
@@ -39,8 +39,8 @@ export const slideTransition = {
 
 /**
  * Strip a known prefix from a display value, handling optional space after prefix.
- * e.g. trimPrefix("TA 道歉了", "TA") → "道歉了"
- *      trimPrefix("TA道歉了",   "TA") → "道歉了"
+ * e.g. trimPrefix("A Apologies", "A") → "Apologies"
+ *      trimPrefix("A Apologized",   "A") → "Apologized"
  */
 function trimPrefix(val: string, prefix: string): string {
     if (val.startsWith(prefix + " ")) return val.slice(prefix.length + 1)
@@ -104,17 +104,19 @@ interface RitualLabelFormViewProps {
     otherFullValue: string
     onOwnChange: (fullValue: string) => void
     onOtherChange: (fullValue: string) => void
-    onBlur: () => void
+    onSubmit: () => void
+    isPending?: boolean
 }
 
-/** Step 2 — two-field editor with live preview. */
+/** Step 2 — two-field editor with live preview and explicit save button. */
 export function RitualLabelFormView({
     otherPrefix,
     ownFullValue,
     otherFullValue,
     onOwnChange,
     onOtherChange,
-    onBlur,
+    onSubmit,
+    isPending,
 }: RitualLabelFormViewProps) {
     const ownInput = trimPrefix(ownFullValue, "你")
     const otherInput = trimPrefix(otherFullValue, otherPrefix)
@@ -136,7 +138,6 @@ export function RitualLabelFormView({
                     placeholder="動作描述…"
                     value={ownInput}
                     onChange={(e) => onOwnChange("你" + e.target.value)}
-                    onBlur={onBlur}
                 />
             </div>
 
@@ -155,7 +156,6 @@ export function RitualLabelFormView({
                     placeholder="動作描述…"
                     value={otherInput}
                     onChange={(e) => onOtherChange(otherPrefix + e.target.value)}
-                    onBlur={onBlur}
                 />
             </div>
 
@@ -169,6 +169,15 @@ export function RitualLabelFormView({
                     {otherPrefix} → {otherFullValue || "…"}
                 </span>
             </div>
+
+            <button
+                type="button"
+                className="glass-button w-full mt-1 py-1.5 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                onClick={onSubmit}
+                disabled={isPending}
+            >
+                {isPending ? "儲存中…" : "儲存"}
+            </button>
         </div>
     )
 }

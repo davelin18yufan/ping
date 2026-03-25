@@ -82,11 +82,11 @@ export function RitualPickerButton({ conversationId }: RitualPickerButtonProps) 
         }
     }, [isPickerOpen])
 
+    const { mutate } = mutation
     const handleRitualSelect = useCallback(
         (ritualId: string) => {
             setIsPickerOpen(false)
 
-            // Apply sender feedback animation to the chat room outer container
             const anim = RITUAL_ANIMATION[ritualId]
             if (anim) {
                 const outer = document.querySelector(".chat-room-outer")
@@ -96,10 +96,9 @@ export function RitualPickerButton({ conversationId }: RitualPickerButtonProps) 
                 }
             }
 
-            // Fire mutation (fire-and-forget)
-            mutation.mutate(ritualId)
+            mutate(ritualId)
         },
-        [mutation]
+        [mutate]
     )
 
     return (

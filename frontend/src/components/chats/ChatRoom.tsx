@@ -20,7 +20,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
 import { ArrowLeft, Info, Users } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import {
     MARK_READ_MUTATION,
@@ -130,7 +130,10 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
 
     const isOneToOne = conversation?.type === "ONE_TO_ONE"
     const isGroup = conversation?.type === "GROUP"
-    const resolvedLabels = resolveRitualLabels(conversation?.ritualLabels ?? [], isGroup ?? false)
+    const resolvedLabels = useMemo(
+        () => resolveRitualLabels(conversation?.ritualLabels ?? [], conversation?.type === "GROUP"),
+        [conversation]
+    )
 
     const otherParticipant = isOneToOne
         ? conversation?.participants.find((p) => p.user.id !== currentUserId)

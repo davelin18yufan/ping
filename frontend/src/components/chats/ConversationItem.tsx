@@ -63,6 +63,18 @@ function truncatePreview(text: string | null): string {
     return `${text.slice(0, MAX_PREVIEW_LENGTH)}\u2026`
 }
 
+// ─── Ritual message preview labels ────────────────────────────────────────────
+
+const RITUAL_PREVIEW_MAP: Partial<Record<string, string>> = {
+    SONIC_PING: "[Sonic Ping]",
+    APOLOGY: "[Apology]",
+    CELEBRATE: "[Celebrate]",
+    TAUNT: "[Taunt]",
+    LONGING: "[Miss you]",
+    QUESTION: "[Hey?]",
+    REJECTION: "[Rejected]",
+}
+
 function ConversationItemInner({
     conversation,
     conversationId,
@@ -112,11 +124,21 @@ function ConversationItemInner({
     const timestampSource = conversation.lastMessage?.createdAt ?? conversation.createdAt
     const formattedTime = formatConversationTime(timestampSource)
 
-    // Message preview — handle image-only messages gracefully
-    const rawPreview =
-        conversation.lastMessage?.messageType === "IMAGE"
-            ? "[Image]"
-            : (conversation.lastMessage?.content ?? "")
+    // Message preview — handle image-only and ritual messages gracefully
+    const lastMsg = conversation.lastMessage
+    const isFromCurrentUser = lastMsg?.sender.id === currentUserId
+    const senderPrefix =
+        !isFromCurrentUser && isGroup && lastMsg ? `${lastMsg.sender.name.split(" ")[0]}: ` : ""
+
+    const ritualPreview = lastMsg ? RITUAL_PREVIEW_MAP[lastMsg.messageType] : undefined
+    const rawPreview = !lastMsg
+        ? ""
+        : lastMsg.messageType === "IMAGE"
+          ? `${senderPrefix}[Image]`
+          : ritualPreview
+            ? `${senderPrefix}${ritualPreview}`
+            : `${senderPrefix}${lastMsg.content ?? ""}`
+
     const truncatedPreview = truncatePreview(rawPreview)
 
     return (
@@ -167,7 +189,16 @@ function ConversationItemInner({
                 </div>
 
                 <div className="flex items-center justify-between min-w-0 gap-1">
-                    <p className="conversation-item__preview">{truncatedPreview}</p>
+                    <p
+                        className="conversation-item__preview"
+                        style={
+                            ritualPreview
+                                ? { color: "var(--muted-foreground)", fontStyle: "italic" }
+                                : undefined
+                        }
+                    >
+                        {truncatedPreview}
+                    </p>
                     <UnreadBadge count={conversation.unreadCount} />
                 </div>
             </div>

@@ -33,7 +33,7 @@ export function ChatSettings({ conversationId }: ChatSettingsProps) {
     const { settings, updateSettings } = useChatSettings(conversationId)
 
     return (
-        <div className="chat-settings glass-card glass-card--compact">
+        <>
             <h4 className="chat-settings__title">Customize Chat</h4>
 
             {/* Bubble theme color picker */}
@@ -80,6 +80,6 @@ export function ChatSettings({ conversationId }: ChatSettingsProps) {
                     />
                 </label>
             </div>
-        </div>
+        </>
     )
 }

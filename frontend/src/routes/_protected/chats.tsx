@@ -23,11 +23,19 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, Outlet, useNavigate } from "@tanstack/react-router"
 import { useStore } from "@tanstack/react-store"
-import { Plus, SlidersHorizontal } from "lucide-react"
-import { useCallback, useDeferredValue, useMemo, useTransition, useState } from "react"
+import { SquarePen, SlidersHorizontal } from "lucide-react"
+import {
+    lazy,
+    Suspense,
+    useCallback,
+    useDeferredValue,
+    useMemo,
+    useTransition,
+    useState,
+} from "react"
 
 import { ConversationList } from "@/components/chats/ConversationList"
-import { GroupCreateModal } from "@/components/chats/GroupCreateModal"
+import { NewConversationModal } from "@/components/chats/NewConversationModal"
 import { Button } from "@/components/ui/button"
 import { SearchInput } from "@/components/ui/SearchInput"
 import { conversationsQueryOptions } from "@/graphql/options/conversations"
@@ -36,6 +44,10 @@ import { cn } from "@/lib/utils"
 
 import "@styles/components/chats.css"
 import { uiStore } from "@/stores/uiStore"
+
+const GroupCreateModal = lazy(() =>
+    import("@/components/chats/GroupCreateModal").then((m) => ({ default: m.GroupCreateModal }))
+)
 
 export const Route = createFileRoute("/_protected/chats")({
     // Prefetch conversation list for ALL chats routes (sidebar always needs it)
@@ -60,6 +72,7 @@ function ChatsLayout() {
     // Initialize real-time socket event handlers (idempotent singleton)
     useSocket()
 
+    const [showNewConversation, setShowNewConversation] = useState(false)
     const [showGroupCreate, setShowGroupCreate] = useState(false)
     const [searchQuery, setSearchQuery] = useState("")
     const [activeFilters, setActiveFilters] = useState<Set<ConversationFilter>>(new Set())
@@ -169,11 +182,11 @@ function ChatsLayout() {
                     <Button
                         type="button"
                         className="glass-button chats-layout__new-btn"
-                        onClick={() => setShowGroupCreate(true)}
-                        aria-label="New group conversation"
-                        title="New group"
+                        onClick={() => setShowNewConversation(true)}
+                        aria-label="New conversation"
+                        title="New conversation"
                     >
-                        <Plus size={16} aria-hidden="true" />
+                        <SquarePen size={16} aria-hidden="true" />
                     </Button>
                 </div>
 
@@ -268,11 +281,19 @@ function ChatsLayout() {
                 <Outlet />
             </main>
 
+            <NewConversationModal
+                open={showNewConversation}
+                onClose={() => setShowNewConversation(false)}
+                onOpenGroupCreate={() => setShowGroupCreate(true)}
+            />
+
             {showGroupCreate && (
-                <GroupCreateModal
-                    onClose={() => setShowGroupCreate(false)}
-                    onCreated={handleGroupCreated}
-                />
+                <Suspense>
+                    <GroupCreateModal
+                        onClose={() => setShowGroupCreate(false)}
+                        onCreated={handleGroupCreated}
+                    />
+                </Suspense>
             )}
         </div>
     )

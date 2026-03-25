@@ -116,12 +116,12 @@ describe("TC-F-18: sonicPing:incoming DOM event shows overlay", () => {
 
 describe("TC-F-19: ritual:incoming shows correct overlay text per ritual type", () => {
     const EXPECTED_TEXTS: Record<string, string> = {
-        APOLOGY: "…",
-        CELEBRATE: "✦✦✦",
-        TAUNT: "!!!",
-        LONGING: "♡",
+        APOLOGY: "My Bad",
+        CELEBRATE: "✦",
+        TAUNT: "*",
+        LONGING: "♥",
         QUESTION: "？",
-        REJECTION: "×",
+        REJECTION: "No",
     }
 
     for (const [ritualType, expectedText] of Object.entries(EXPECTED_TEXTS)) {
@@ -132,7 +132,7 @@ describe("TC-F-19: ritual:incoming shows correct overlay text per ritual type", 
                 dispatchRitual(ritualType, "Carol Lin")
             })
 
-            expect(screen.getByText(expectedText)).toBeInTheDocument()
+            expect(screen.getAllByText(expectedText)[0]).toBeInTheDocument()
             expect(screen.getByText("Carol Lin")).toBeInTheDocument()
         })
     }
@@ -177,13 +177,13 @@ describe("TC-F-20: overlay auto-dismisses after 1600 ms", () => {
             dispatchRitual("APOLOGY", "Bob Wang")
         })
 
-        expect(screen.getByText("…")).toBeInTheDocument()
+        expect(screen.getByText("My Bad")).toBeInTheDocument()
 
         act(() => {
             vi.advanceTimersByTime(1600)
         })
 
-        expect(screen.queryByText("…")).not.toBeInTheDocument()
+        expect(screen.queryByText("My Bad")).not.toBeInTheDocument()
     })
 
     it("overlay still visible at 1599 ms (not prematurely dismissed)", () => {

@@ -83,17 +83,6 @@ export interface MessagePage {
 }
 
 // ============================================================================
-// Real-time ritual events (emitted by UI actions, interleaved in message list)
-// ============================================================================
-
-/** Emitted when the current user fires a Sonic Ping. Client-side only. */
-export interface SonicPingEvent {
-    id: string
-    timestamp: string
-    recipientName: string
-}
-
-// ============================================================================
 // Pagination parameter type for dual-cursor infinite query
 // ============================================================================
 

@@ -12,7 +12,7 @@
  *   5. Feed source data into `buildItems()` sorted by timestamp
  */
 
-import type { Message, SonicPingEvent } from "./conversations"
+import type { Message } from "./conversations"
 
 // ─── Individual item interfaces ───────────────────────────────────────────────
 
@@ -33,12 +33,6 @@ export interface MessageItem {
     isLastInSequence: boolean
 }
 
-export interface SonicPingItem {
-    kind: "sonic-ping"
-    key: string
-    event: SonicPingEvent
-}
-
 export interface PendingItem {
     kind: "pending"
     key: string
@@ -55,4 +49,4 @@ export interface TypingItem {
 // ─── Union ────────────────────────────────────────────────────────────────────
 
 /** Discriminated union of every renderable list item. */
-export type ListItem = DateItem | MessageItem | SonicPingItem | PendingItem | TypingItem
+export type ListItem = DateItem | MessageItem | PendingItem | TypingItem

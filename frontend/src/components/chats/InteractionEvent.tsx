@@ -48,7 +48,7 @@ interface InteractionEventProps {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-function InteractionEventInner({ message, colorVar, icon, label }: InteractionEventProps) {
+function InteractionEventInner({ message, isOwn, colorVar, icon, label }: InteractionEventProps) {
     return (
         <motion.div
             className="interaction-event"
@@ -60,7 +60,7 @@ function InteractionEventInner({ message, colorVar, icon, label }: InteractionEv
             transition={MOTION_TRANSITION}
             aria-label={label}
         >
-            <span className="interaction-event__badge">
+            <span className="interaction-event__badge" data-own={isOwn ? "" : undefined}>
                 {icon}
                 {label}
                 <span className="interaction-event__time">

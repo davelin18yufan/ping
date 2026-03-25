@@ -22,8 +22,12 @@ import { CREATE_GROUP_MUTATION } from "@/graphql/options/conversations"
 import { friendsListQueryOptions } from "@/graphql/options/friends"
 import { graphqlFetch } from "@/lib/graphql-client"
 import type { Conversation } from "@/types/conversations"
+import type { User } from "@/types/friends"
 
+import { Input } from "../ui/input"
 import { FriendPickerSearch } from "./FriendPickerSearch"
+
+const NO_FRIENDS: User[] = []
 
 interface GroupCreateModalProps {
     onClose: () => void
@@ -39,7 +43,7 @@ export function GroupCreateModal({ onClose, onCreated }: GroupCreateModalProps) 
     const [showCelebration, setShowCelebration] = useState(false)
     const [createError, setCreateError] = useState<string | null>(null)
 
-    const { data: friends = [] } = useQuery(friendsListQueryOptions)
+    const { data: friends = NO_FRIENDS } = useQuery(friendsListQueryOptions)
 
     const createMutation = useMutation({
         mutationFn: ({ name, userIds }: { name: string; userIds: string[] }) =>
@@ -61,6 +65,9 @@ export function GroupCreateModal({ onClose, onCreated }: GroupCreateModalProps) 
             prev.includes(userId) ? prev.filter((id) => id !== userId) : [...prev, userId]
         )
     }
+
+    const isCreateDisabled =
+        !groupName.trim() || selectedUserIds.length === 0 || createMutation.isPending
 
     async function handleCreate() {
         const result = await createMutation.mutateAsync({
@@ -98,13 +105,13 @@ export function GroupCreateModal({ onClose, onCreated }: GroupCreateModalProps) 
                     <label htmlFor="group-name" className="text-sm font-medium mb-1 block">
                         Group Name
                     </label>
-                    <input
+                    <Input
                         id="group-name"
                         type="text"
                         value={groupName}
-                        onChange={(e) => setGroupName(e.target.value)}
+                        onChange={(value) => setGroupName(value)}
                         className="glass-input w-full"
-                        placeholder="Group name\u2026"
+                        placeholder="Group name..."
                         autoComplete="off"
                         spellCheck={false}
                         maxLength={50}
@@ -118,7 +125,7 @@ export function GroupCreateModal({ onClose, onCreated }: GroupCreateModalProps) 
                         friends={friends}
                         selectedIds={selectedUserIds}
                         onToggle={toggleUser}
-                        placeholder="Search friends\u2026"
+                        placeholder="Search friends..."
                         emptyMessage="No friends yet"
                     />
                 </div>
@@ -160,27 +167,20 @@ export function GroupCreateModal({ onClose, onCreated }: GroupCreateModalProps) 
 
                 {/* Action buttons */}
                 <div className="flex gap-2 justify-end mt-4">
-                    <button type="button" className="glass-button" onClick={onClose}>
+                    <button className="glass-button" onClick={onClose}>
                         Cancel
                     </button>
                     <button
-                        type="button"
                         className="glass-button"
                         style={
-                            !groupName.trim() ||
-                            selectedUserIds.length === 0 ||
-                            createMutation.isPending
+                            isCreateDisabled
                                 ? { opacity: 0.5, cursor: "not-allowed" }
                                 : {
                                       background: "oklch(from var(--primary) l c h / 0.2)",
                                       borderColor: "oklch(from var(--primary) l c h / 0.4)",
                                   }
                         }
-                        disabled={
-                            !groupName.trim() ||
-                            selectedUserIds.length === 0 ||
-                            createMutation.isPending
-                        }
+                        disabled={isCreateDisabled}
                         onClick={() => void handleCreate()}
                     >
                         {createMutation.isPending ? "Creating\u2026" : "Create Group"}

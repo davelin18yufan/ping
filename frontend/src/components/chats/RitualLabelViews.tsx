@@ -15,7 +15,7 @@ import { ChevronRight } from "lucide-react"
 import type { RitualTypeId } from "@/lib/ritualLabels"
 import { RITUAL_LABEL_TYPES } from "@/lib/ritualLabels"
 
-export type PanelView = "main" | "ritualList" | RitualTypeId
+export type PanelView = "main" | "ritualList" | "chatSettings" | RitualTypeId
 
 // ── Animation ──────────────────────────────────────────────────────────────
 

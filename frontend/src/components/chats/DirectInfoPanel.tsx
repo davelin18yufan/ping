@@ -16,7 +16,6 @@ import { Ban, ChevronLeft, ChevronRight, X } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useMemo, useOptimistic, useRef, useState, useTransition } from "react"
 
-
 import {
     BLOCK_USER_MUTATION,
     SET_RITUAL_LABEL_MUTATION,
@@ -175,7 +174,11 @@ export function DirectInfoPanel({ participant, conversationId, onClose }: Direct
                     >
                         <ChevronLeft size={14} aria-hidden="true" />
                         <span>
-                            {panelView === "ritualList" ? "Ritual Labels" : selectedRitualZh}
+                            {panelView === "ritualList"
+                                ? "Ritual Labels"
+                                : panelView === "chatSettings"
+                                  ? "Chat Settings"
+                                  : selectedRitualZh}
                         </span>
                     </button>
                 )}
@@ -246,21 +249,15 @@ export function DirectInfoPanel({ participant, conversationId, onClose }: Direct
                                 </button>
                             </div>
 
-                            {/* Chat settings */}
-                            <div className="px-4 py-3 border-t border-border">
-                                <ChatSettings conversationId={conversationId} />
-                            </div>
-
-                            {/* Block user */}
-                            <div className="px-4 py-3 border-t border-border">
+                            {/* Chat settings nav item */}
+                            <div className="border-t border-border">
                                 <button
                                     type="button"
-                                    onClick={() => setConfirmBlock(true)}
-                                    aria-label={`Block ${participant.user.name}`}
-                                    className="glass-button glass-button--destructive w-full flex items-center justify-center gap-2"
+                                    onClick={() => goTo("chatSettings")}
+                                    className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium hover:bg-[oklch(from_var(--foreground)_l_c_h/0.04)] transition-colors"
                                 >
-                                    <Ban size={14} aria-hidden="true" />
-                                    <span>Block User</span>
+                                    <span>Chat Settings</span>
+                                    <ChevronRight size={14} aria-hidden="true" />
                                 </button>
                             </div>
                         </motion.div>
@@ -320,7 +317,39 @@ export function DirectInfoPanel({ participant, conversationId, onClose }: Direct
                             />
                         </motion.div>
                     )}
+
+                    {/* ── Chat settings view ── */}
+                    {panelView === "chatSettings" && (
+                        <motion.div
+                            key="chatSettings"
+                            custom={navDir.current}
+                            variants={slideVariants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            transition={slideTransition}
+                            className="absolute inset-0 overflow-y-auto"
+                            style={{ scrollbarGutter: "stable" }}
+                        >
+                            <div className="px-4 py-4">
+                                <ChatSettings conversationId={conversationId} />
+                            </div>
+                        </motion.div>
+                    )}
                 </AnimatePresence>
+            </div>
+
+            {/* Fixed footer — always visible at panel bottom */}
+            <div className="shrink-0 border-t border-border px-4 py-3">
+                <button
+                    type="button"
+                    onClick={() => setConfirmBlock(true)}
+                    aria-label={`Block ${participant.user.name}`}
+                    className="glass-button glass-button--destructive w-full flex items-center justify-center gap-2"
+                >
+                    <Ban size={14} aria-hidden="true" />
+                    <span>Block User</span>
+                </button>
             </div>
 
             {/* Confirm block dialog */}

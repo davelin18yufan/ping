@@ -255,7 +255,11 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                     >
                         <ChevronLeft size={14} aria-hidden="true" />
                         <span>
-                            {panelView === "ritualList" ? "Ritual Labels" : selectedRitualZh}
+                            {panelView === "ritualList"
+                                ? "Ritual Labels"
+                                : panelView === "chatSettings"
+                                  ? "Chat Settings"
+                                  : selectedRitualZh}
                         </span>
                     </button>
                 )}
@@ -475,21 +479,15 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                                 </div>
                             )}
 
-                            {/* Chat settings */}
-                            <div className="px-4 py-3 border-t border-border">
-                                <ChatSettings conversationId={conversation.id} />
-                            </div>
-
-                            {/* Leave group */}
-                            <div className="px-4 py-3 border-t border-border">
+                            {/* Chat settings nav item */}
+                            <div className="border-t border-border">
                                 <button
                                     type="button"
-                                    onClick={() => setConfirmLeave(true)}
-                                    aria-label="Leave this group"
-                                    className="glass-button glass-button--destructive w-full flex items-center justify-center gap-2"
+                                    onClick={() => goTo("chatSettings")}
+                                    className="w-full flex items-center justify-between px-4 py-3 text-sm font-medium hover:bg-[oklch(from_var(--foreground)_l_c_h/0.04)] transition-colors"
                                 >
-                                    <LogOut size={14} aria-hidden="true" />
-                                    <span>Leave Group</span>
+                                    <span>Chat Settings</span>
+                                    <ChevronRight size={14} aria-hidden="true" />
                                 </button>
                             </div>
                         </motion.div>
@@ -549,7 +547,39 @@ export function GroupInfoPanel({ conversation, currentUserId, onClose }: GroupIn
                             />
                         </motion.div>
                     )}
+
+                    {/* ── Chat settings view ── */}
+                    {panelView === "chatSettings" && (
+                        <motion.div
+                            key="chatSettings"
+                            custom={navDir.current}
+                            variants={slideVariants}
+                            initial="enter"
+                            animate="center"
+                            exit="exit"
+                            transition={slideTransition}
+                            className="absolute inset-0 overflow-y-auto"
+                            style={{ scrollbarGutter: "stable" }}
+                        >
+                            <div className="px-4 py-4">
+                                <ChatSettings conversationId={conversation.id} />
+                            </div>
+                        </motion.div>
+                    )}
                 </AnimatePresence>
+            </div>
+
+            {/* Fixed footer — always visible at panel bottom */}
+            <div className="shrink-0 border-t border-border px-4 py-3">
+                <button
+                    type="button"
+                    onClick={() => setConfirmLeave(true)}
+                    aria-label="Leave this group"
+                    className="glass-button glass-button--destructive w-full flex items-center justify-center gap-2"
+                >
+                    <LogOut size={14} aria-hidden="true" />
+                    <span>Leave Group</span>
+                </button>
             </div>
 
             {/* Confirm kick dialog */}

@@ -9,7 +9,7 @@
  * the parent (ChatRoom) to re-render.
  */
 
-import { useEffect, useRef, useState } from "react"
+import { Fragment, useEffect, useRef, useState } from "react"
 
 interface RitualOverlay {
     senderName: string
@@ -17,12 +17,12 @@ interface RitualOverlay {
 }
 
 const RITUAL_OVERLAY_MAP: Record<string, { text: string; cssClass: string }> = {
-    APOLOGY: { text: "…", cssClass: "ritual-overlay--apology" },
+    APOLOGY: { text: "My Bad", cssClass: "ritual-overlay--apology" },
     CELEBRATE: { text: "✦✦✦", cssClass: "ritual-overlay--celebrate" },
-    TAUNT: { text: "!!!", cssClass: "ritual-overlay--taunt" },
-    LONGING: { text: "♡", cssClass: "ritual-overlay--longing" },
+    TAUNT: { text: "*#@!^", cssClass: "ritual-overlay--taunt" },
+    LONGING: { text: "♥", cssClass: "ritual-overlay--longing" },
     QUESTION: { text: "？", cssClass: "ritual-overlay--question" },
-    REJECTION: { text: "×", cssClass: "ritual-overlay--rejection" },
+    REJECTION: { text: "No", cssClass: "ritual-overlay--rejection" },
 }
 
 const OVERLAY_DURATION = 1600
@@ -90,15 +90,53 @@ export function ChatRoomOverlays() {
                     aria-live="polite"
                     aria-label={`${ritualOverlay.senderName} sent a ritual`}
                 >
-                    <p
-                        className="sonic-incoming-overlay__text"
-                        key={ritualOverlay.senderName + ritualOverlay.ritualType}
-                    >
-                        {ritualConfig.text}
-                    </p>
+                    {ritualOverlay.ritualType === "TAUNT" ? (
+                        <TauntRitual {...ritualOverlay} />
+                    ) : ritualOverlay.ritualType === "CELEBRATE" ? (
+                        <CelebrationRitual {...ritualOverlay} />
+                    ) : (
+                        <FallbackRitualText
+                            senderName={ritualOverlay.senderName}
+                            ritualType={ritualOverlay.ritualType}
+                            text={ritualConfig.text}
+                        />
+                    )}
                     <p className="sonic-incoming-overlay__sender">{ritualOverlay.senderName}</p>
                 </div>
             )}
         </>
+    )
+}
+
+function TauntRitual({ senderName, ritualType }: RitualOverlay) {
+    return (
+        <span className="ritual-taunt-wrapper" key={senderName + ritualType}>
+            <span className="ritual-overlay--taunt-symbol taunt-s1">*</span>
+            <span className="ritual-overlay--taunt-symbol taunt-s2">#</span>
+            <span className="ritual-overlay--taunt-symbol taunt-s3">@</span>
+            <span className="ritual-overlay--taunt-symbol taunt-s4">!</span>
+            <span className="ritual-overlay--taunt-symbol taunt-s5">%</span>
+            <span className="ritual-overlay--taunt-symbol taunt-s6">$</span>
+        </span>
+    )
+}
+
+function CelebrationRitual({ senderName, ritualType }: RitualOverlay) {
+    return (
+        <Fragment key={senderName + ritualType}>
+            <span className="ritual-overlay--celebrate-particle celebrate-p1">✦</span>
+            <span className="ritual-overlay--celebrate-particle celebrate-p2">✦</span>
+            <span className="ritual-overlay--celebrate-particle celebrate-p3">✦</span>
+            <span className="ritual-overlay--celebrate-particle celebrate-p4">★</span>
+            <span className="ritual-overlay--celebrate-particle celebrate-p5">★</span>
+        </Fragment>
+    )
+}
+
+function FallbackRitualText({ senderName, ritualType, text }: RitualOverlay & { text: string }) {
+    return (
+        <p className="sonic-incoming-overlay__text" key={senderName + ritualType}>
+            {text}
+        </p>
     )
 }

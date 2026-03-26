@@ -238,10 +238,10 @@ export function useSocket() {
         })
 
         // ------------------------------------------------------------------
-        // sonicPing:incoming
-        // Another user sent a Sonic Ping in a conversation.
-        // If the user is currently viewing that conversation, dispatch a custom
-        // DOM event so ChatRoom can show the incoming overlay animation.
+        // sonicPing:incoming → unified through ritual:incoming
+        // SONIC_PING is treated as a ritual for overlay purposes. Dispatching
+        // ritual:incoming with ritualType "SONIC_PING" lets ChatRoomOverlays
+        // handle it through the single unified overlay path.
         // Always invalidate so the persisted SONIC_PING message appears.
         // ------------------------------------------------------------------
         socket.on(
@@ -254,15 +254,17 @@ export function useSocket() {
                 senderId: string
                 senderName: string
             }) => {
-                // Show overlay only if we are in this conversation right now
                 if (uiStore.state.activeConversationId === pingConvId) {
                     window.dispatchEvent(
-                        new CustomEvent("sonicPing:incoming", {
-                            detail: { conversationId: pingConvId, senderName },
+                        new CustomEvent("ritual:incoming", {
+                            detail: {
+                                conversationId: pingConvId,
+                                senderName,
+                                ritualType: "SONIC_PING",
+                            },
                         })
                     )
                 }
-                // Always hydrate the persisted message
                 void queryClient.invalidateQueries({ queryKey: ["messages", pingConvId] })
                 void queryClient.invalidateQueries({
                     queryKey: ["conversations"],

@@ -13,7 +13,7 @@
 import { ChevronRight } from "lucide-react"
 
 import type { RitualTypeId } from "@/lib/ritualLabels"
-import { RITUAL_LABEL_TYPES } from "@/lib/ritualLabels"
+import { SELECTABLE_RITUALS } from "@/lib/rituals"
 
 export type PanelView = "main" | "ritualList" | "chatSettings" | RitualTypeId
 
@@ -59,14 +59,15 @@ interface RitualLabelListViewProps {
 export function RitualLabelListView({ getDraftOwn, onSelect }: RitualLabelListViewProps) {
     return (
         <>
-            {RITUAL_LABEL_TYPES.map(({ id, zh }) => {
-                const ownVal = getDraftOwn(id)
+            {SELECTABLE_RITUALS.map(({ id, zh }) => {
+                const ritualId = id as RitualTypeId
+                const ownVal = getDraftOwn(ritualId)
                 const preview = trimPrefix(ownVal, "你")
                 return (
                     <button
                         key={id}
                         type="button"
-                        onClick={() => onSelect(id)}
+                        onClick={() => onSelect(ritualId)}
                         className="w-full flex items-center justify-between px-4 py-2.5 hover:bg-[oklch(from_var(--foreground)_l_c_h/0.04)] transition-colors text-left border-b border-border"
                     >
                         <div className="flex flex-col min-w-0">

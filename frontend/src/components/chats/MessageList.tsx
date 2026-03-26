@@ -26,13 +26,13 @@
 
 import { useMutationState } from "@tanstack/react-query"
 import { useStore } from "@tanstack/react-store"
-import { Flame, Heart, HeartCrack, HelpCircle, PartyPopper, XCircle, Zap } from "lucide-react"
 import type { ReactNode } from "react"
 import { useEffect, useMemo, useRef } from "react"
 import { VList, type VListHandle } from "virtua"
 
 import { useMessages } from "@/hooks/useMessages"
 import type { ResolvedRitualLabels } from "@/lib/ritualLabels"
+import { RITUAL_MAP } from "@/lib/rituals"
 import { cn } from "@/lib/utils"
 import { uiStore } from "@/stores/uiStore"
 import type { ConversationType, Message } from "@/types/conversations"
@@ -107,7 +107,7 @@ function buildItems(
         // Ritual event messages are rendered as event markers, not chat bubbles.
         // They are always standalone (isFirstInSequence + isLastInSequence = true)
         // and do not count as neighbours for adjacent bubble sequence detection.
-        if (msg.messageType in RITUAL_ROW_CONFIG) {
+        if (RITUAL_MAP.has(msg.messageType)) {
             result.push({
                 kind: "message",
                 key: msg.id,
@@ -122,10 +122,8 @@ function buildItems(
         const prevMsg = sortedMessages
             .slice(0, i)
             .reverse()
-            .find((m) => !(m.messageType in RITUAL_ROW_CONFIG))
-        const nextMsg = sortedMessages
-            .slice(i + 1)
-            .find((m) => !(m.messageType in RITUAL_ROW_CONFIG))
+            .find((m) => !RITUAL_MAP.has(m.messageType))
+        const nextMsg = sortedMessages.slice(i + 1).find((m) => !RITUAL_MAP.has(m.messageType))
 
         result.push({
             kind: "message",
@@ -164,65 +162,6 @@ function DateSeparatorRow({ item }: { item: DateItem }) {
             <div className="date-separator__line" aria-hidden="true" />
         </div>
     )
-}
-
-// ─── RITUAL_ROW_CONFIG — unified map for all ritual message types ─────────────
-// Replaces the standalone SonicPingMessageRow.
-// To add a new ritual: add an entry here — no other changes needed in MessageList.
-
-const RITUAL_ROW_CONFIG: Partial<
-    Record<
-        string,
-        {
-            icon: ReactNode
-            labelOwn: string
-            labelOther: (name: string) => string
-            colorVar: string
-        }
-    >
-> = {
-    SONIC_PING: {
-        icon: <Zap size={10} aria-hidden="true" />,
-        labelOwn: "You sent a Sonic Ping",
-        labelOther: (n) => `${n} sent a Sonic Ping`,
-        colorVar: "var(--ritual-nudge)",
-    },
-    APOLOGY: {
-        icon: <HeartCrack size={10} aria-hidden="true" />,
-        labelOwn: "你道歉了",
-        labelOther: (n) => `${n} 說對不起`,
-        colorVar: "var(--ritual-apology)",
-    },
-    CELEBRATE: {
-        icon: <PartyPopper size={10} aria-hidden="true" />,
-        labelOwn: "你恭喜了對方",
-        labelOther: (n) => `${n} 恭喜你`,
-        colorVar: "var(--ritual-celebrate)",
-    },
-    TAUNT: {
-        icon: <Flame size={10} aria-hidden="true" />,
-        labelOwn: "你嗆了對方",
-        labelOther: (n) => `${n} 嗆了你`,
-        colorVar: "var(--ritual-taunt)",
-    },
-    LONGING: {
-        icon: <Heart size={10} aria-hidden="true" />,
-        labelOwn: "你想對方了",
-        labelOther: (n) => `${n} 想你了`,
-        colorVar: "var(--ritual-reconcile)",
-    },
-    QUESTION: {
-        icon: <HelpCircle size={10} aria-hidden="true" />,
-        labelOwn: "你問: 幹嘛？",
-        labelOther: (n) => `${n} 問: 幹嘛？`,
-        colorVar: "var(--ritual-question)",
-    },
-    REJECTION: {
-        icon: <XCircle size={10} aria-hidden="true" />,
-        labelOwn: "你拒絕了",
-        labelOther: (n) => `${n} 拒絕了`,
-        colorVar: "var(--ritual-reject)",
-    },
 }
 
 function PendingMessageRow({
@@ -264,22 +203,24 @@ function MessageRow({ item, ctx }: { item: MessageItem; ctx: RenderContext }) {
 
     const isOwn = msg.sender.id === currentUserId
 
-    // Render all ritual-type messages as interaction event markers, not chat bubbles.
-    // Prefer resolved ritualLabels from props; fall back to hardcoded RITUAL_ROW_CONFIG.
-    const ritualConfig = RITUAL_ROW_CONFIG[msg.messageType]
-    if (ritualConfig) {
+    // Ritual messages render as event markers, not chat bubbles.
+    // To add a new ritual type: add one entry in RITUAL_DEFINITIONS (@/lib/rituals) — no changes needed here.
+    // Prefer resolved ritualLabels from props (DB overrides); fall back to registry defaults.
+    const ritualDef = RITUAL_MAP.get(msg.messageType)
+    if (ritualDef) {
         const resolvedEntry = ritualLabels?.[msg.messageType]
         const label = isOwn
-            ? (resolvedEntry?.labelOwn ?? ritualConfig.labelOwn)
+            ? (resolvedEntry?.labelOwn ?? ritualDef.labelOwn)
             : (resolvedEntry?.labelOther(msg.sender.name ?? "") ??
-              ritualConfig.labelOther(msg.sender.name ?? ""))
+              ritualDef.labelOther(msg.sender.name ?? ""))
+        const Icon = ritualDef.icon
         return (
             <InteractionEvent
                 message={msg}
                 isOwn={isOwn}
-                icon={ritualConfig.icon}
+                icon={<Icon size={10} aria-hidden="true" />}
                 label={label}
-                colorVar={ritualConfig.colorVar}
+                colorVar={ritualDef.color}
             />
         )
     }

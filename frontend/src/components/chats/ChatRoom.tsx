@@ -11,9 +11,9 @@
  *
  * GroupInfoPanel is lazy-rendered via local state and AnimatePresence exit.
  *
- * Incoming Sonic Ping:
- *   Listens for the "sonicPing:incoming" custom DOM event dispatched by useSocket.
- *   Shows an overlay text for 1.6 s to signal the incoming ping to the receiver.
+ * Incoming rituals (including Sonic Ping):
+ *   Listens for the "ritual:incoming" custom DOM event dispatched by useSocket.
+ *   SONIC_PING is routed through the same ritual overlay path as all other rituals.
  */
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"

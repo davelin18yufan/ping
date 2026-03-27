@@ -285,7 +285,21 @@ export const schema = createSchema({
         Custom ritual labels configured for this conversation. Empty if none have been set.
         """
         ritualLabels: [RitualLabel!]!
+        """
+        The currently pinned message, or null if none is pinned.
+        """
+        pinnedMessage: Message
         createdAt: String!
+      }
+
+      """
+      Scope for deleteMessage mutation.
+      OWN: soft-delete only for the current user's view.
+      EVERYONE: soft-delete for all participants (sender only, within 24 h).
+      """
+      enum DeleteMessageScope {
+        OWN
+        EVERYONE
       }
 
       """
@@ -300,6 +314,22 @@ export const schema = createSchema({
         imageUrl: String
         createdAt: String!
         status: MessageStatusType!
+        """
+        The message this is a reply to, if any.
+        """
+        replyTo: Message
+        """
+        The ID of the message this is a reply to, if any.
+        """
+        replyToId: ID
+        """
+        ISO timestamp when this message was pinned, or null.
+        """
+        pinnedAt: String
+        """
+        ISO timestamp when this message was soft-deleted, or null.
+        """
+        deletedAt: String
       }
 
       """
@@ -630,6 +660,45 @@ export const schema = createSchema({
         Returns NOT_FOUND if no block record exists.
         """
         unblockUser(userId: ID!): Boolean!
+
+        # =============================================
+        # Message Action Mutations (Feature 1.3.3)
+        # =============================================
+
+        """
+        Reply to a specific message within a conversation.
+        The caller must be a participant of conversationId.
+        The replyToMessageId must belong to the same conversation (cross-conversation injection guard).
+        """
+        replyToMessage(conversationId: ID!, content: String!, replyToMessageId: ID!): Message!
+
+        """
+        Pin a message within its conversation.
+        Sets message.pinnedAt and conversation.pinnedMessageId.
+        Idempotent: if already pinned, returns the existing pinnedAt unchanged.
+        """
+        pinMessage(messageId: ID!): Message!
+
+        """
+        Unpin the currently pinned message.
+        Clears message.pinnedAt and conversation.pinnedMessageId.
+        Idempotent: if already unpinned, returns null pinnedAt without error.
+        """
+        unpinMessage(messageId: ID!): Message!
+
+        """
+        Delete a message.
+        scope=EVERYONE: soft-delete for all (sender only, within 24 h). Sets deletedAt.
+        scope=OWN: remove only from the current user's view (stub — no MessageHide table yet).
+        """
+        deleteMessage(messageId: ID!, scope: DeleteMessageScope!): Boolean!
+
+        """
+        Forward a message to another conversation.
+        Creates a new message with the same content in targetConversationId.
+        Cannot forward soft-deleted messages.
+        """
+        forwardMessage(messageId: ID!, targetConversationId: ID!): Message!
       }
 
       """

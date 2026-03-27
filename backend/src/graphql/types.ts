@@ -87,6 +87,17 @@ export type ParticipantRecord = {
 // ---------------------------------------------------------------------------
 
 /**
+ * Nested reply-to message, included inline when fetching a message.
+ * Only carries the fields needed by the ReplyQuoteBlock.
+ */
+export type ReplyToRecord = {
+    id: string
+    content: string | null
+    senderId: string
+    deletedAt: string | null
+}
+
+/**
  * Raw message record returned by loaders and resolvers.
  * Used as the parent object for Message type resolvers.
  */
@@ -99,6 +110,10 @@ export type MessageRecord = {
     imageUrl: string | null
     createdAt: string
     status: MessageStatusType
+    replyToId: string | null
+    pinnedAt: string | null
+    deletedAt: string | null
+    replyTo: ReplyToRecord | null
 }
 
 // ---------------------------------------------------------------------------
@@ -128,6 +143,7 @@ export type ConversationParent = {
     onlyOwnerCanEdit: boolean
     allowRituals: boolean
     ritualLabels: RitualLabelRecord[]
+    pinnedMessageId: string | null
     createdAt: string
 }
 

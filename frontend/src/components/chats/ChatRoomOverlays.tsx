@@ -76,7 +76,7 @@ export function ChatRoomOverlays() {
                     style={{ pointerEvents: "auto", cursor: "pointer" }}
                     onClick={dismissRitual}
                     aria-live="polite"
-                    aria-label={`${ritualOverlay.senderName} sent a ritual`}
+                    aria-label={ritualDef.labelOther(ritualOverlay.senderName)}
                 >
                     {ritualOverlay.ritualType === "APOLOGY" ? (
                         <ApologyRitual {...ritualOverlay} />

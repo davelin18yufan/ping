@@ -114,6 +114,106 @@ removeFriend(friendshipId: ID!): Boolean!    # new — soft removal, no blacklis
 
 ---
 
+#### ⏳ Feature 1.3.3 - 訊息氣泡操作（Message Bubble Actions）
+
+| 欄位 | 內容 |
+|------|------|
+| **狀態** | ⏳ 進行中（TDD 規格已建立，等待 Backend + Frontend 實作）|
+| **優先級** | P0（Feature 1.4.2 Emoji Reactions 的前置條件）|
+| **負責** | Backend + Fullstack Frontend |
+| **依賴** | Feature 1.3.1 ✅（對話與訊息端到端已通）|
+| **分支** | `feature/1.3.3-message-actions` |
+| **SDD 參考** | `docs/architecture/Feature-1.3.3-SDD.md`（待建立）|
+| **測試規格** | `docs/architecture/Feature-1.3.3-TDD-Tests.md` ✅ |
+| **預期完成日期** | 待評估 |
+
+**功能描述**：每條訊息氣泡支援的完整操作系統：Reply（含 inline 引用）、Copy、Forward、Multi-select、Pin（Sonic Wave 動畫）、Delete（從我這裡移除 / 為彼此收回）。
+
+**設計決策**：
+- Web：Hover → 角落圖示叢集（靜止 opacity 0.15 → hover 1）。右鍵 → 完整 glass context menu。
+- Mobile：長按 → 底部 glass action sheet。向右滑動 → 快速回覆。
+- Reply 顯示：氣泡內 inline 引用區塊（依引用訊息發送者視角著色左側 border + 發送者姓名 + 截斷內容）。
+- Pin UI：氣泡角落間歇性 Sonic Wave 動畫（複用 sonic-wave keyframes）+ 可收合頂部 glass banner。
+- Delete Modal：「從我這裡移除」/ 「為彼此收回」（品牌語氣）。
+- Multi-select：發光環 + scale(0.97)（非 checkbox overlay）。
+- Reply 引用 border 顏色 = 被引用訊息發送者視角：自己的訊息用 `--primary`，對方的訊息用 `--muted-foreground`。
+
+**Backend Schema 異動**：
+
+```prisma
+model Message {
+  // 新增欄位
+  replyToId  String?   @map("reply_to_id")
+  pinnedAt   DateTime? @map("pinned_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  // 新增自我關聯
+  replyTo  Message?  @relation("MessageReplies", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies  Message[] @relation("MessageReplies")
+}
+
+model Conversation {
+  // 新增欄位
+  pinnedMessageId String?  @map("pinned_message_id")
+  pinnedMessage   Message? @relation("ConversationPinnedMessage", fields: [pinnedMessageId], references: [id], onDelete: SetNull)
+}
+```
+
+**新增 GraphQL API**：
+
+```graphql
+enum DeleteMessageScope {
+  OWN       # Remove only from sender's view
+  EVERYONE  # Retract for all participants
+}
+
+type Mutation {
+  replyToMessage(conversationId: ID!, content: String!, replyToMessageId: ID!): Message!
+  pinMessage(messageId: ID!): Message!
+  unpinMessage(messageId: ID!): Message!
+  deleteMessage(messageId: ID!, scope: DeleteMessageScope!): Boolean!
+  forwardMessage(messageId: ID!, targetConversationId: ID!): Message!
+}
+```
+
+**新增前端檔案（Web）**：
+- `MessageBubbleWrapper.tsx` — hover/right-click 事件層
+- `MessageContextMenu.tsx` — glass context menu（cursor-positioned）
+- `ReplyQuoteBlock.tsx` — inline 引用區塊（含 sender + 截斷內容）
+- `PinnedMessageBanner.tsx` — 頂部可收合 glass banner
+- `DeleteMessageModal.tsx` — 刪除確認 modal（兩個選項）
+- `ForwardPickerModal.tsx` — 轉發目標對話選擇器
+- `chatActionsStore.ts` — multi-select 狀態 + context menu 位置
+- `message-actions.css` — hover 動畫、sonic wave pin indicator
+
+**新增前端檔案（Mobile）**：
+- `MessageBubbleWrapper.native.tsx` — long-press / swipe 手勢層
+- `MessageActionSheet.tsx` — 底部 glass action sheet（6 個操作）
+
+**修改現有檔案**：
+- `MessageBubble.tsx` — 接受 replyTo、pinnedAt、deletedAt props
+- `MessageList.tsx` — 整合 PinnedMessageBanner、multi-select 狀態
+- `MessageInput.tsx` — 顯示 reply 預覽條、forward 模式切換
+- `ChatRoom.tsx` — 整合 chatActionsStore、ForwardPickerModal
+- `chatStore.ts` — 新增 pinnedMessage 欄位
+
+**子任務分解**：
+
+| # | 子任務 | 負責 | 預估工時 | 狀態 |
+|---|--------|------|---------|------|
+| 1 | Architect：建立 TDD 規格文件 | Architect | 2h | ✅ 完成 |
+| 2 | Backend：Prisma migration（replyToId, pinnedAt, deletedAt, pinnedMessageId）| Backend | 1h | 🔲 |
+| 3 | Backend：實作 5 個新 GraphQL mutations | Backend | 4h | 🔲 |
+| 4 | Backend：Socket.io 廣播（message:pinned, message:deleted, message:forwarded）| Backend | 2h | 🔲 |
+| 5 | Frontend Web：MessageBubbleWrapper + MessageContextMenu | Frontend | 3h | 🔲 |
+| 6 | Frontend Web：ReplyQuoteBlock + PinnedMessageBanner | Frontend | 2h | 🔲 |
+| 7 | Frontend Web：DeleteMessageModal + ForwardPickerModal | Frontend | 2h | 🔲 |
+| 8 | Frontend Web：chatActionsStore + multi-select mode | Frontend | 2h | 🔲 |
+| 9 | Mobile：MessageBubbleWrapper.native + MessageActionSheet | Frontend | 3h | 🔲 |
+| 10 | All：重構與測試覆蓋率確認 | All | 1h | 🔲 |
+
+---
+
 ### Phase 1.4：即時功能補完（調整後順序）
 
 > **調整說明（2026-02-28，更新）**：
@@ -352,21 +452,21 @@ removeFriend(friendshipId: ID!): Boolean!    # new — soft removal, no blacklis
 | 1.0 基礎設施 | 4/4 ✅ | 170+ |
 | 1.1 認證系統 | 2/2 ✅ | 87 |
 | 1.2 UI/UX + 好友 | 2/2 ✅ | 303+ (128 backend + 175 frontend) |
-| 1.3 聊天系統 | Backend ✅ / Frontend 🔲 | 22 (backend) |
+| 1.3 聊天系統 | 1.3.1 ✅ / 1.3.3 ⏳ | 22 backend + 238 frontend (1.3.1) |
 | 1.4 即時功能 | 2/3 ✅ (1.4.1 + 1.2.2 完成) | 20 + 19 |
-| **Backend 總計** | **128/128 tests** | **PR #36 已合併，新 PR 開放中** |
+| **Backend 總計** | **128/128 tests** | **PR #36 已合併** |
 
 ---
 
-**最後更新**：2026-03-01
-**當前 Sprint**：Sprint 5（Feature 1.2.2 後端補完 ✅ → Feature 1.3.1 Frontend 待開始）
-**最新進展**：PR #36 已合併。本次補完：`removeFriend`（Stage 3 好友系統 8/8 = 100%）、`searchUsers` 雙向黑名單過濾、`acceptFriendRequest`/`rejectFriendRequest`/`sendFriendRequest` 安全強化、測試覆蓋 20 → 34 cases（TC-B-21~B-34）、`requireFriendshipParty()` 重構，128/128 tests 全部通過。
+**最後更新**：2026-03-27
+**當前 Sprint**：Sprint 5（Feature 1.3.1 Frontend Web ✅ → Feature 1.3.3 訊息氣泡操作 ⏳ 進行中）
+**最新進展**：Feature 1.3.1 Frontend Web 完成（63 個 Vitest 測試，238/238 全通過）。Feature 1.3.3 TDD 規格已建立（`docs/architecture/Feature-1.3.3-TDD-Tests.md`），分支 `feature/1.3.3-message-actions` 已建立，等待 Backend + Frontend 開始實作。
 
 **下一步優先順序**：
-1. Architect merge 新 PR（`feature/1.2.2-backend`）→ main（128/128 tests）
-2. Feature 1.3.1 Frontend（對話列表 + 聊天室）← 前端主線
-3. Feature 1.4.2（即時反應 + 貼圖/嗆聲娃娃 + 聊天室主題）
-4. Feature 1.4.3 圖片上傳（等 1.4.2 完成後才開始）
+1. Feature 1.3.3 Backend：Prisma migration + 5 個 GraphQL mutations（replyToMessage, pinMessage, unpinMessage, deleteMessage, forwardMessage）
+2. Feature 1.3.3 Frontend Web：MessageBubbleWrapper + MessageContextMenu + ReplyQuoteBlock + PinnedMessageBanner + Delete/Forward modals
+3. Feature 1.3.3 Mobile：MessageBubbleWrapper.native + MessageActionSheet
+4. Feature 1.3.3 完成後 → Feature 1.4.2（Emoji Reactions）可以開始
 
 ---
 

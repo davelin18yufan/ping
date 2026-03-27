@@ -1,55 +1,42 @@
 /**
- * ChatRoomOverlays — self-contained incoming ritual and Sonic Ping overlays.
+ * ChatRoomOverlays — self-contained incoming ritual overlays (including Sonic Ping).
  *
- * Listens to custom DOM events dispatched by useSocket and shows a
- * full-screen overlay for 1.6 s. No props required — all data arrives
- * via the event payload.
+ * Listens to "ritual:incoming" custom DOM events dispatched by useSocket and shows
+ * a full-screen overlay for a ritual-defined duration. SONIC_PING is routed through
+ * the same path as all other rituals — no separate code branch needed.
+ *
+ * Tap-to-dismiss: any overlay can be tapped to close early. A 150 ms guard
+ * prevents accidental dismissal immediately after the overlay appears.
+ * AnimatePresence handles the exit fade whether dismissed manually or by timer.
  *
  * Extracted from ChatRoom so its local state changes do not cause
  * the parent (ChatRoom) to re-render.
  */
 
-import { Fragment, useEffect, useRef, useState } from "react"
+import { AnimatePresence, motion } from "motion/react"
+import { useCallback, useEffect, useRef, useState } from "react"
+
+import { useFireworks } from "@/hooks/useFireworks"
+import { RITUAL_MAP } from "@/lib/rituals"
 
 interface RitualOverlay {
     senderName: string
     ritualType: string
 }
 
-const RITUAL_OVERLAY_MAP: Record<string, { text: string; cssClass: string }> = {
-    APOLOGY: { text: "My Bad", cssClass: "ritual-overlay--apology" },
-    CELEBRATE: { text: "✦✦✦", cssClass: "ritual-overlay--celebrate" },
-    TAUNT: { text: "*#@!^", cssClass: "ritual-overlay--taunt" },
-    LONGING: { text: "♥", cssClass: "ritual-overlay--longing" },
-    QUESTION: { text: "？", cssClass: "ritual-overlay--question" },
-    REJECTION: { text: "No", cssClass: "ritual-overlay--rejection" },
-}
-
 const OVERLAY_DURATION = 1600
 
-export function ChatRoomOverlays() {
-    const [sonicPingFrom, setSonicPingFrom] = useState<string | null>(null)
-    const sonicTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+// Shared exit animation — hoisted to avoid object creation per render
+const OVERLAY_EXIT = { opacity: 0, scale: 0.97 } as const
+const OVERLAY_EXIT_TRANSITION = { duration: 0.18, ease: "easeIn" } as const
 
+// Minimum time (ms) after appearance before a tap can dismiss the overlay
+const DISMISS_GUARD_MS = 150
+
+export function ChatRoomOverlays() {
     const [ritualOverlay, setRitualOverlay] = useState<RitualOverlay | null>(null)
     const ritualTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-    useEffect(() => {
-        const handleSonicPing = (e: Event) => {
-            const { senderName } = (
-                e as CustomEvent<{ conversationId: string; senderName: string }>
-            ).detail
-            if (sonicTimerRef.current) clearTimeout(sonicTimerRef.current)
-            setSonicPingFrom(senderName)
-            sonicTimerRef.current = setTimeout(() => setSonicPingFrom(null), OVERLAY_DURATION)
-        }
-
-        window.addEventListener("sonicPing:incoming", handleSonicPing)
-        return () => {
-            window.removeEventListener("sonicPing:incoming", handleSonicPing)
-            if (sonicTimerRef.current) clearTimeout(sonicTimerRef.current)
-        }
-    }, [])
+    const ritualShownAtRef = useRef<number>(0)
 
     useEffect(() => {
         const handleRitual = (e: Event) => {
@@ -57,8 +44,10 @@ export function ChatRoomOverlays() {
                 e as CustomEvent<{ conversationId: string; senderName: string; ritualType: string }>
             ).detail
             if (ritualTimerRef.current) clearTimeout(ritualTimerRef.current)
+            ritualShownAtRef.current = Date.now()
             setRitualOverlay({ senderName, ritualType })
-            ritualTimerRef.current = setTimeout(() => setRitualOverlay(null), OVERLAY_DURATION)
+            const duration = RITUAL_MAP.get(ritualType)?.overlayDuration ?? OVERLAY_DURATION
+            ritualTimerRef.current = setTimeout(() => setRitualOverlay(null), duration)
         }
 
         window.addEventListener("ritual:incoming", handleRitual)
@@ -68,43 +57,59 @@ export function ChatRoomOverlays() {
         }
     }, [])
 
-    const ritualConfig = ritualOverlay ? RITUAL_OVERLAY_MAP[ritualOverlay.ritualType] : null
+    const dismissRitual = useCallback(() => {
+        if (Date.now() - ritualShownAtRef.current < DISMISS_GUARD_MS) return
+        if (ritualTimerRef.current) clearTimeout(ritualTimerRef.current)
+        setRitualOverlay(null)
+    }, [])
+
+    const ritualDef = ritualOverlay ? RITUAL_MAP.get(ritualOverlay.ritualType) : null
 
     return (
-        <>
-            {sonicPingFrom && (
-                <div
-                    className="sonic-incoming-overlay"
+        <AnimatePresence>
+            {ritualOverlay && ritualDef && (
+                <motion.div
+                    key={ritualOverlay.senderName + ritualOverlay.ritualType}
+                    className={`sonic-incoming-overlay ${ritualDef.overlayCssClass}`}
+                    exit={OVERLAY_EXIT}
+                    transition={OVERLAY_EXIT_TRANSITION}
+                    style={{ pointerEvents: "auto", cursor: "pointer" }}
+                    onClick={dismissRitual}
                     aria-live="polite"
-                    aria-label={`${sonicPingFrom} sent a Sonic Ping`}
+                    aria-label={ritualDef.labelOther(ritualOverlay.senderName)}
                 >
-                    <span className="sonic-incoming-overlay__text" key={sonicPingFrom}>
-                        Anybody home?
-                    </span>
-                </div>
-            )}
-
-            {ritualOverlay && ritualConfig && (
-                <div
-                    className={`sonic-incoming-overlay ${ritualConfig.cssClass}`}
-                    aria-live="polite"
-                    aria-label={`${ritualOverlay.senderName} sent a ritual`}
-                >
-                    {ritualOverlay.ritualType === "TAUNT" ? (
+                    {ritualOverlay.ritualType === "APOLOGY" ? (
+                        <ApologyRitual {...ritualOverlay} />
+                    ) : ritualOverlay.ritualType === "TAUNT" ? (
                         <TauntRitual {...ritualOverlay} />
                     ) : ritualOverlay.ritualType === "CELEBRATE" ? (
                         <CelebrationRitual {...ritualOverlay} />
-                    ) : (
+                    ) : ritualOverlay.ritualType === "QUESTION" ? (
+                        <QuestionRitual {...ritualOverlay} />
+                    ) : ritualDef.overlayFallbackText ? (
                         <FallbackRitualText
                             senderName={ritualOverlay.senderName}
                             ritualType={ritualOverlay.ritualType}
-                            text={ritualConfig.text}
+                            text={ritualDef.overlayFallbackText}
                         />
-                    )}
+                    ) : null}
                     <p className="sonic-incoming-overlay__sender">{ritualOverlay.senderName}</p>
-                </div>
+                </motion.div>
             )}
-        </>
+        </AnimatePresence>
+    )
+}
+
+function ApologyRitual({ senderName, ritualType }: RitualOverlay) {
+    return (
+        <div className="ritual-apology-gif-wrapper" key={senderName + ritualType}>
+            <img
+                src="https://media2.giphy.com/media/mfdqzC02ASo5q/giphy.gif"
+                alt=""
+                aria-hidden="true"
+                className="ritual-apology-gif"
+            />
+        </div>
     )
 }
 
@@ -122,14 +127,28 @@ function TauntRitual({ senderName, ritualType }: RitualOverlay) {
 }
 
 function CelebrationRitual({ senderName, ritualType }: RitualOverlay) {
+    const canvasRef = useRef<HTMLCanvasElement>(null)
+    useFireworks(canvasRef, true)
+
     return (
-        <Fragment key={senderName + ritualType}>
-            <span className="ritual-overlay--celebrate-particle celebrate-p1">✦</span>
-            <span className="ritual-overlay--celebrate-particle celebrate-p2">✦</span>
-            <span className="ritual-overlay--celebrate-particle celebrate-p3">✦</span>
-            <span className="ritual-overlay--celebrate-particle celebrate-p4">★</span>
-            <span className="ritual-overlay--celebrate-particle celebrate-p5">★</span>
-        </Fragment>
+        <canvas
+            ref={canvasRef}
+            key={senderName + ritualType}
+            className="ritual-celebrate-canvas"
+            width={360}
+            height={480}
+            aria-hidden="true"
+        />
+    )
+}
+
+function QuestionRitual({ senderName, ritualType }: RitualOverlay) {
+    return (
+        <div className="ritual-question-cluster" key={senderName + ritualType}>
+            <span className="ritual-question-mark q-m1">？</span>
+            <span className="ritual-question-mark q-m2">？</span>
+            <span className="ritual-question-mark q-m3">？</span>
+        </div>
     )
 }
 

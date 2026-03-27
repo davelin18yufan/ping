@@ -18,6 +18,7 @@ import { useStore } from "@tanstack/react-store"
 import { Pin } from "lucide-react"
 import { memo } from "react"
 
+import { RITUAL_MAP } from "@/lib/rituals"
 import { cn, formatConversationDate, formatMessageTime, toLocalDateKey } from "@/lib/utils"
 import { uiStore } from "@/stores/uiStore"
 import type { Conversation } from "@/types/conversations"
@@ -61,18 +62,6 @@ function truncatePreview(text: string | null): string {
     if (!text) return ""
     if (text.length <= MAX_PREVIEW_LENGTH) return text
     return `${text.slice(0, MAX_PREVIEW_LENGTH)}\u2026`
-}
-
-// ─── Ritual message preview labels ────────────────────────────────────────────
-
-const RITUAL_PREVIEW_MAP: Partial<Record<string, string>> = {
-    SONIC_PING: "[Sonic Ping]",
-    APOLOGY: "[Apology]",
-    CELEBRATE: "[Celebrate]",
-    TAUNT: "[Taunt]",
-    LONGING: "[Miss you]",
-    QUESTION: "[Hey?]",
-    REJECTION: "[Rejected]",
 }
 
 function ConversationItemInner({
@@ -130,7 +119,9 @@ function ConversationItemInner({
     const senderPrefix =
         !isFromCurrentUser && isGroup && lastMsg ? `${lastMsg.sender.name.split(" ")[0]}: ` : ""
 
-    const ritualPreview = lastMsg ? RITUAL_PREVIEW_MAP[lastMsg.messageType] : undefined
+    const ritualDef = lastMsg ? RITUAL_MAP.get(lastMsg.messageType) : undefined
+    const ritualPreview = ritualDef?.previewLabel
+    const ritualColor = ritualDef?.color
     const rawPreview = !lastMsg
         ? ""
         : lastMsg.messageType === "IMAGE"
@@ -192,9 +183,7 @@ function ConversationItemInner({
                     <p
                         className="conversation-item__preview"
                         style={
-                            ritualPreview
-                                ? { color: "var(--muted-foreground)", fontStyle: "italic" }
-                                : undefined
+                            ritualColor ? { color: ritualColor, fontStyle: "italic" } : undefined
                         }
                     >
                         {truncatedPreview}

@@ -2,11 +2,14 @@
  * ChatRoomOverlays Tests — Phase 3 Ritual System
  *
  * Test cases covered:
- * - TC-F-18: sonicPing:incoming DOM event shows overlay with sender name
- * - TC-F-19: ritual:incoming DOM event shows correct overlay text per ritual type
- * - TC-F-20: Overlay auto-dismisses after 1600 ms (timer-based)
+ * - TC-F-18: SONIC_PING ritual shows "Anybody home?" overlay
+ * - TC-F-19: ritual:incoming DOM event shows correct overlay content per ritual type
+ * - TC-F-20: Overlay auto-dismisses after the ritual's configured duration
  * - TC-F-21: Rapid successive events restart the dismiss timer (debounce behaviour)
  * - TC-F-22: Overlay is removed from DOM on unmount (no timer leak)
+ *
+ * Note: SONIC_PING is now unified through the ritual:incoming event path.
+ * dispatchSonicPing dispatches ritual:incoming with ritualType "SONIC_PING".
  */
 
 import { render, screen, act } from "@testing-library/react"
@@ -59,10 +62,14 @@ beforeEach(async () => {
 // Helpers
 // ---------------------------------------------------------------------------
 
+/**
+ * Dispatches a SONIC_PING through the unified ritual:incoming path.
+ * (useSocket now routes sonicPing:incoming socket events here.)
+ */
 function dispatchSonicPing(senderName: string, conversationId = "conv-001") {
     window.dispatchEvent(
-        new CustomEvent("sonicPing:incoming", {
-            detail: { conversationId, senderName },
+        new CustomEvent("ritual:incoming", {
+            detail: { conversationId, senderName, ritualType: "SONIC_PING" },
         })
     )
 }
@@ -76,7 +83,7 @@ function dispatchRitual(ritualType: string, senderName = "Bob Wang", conversatio
 }
 
 // ---------------------------------------------------------------------------
-// TC-F-18: sonicPing:incoming shows overlay
+// TC-F-18: SONIC_PING (via ritual:incoming) shows overlay
 // ---------------------------------------------------------------------------
 
 describe("TC-F-18: sonicPing:incoming DOM event shows overlay", () => {
@@ -111,20 +118,25 @@ describe("TC-F-18: sonicPing:incoming DOM event shows overlay", () => {
 })
 
 // ---------------------------------------------------------------------------
-// TC-F-19: ritual:incoming shows correct text per ritual type
+// TC-F-19: ritual:incoming shows correct content per ritual type
 // ---------------------------------------------------------------------------
 
 describe("TC-F-19: ritual:incoming shows correct overlay text per ritual type", () => {
-    const EXPECTED_TEXTS: Record<string, string> = {
-        APOLOGY: "My Bad",
-        CELEBRATE: "✦",
+    /**
+     * Text-based rituals: check for a visible text string in the overlay.
+     * APOLOGY and CELEBRATE use visual-only elements (GIF / Canvas) —
+     * their presence is verified by sender name + overlay container.
+     */
+    const TEXT_RITUALS: Record<string, string> = {
         TAUNT: "*",
         LONGING: "♥",
         QUESTION: "？",
         REJECTION: "No",
     }
 
-    for (const [ritualType, expectedText] of Object.entries(EXPECTED_TEXTS)) {
+    const VISUAL_RITUALS = ["APOLOGY", "CELEBRATE"]
+
+    for (const [ritualType, expectedText] of Object.entries(TEXT_RITUALS)) {
         it(`${ritualType}: shows "${expectedText}" and sender name`, () => {
             render(<ChatRoomOverlays />)
 
@@ -133,6 +145,20 @@ describe("TC-F-19: ritual:incoming shows correct overlay text per ritual type", 
             })
 
             expect(screen.getAllByText(expectedText)[0]).toBeInTheDocument()
+            expect(screen.getByText("Carol Lin")).toBeInTheDocument()
+        })
+    }
+
+    for (const ritualType of VISUAL_RITUALS) {
+        it(`${ritualType}: shows overlay with sender name (visual-only ritual)`, () => {
+            render(<ChatRoomOverlays />)
+
+            act(() => {
+                dispatchRitual(ritualType, "Carol Lin")
+            })
+
+            // Overlay container is present and sender name is visible
+            expect(document.querySelector(".sonic-incoming-overlay")).toBeInTheDocument()
             expect(screen.getByText("Carol Lin")).toBeInTheDocument()
         })
     }
@@ -150,7 +176,7 @@ describe("TC-F-19: ritual:incoming shows correct overlay text per ritual type", 
 })
 
 // ---------------------------------------------------------------------------
-// TC-F-20: Overlay auto-dismisses after 1600 ms
+// TC-F-20: Overlay auto-dismisses after configured duration
 // ---------------------------------------------------------------------------
 
 describe("TC-F-20: overlay auto-dismisses after 1600 ms", () => {
@@ -170,20 +196,20 @@ describe("TC-F-20: overlay auto-dismisses after 1600 ms", () => {
         expect(screen.queryByText("Anybody home?")).not.toBeInTheDocument()
     })
 
-    it("hides ritual overlay after 1600 ms", () => {
+    it("hides ritual overlay after 1600 ms (LONGING as representative text ritual)", () => {
         render(<ChatRoomOverlays />)
 
         act(() => {
-            dispatchRitual("APOLOGY", "Bob Wang")
+            dispatchRitual("LONGING", "Bob Wang")
         })
 
-        expect(screen.getByText("My Bad")).toBeInTheDocument()
+        expect(screen.getByText("♥")).toBeInTheDocument()
 
         act(() => {
             vi.advanceTimersByTime(1600)
         })
 
-        expect(screen.queryByText("My Bad")).not.toBeInTheDocument()
+        expect(screen.queryByText("♥")).not.toBeInTheDocument()
     })
 
     it("overlay still visible at 1599 ms (not prematurely dismissed)", () => {

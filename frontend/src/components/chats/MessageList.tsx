@@ -221,6 +221,7 @@ function MessageRow({ item, ctx }: { item: MessageItem; ctx: RenderContext }) {
                 icon={<Icon size={10} aria-hidden="true" />}
                 label={label}
                 colorVar={ritualDef.color}
+                conversationType={conversationType}
             />
         )
     }

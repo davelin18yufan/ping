@@ -21,11 +21,14 @@ import { memo } from "react"
 import type { ReactNode } from "react"
 
 import { formatMessageTime } from "@/lib/utils"
-import type { Message } from "@/types/conversations"
+import type { ConversationType, Message } from "@/types/conversations"
 
 // ─── Motion config — hoisted outside component (rule: rendering-hoist-jsx)
 // Avoids creating a new object literal on every render.
-const MOTION_TRANSITION = { duration: 0.4, ease: [0.34, 1.56, 0.64, 1] as const }
+// Scale 0.86 → 1 + upward slide gives the badge a confident "landing" feel.
+const MOTION_INITIAL = { opacity: 0, scale: 0.86, y: 8 } as const
+const MOTION_ANIMATE = { opacity: 1, scale: 1, y: 0 } as const
+const MOTION_TRANSITION = { duration: 0.45, ease: [0.34, 1.56, 0.64, 1] as const }
 
 // ─── Props ────────────────────────────────────────────────────────────────────
 
@@ -44,19 +47,47 @@ interface InteractionEventProps {
      * @example "var(--ritual-celebrate)"
      */
     colorVar?: string
+    /**
+     * Conversation type drives the directional wave treatment on the rule lines.
+     * ONE_TO_ONE: asymmetric gradient — strong on the "departure" side, faint on the other.
+     * GROUP:      symmetric broadcast pulse on both sides.
+     */
+    conversationType: ConversationType
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-function InteractionEventInner({ message, isOwn, colorVar, icon, label }: InteractionEventProps) {
+function InteractionEventInner({
+    message,
+    isOwn,
+    colorVar,
+    icon,
+    label,
+    conversationType,
+}: InteractionEventProps) {
+    // data-variant drives CSS rule-line direction:
+    //   "out"       — sent in a 1-on-1 chat   (wave departs rightward)
+    //   "in"        — received in a 1-on-1 chat (wave arrives leftward)
+    //   "group-out" — sent in a group chat      (broadcast pulse, own style)
+    //   "group-in"  — received in a group chat  (broadcast pulse, other style)
+    const variant =
+        conversationType === "GROUP"
+            ? isOwn
+                ? "group-out"
+                : "group-in"
+            : isOwn
+              ? "out" // ONE_TO_ONE sent: wave departs rightward
+              : "in" // ONE_TO_ONE received: wave arrives leftward
+
     return (
         <motion.div
             className="interaction-event"
+            data-variant={variant}
             style={
                 colorVar ? ({ "--interaction-color": colorVar } as React.CSSProperties) : undefined
             }
-            initial={{ opacity: 0, scale: 0.92 }}
-            animate={{ opacity: 1, scale: 1 }}
+            initial={MOTION_INITIAL}
+            animate={MOTION_ANIMATE}
             transition={MOTION_TRANSITION}
             aria-label={label}
         >

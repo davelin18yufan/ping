@@ -1188,6 +1188,7 @@
         user-select: none;
     }
 
+    /* ── Default rule lines (symmetric fallback) ────────────────────────── */
     .interaction-event::before,
     .interaction-event::after {
         content: "";
@@ -1196,33 +1197,137 @@
         background: linear-gradient(
             90deg,
             transparent,
-            oklch(from var(--interaction-color) l c h / 0.35),
+            oklch(from var(--interaction-color) l c h / 0.4),
             transparent
         );
+    }
+
+    /* ── Directional wave: 1-on-1 sent (→) ──────────────────────────────────
+       Left rule: ghost-faint origin. Right rule: thick acoustic tail that
+       starts bright at the badge edge, fades into the distance.            */
+    .interaction-event[data-variant="out"]::before {
+        background: linear-gradient(
+            90deg,
+            transparent,
+            oklch(from var(--interaction-color) l c h / 0.06)
+        );
+    }
+    .interaction-event[data-variant="out"]::after {
+        height: 1.5px;
+        border-radius: 1px;
+        background: linear-gradient(
+            90deg,
+            oklch(from var(--interaction-color) l c h / 0.65),
+            oklch(from var(--interaction-color) l c h / 0.22) 48%,
+            transparent
+        );
+    }
+
+    /* ── Directional wave: 1-on-1 received (←) ──────────────────────────────
+       Left rule: thick arrival trail from edge to badge. Right: ghost-faint. */
+    .interaction-event[data-variant="in"]::before {
+        height: 1.5px;
+        border-radius: 1px;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            oklch(from var(--interaction-color) l c h / 0.22) 52%,
+            oklch(from var(--interaction-color) l c h / 0.65)
+        );
+    }
+    .interaction-event[data-variant="in"]::after {
+        background: linear-gradient(
+            90deg,
+            oklch(from var(--interaction-color) l c h / 0.06),
+            transparent
+        );
+    }
+
+    /* ── Broadcast pulse: group chat ─────────────────────────────────────────
+       Both rules sweep 0.20 → 1.0 opacity and are staggered by 1.0 s,
+       creating a visible "radio expanding outward from center" effect.     */
+    @keyframes broadcast-expand {
+        0%,
+        100% {
+            opacity: 0.2;
+        }
+        50% {
+            opacity: 1;
+        }
+    }
+
+    .interaction-event[data-variant="group-out"]::before,
+    .interaction-event[data-variant="group-out"]::after,
+    .interaction-event[data-variant="group-in"]::before,
+    .interaction-event[data-variant="group-in"]::after {
+        height: 1.5px;
+        border-radius: 1px;
+        background: linear-gradient(
+            90deg,
+            transparent,
+            oklch(from var(--interaction-color) l c h / 0.6),
+            transparent
+        );
+        animation: broadcast-expand 2.4s ease-in-out infinite;
+    }
+    /* 1.0 s offset between the two rules for an "expanding ripple" feel */
+    .interaction-event[data-variant="group-out"]::after,
+    .interaction-event[data-variant="group-in"]::after {
+        animation-delay: 1s;
+    }
+
+    /* ── Badge appearance: "seal being pressed" entrance glow ───────────────
+       Starts with a bright burst and decays to a steady ambient glow.
+       CSS variables resolve at paint time, so oklch() works in keyframes.  */
+    @keyframes ritual-appear-glow {
+        0% {
+            box-shadow:
+                0 0 32px 4px oklch(from var(--interaction-color) l c h / 0.5),
+                0 0 56px oklch(from var(--interaction-color) l c h / 0.18),
+                inset 0 0 20px oklch(from var(--interaction-color) l c h / 0.18);
+        }
+        100% {
+            box-shadow:
+                0 0 14px oklch(from var(--interaction-color) l c h / 0.25),
+                inset 0 0 14px oklch(from var(--interaction-color) l c h / 0.1);
+        }
+    }
+
+    @keyframes ritual-appear-glow-own {
+        0% {
+            box-shadow:
+                0 0 24px 2px oklch(from var(--interaction-color) l c h / 0.35),
+                inset 0 0 16px oklch(from var(--interaction-color) l c h / 0.12);
+        }
+        100% {
+            box-shadow:
+                0 0 8px oklch(from var(--interaction-color) l c h / 0.16),
+                inset 0 0 10px oklch(from var(--interaction-color) l c h / 0.06);
+        }
     }
 
     .interaction-event__badge {
         display: flex;
         align-items: center;
         gap: 0.3125rem;
-        padding: 0.25rem 0.75rem;
+        padding: 0.3125rem 0.875rem;
         border-radius: 999px;
-        background: oklch(from var(--interaction-color) l c h / 0.12);
-        border: 1px solid oklch(from var(--interaction-color) l c h / 0.28);
+        background: oklch(from var(--interaction-color) l c h / 0.16);
+        border: 1px solid oklch(from var(--interaction-color) l c h / 0.4);
         color: var(--interaction-color);
-        font-size: 0.6875rem;
+        font-size: 0.75rem;
         font-weight: 500;
         white-space: nowrap;
-        box-shadow:
-            0 0 8px oklch(from var(--interaction-color) l c h / 0.12),
-            inset 0 0 12px oklch(from var(--interaction-color) l c h / 0.06);
-        letter-spacing: 0.025em;
+        animation: ritual-appear-glow 1.4s ease-out both;
+        letter-spacing: 0.04em;
     }
 
+    /* Own (sent) badge: slightly filled with a quieter entrance glow —
+       reflects that you initiated this ritual, not received it.          */
     .interaction-event__badge[data-own] {
-        background: transparent;
-        border-color: oklch(from var(--interaction-color) l c h / 0.18);
-        box-shadow: none;
+        background: oklch(from var(--interaction-color) l c h / 0.06);
+        border-color: oklch(from var(--interaction-color) l c h / 0.3);
+        animation: ritual-appear-glow-own 1.4s ease-out both;
     }
 
     .interaction-event__time {
@@ -1234,7 +1339,23 @@
 
     @media (prefers-reduced-motion: reduce) {
         .interaction-event__badge {
-            box-shadow: none;
+            animation: none;
+            box-shadow:
+                0 0 14px oklch(from var(--interaction-color) l c h / 0.25),
+                inset 0 0 14px oklch(from var(--interaction-color) l c h / 0.1);
+        }
+        .interaction-event__badge[data-own] {
+            animation: none;
+            box-shadow:
+                0 0 8px oklch(from var(--interaction-color) l c h / 0.16),
+                inset 0 0 10px oklch(from var(--interaction-color) l c h / 0.06);
+        }
+        .interaction-event[data-variant="group-out"]::before,
+        .interaction-event[data-variant="group-out"]::after,
+        .interaction-event[data-variant="group-in"]::before,
+        .interaction-event[data-variant="group-in"]::after {
+            animation: none;
+            opacity: 0.55;
         }
     }
 

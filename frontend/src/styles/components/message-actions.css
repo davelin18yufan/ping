@@ -1,0 +1,778 @@
+/**
+ * Message Actions — Hover cluster, context menu, select ring, reply quote, pin rings.
+ *
+ * Design rules:
+ *   - Hover cluster: opacity 0.15 at rest → 1 on .bubble-wrapper:hover
+ *   - Context menu:  position:fixed portal, glass background, picker-appear animation
+ *   - Select ring:   box-shadow ring + scale(0.97) — NO checkboxes
+ *   - Reply quote:   glass-tinted block, 3px left border (primary or muted-foreground)
+ *   - Pin rings:     3 concentric rings using transform+opacity only
+ *
+ * All animations use transform/opacity only — NO border-width, height, or width.
+ * prefers-reduced-motion and [data-aesthetic="minimal"] disable all motion.
+ */
+
+/* ============================================================
+   Bubble Wrapper — positions the hover cluster
+   ============================================================ */
+
+.bubble-wrapper {
+    position: relative;
+}
+
+/* ============================================================
+   Hover Action Icon Cluster
+   ============================================================ */
+
+.bubble-action-icons {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 2px;
+    opacity: 0.15;
+    transition: opacity 150ms ease-out;
+    pointer-events: none;
+    /* Sit on popover layer minus one so they don't occlude the context menu */
+    z-index: 5;
+}
+
+/* Own bubbles: cluster sits to the LEFT of the bubble */
+.bubble-wrapper--own .bubble-action-icons {
+    right: calc(100% + 6px);
+    left: auto;
+}
+
+/* Received bubbles: cluster sits to the RIGHT of the bubble */
+.bubble-wrapper--received .bubble-action-icons {
+    left: calc(100% + 6px);
+    right: auto;
+}
+
+.bubble-wrapper:hover .bubble-action-icons,
+.bubble-wrapper:focus-within .bubble-action-icons {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Hover cluster visibility state class set by JS for keyboard/touch */
+.bubble-action-icons--visible {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* ============================================================
+   Individual Action Button
+   ============================================================ */
+
+.bubble-action-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.75rem; /* 28px */
+    height: 1.75rem;
+    border-radius: 50%;
+    border: 1px solid oklch(from var(--border) l c h / 0.4);
+    background: oklch(from var(--card) l c h / 0.7);
+    backdrop-filter: blur(var(--blur-md, 12px));
+    -webkit-backdrop-filter: blur(var(--blur-md, 12px));
+    cursor: pointer;
+    color: var(--muted-foreground);
+    transition:
+        background 120ms ease-out,
+        color 120ms ease-out,
+        transform 120ms ease-out;
+    padding: 0;
+}
+
+.bubble-action-btn:hover {
+    background: oklch(from var(--card) calc(l + 0.04) c h / 0.9);
+    color: var(--foreground);
+    transform: scale(1.08);
+}
+
+.bubble-action-btn:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+}
+
+.bubble-action-btn:active {
+    transform: scale(0.94);
+}
+
+/* ============================================================
+   Context Menu (portal, position:fixed)
+   ============================================================ */
+
+.bubble-context-menu {
+    position: fixed;
+    z-index: 1500;
+    min-width: 180px;
+    background: var(--glass-background-hover, oklch(from var(--card) calc(l + 0.02) c h / 0.85));
+    backdrop-filter: blur(20px) saturate(160%);
+    -webkit-backdrop-filter: blur(20px) saturate(160%);
+    border: 1px solid oklch(from var(--border) l c h / 0.5);
+    border-radius: var(--radius-xl, 14px);
+    box-shadow:
+        0 4px 24px oklch(0 0 0 / 0.25),
+        0 1px 0 oklch(1 0 0 / 0.06) inset;
+    padding: 6px;
+    animation: context-menu-appear var(--duration-fast, 150ms)
+        var(--ease-spring, cubic-bezier(0.34, 1.56, 0.64, 1)) both;
+    overflow: hidden;
+}
+
+@keyframes context-menu-appear {
+    from {
+        opacity: 0;
+        transform: scale(0.92) translateY(-4px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+/* ── Menu items ── */
+
+.bubble-context-menu__item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 8px 10px;
+    border: none;
+    border-radius: var(--radius-sm, 8px);
+    background: transparent;
+    color: var(--foreground);
+    font-size: 0.875rem;
+    cursor: pointer;
+    text-align: left;
+    transition: background 100ms ease-out;
+}
+
+.bubble-context-menu__item:hover {
+    background: oklch(from var(--primary) l c h / 0.1);
+}
+
+.bubble-context-menu__item:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+    border-radius: var(--radius-sm, 8px);
+}
+
+.bubble-context-menu__item:active {
+    background: oklch(from var(--primary) l c h / 0.18);
+}
+
+.bubble-context-menu__item--focused {
+    background: oklch(from var(--primary) l c h / 0.1);
+}
+
+.bubble-context-menu__item--destructive {
+    color: var(--destructive, oklch(0.65 0.22 25));
+}
+
+.bubble-context-menu__item--destructive:hover {
+    background: oklch(from var(--destructive, oklch(0.65 0.22 25)) l c h / 0.12);
+}
+
+.bubble-context-menu__divider {
+    height: 1px;
+    margin: 4px 6px;
+    background: oklch(from var(--border) l c h / 0.5);
+}
+
+/* ============================================================
+   Multi-Select State — glow ring + slight scale
+   ============================================================ */
+
+.bubble-selected .bubble-card {
+    box-shadow:
+        0 0 0 2px var(--primary),
+        0 4px 16px var(--shadow-ambient);
+    transform: scale(0.97);
+    transition:
+        transform 150ms ease-out,
+        box-shadow 150ms ease-out;
+}
+
+/* ============================================================
+   Inline Pin Indicator (inside bubble card, no layout overflow)
+   ============================================================ */
+
+.bubble-pin-indicator {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding-bottom: 5px;
+    margin-bottom: 5px;
+    border-bottom: 1px solid oklch(from var(--primary) l c h / 0.18);
+}
+
+.bubble-pin-indicator__dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--primary);
+    flex-shrink: 0;
+    animation: pin-accent-pulse 2.8s ease-in-out infinite;
+}
+
+.bubble-pin-indicator__label {
+    font-size: 0.5rem;
+    font-weight: 700;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    line-height: 1;
+}
+
+/* ============================================================
+   Reply Quote Block — frosted glass fragment inside the bubble
+   ============================================================ */
+
+.bubble-quote-block {
+    display: block;
+    width: 100%;
+    /* Frosted glass panel — no left-border; direction communicated through sender color */
+    background: oklch(from var(--card) l c h / 0.28);
+    backdrop-filter: blur(10px) saturate(130%);
+    -webkit-backdrop-filter: blur(10px) saturate(130%);
+    border: 1px solid oklch(from var(--border) l c h / 0.22);
+    border-top-color: oklch(from var(--primary) calc(l + 0.1) c h / 0.3);
+    border-radius: var(--radius-md, 8px);
+    padding: 0.5rem 0.75rem;
+    margin-bottom: 0.5rem;
+    cursor: pointer;
+    text-align: left;
+    min-width: 0;
+    position: relative;
+    overflow: hidden;
+    box-shadow:
+        0 2px 8px oklch(0 0 0 / 0.1),
+        0 0.5px 0 oklch(1 0 0 / 0.07) inset;
+    transition:
+        background 120ms ease-out,
+        box-shadow 120ms ease-out;
+}
+
+/* Frosted glass shimmer — light catching the top-left corner */
+.bubble-quote-block::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, oklch(1 0 0 / 0.07) 0%, oklch(1 0 0 / 0) 55%);
+    pointer-events: none;
+    border-radius: inherit;
+}
+
+.bubble-quote-block:hover {
+    background: oklch(from var(--card) calc(l + 0.03) c h / 0.4);
+    box-shadow:
+        0 3px 12px oklch(0 0 0 / 0.13),
+        0 0.5px 0 oklch(1 0 0 / 0.1) inset;
+}
+
+.bubble-quote-block:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 2px;
+}
+
+/* Own-message quote — cooler glass tint, muted sender color */
+.bubble-quote-block--muted {
+    border-top-color: oklch(from var(--muted-foreground) l c h / 0.2);
+}
+
+.bubble-quote-block__sender {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--primary);
+    /* Subtle glow on sender name */
+    text-shadow: 0 0 10px oklch(from var(--primary) l c h / 0.4);
+    margin-bottom: 2px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.bubble-quote-block--muted .bubble-quote-block__sender {
+    color: var(--muted-foreground);
+    text-shadow: none;
+}
+
+.bubble-quote-block__content {
+    display: -webkit-box;
+    line-clamp: 2;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-size: 0.75rem;
+    color: oklch(from var(--foreground) l c h / 0.7);
+    min-width: 0;
+}
+
+.bubble-quote-block__deleted {
+    font-style: italic;
+    color: var(--muted-foreground);
+    font-size: 0.75rem;
+}
+
+/* ============================================================
+   Pin Rings — sonic wave at bubble corner on pin
+   ============================================================ */
+
+.bubble-pin-rings {
+    position: absolute;
+    top: -6px;
+    width: 12px;
+    height: 12px;
+    pointer-events: none;
+}
+
+/* Own bubbles: rings appear on the right */
+.bubble-wrapper--own .bubble-pin-rings {
+    right: -6px;
+    left: auto;
+}
+
+/* Received bubbles: rings appear on the left */
+.bubble-wrapper--received .bubble-pin-rings {
+    left: -6px;
+    right: auto;
+}
+
+.bubble-pin-rings .ring {
+    position: absolute;
+    inset: 0;
+    border-radius: 50%;
+    border: 1.5px solid var(--primary);
+    transform-origin: center;
+    opacity: 0;
+    animation-play-state: paused;
+    animation-fill-mode: forwards;
+    animation-timing-function: ease-out;
+}
+
+/* ── Pin wave keyframes (transform + opacity only) ── */
+
+@keyframes pin-wave-1 {
+    0% {
+        transform: scale(0.3);
+        opacity: 0.8;
+    }
+    100% {
+        transform: scale(2.2);
+        opacity: 0;
+    }
+}
+
+@keyframes pin-wave-2 {
+    0% {
+        transform: scale(0.3);
+        opacity: 0.6;
+    }
+    100% {
+        transform: scale(2.8);
+        opacity: 0;
+    }
+}
+
+@keyframes pin-wave-3 {
+    0% {
+        transform: scale(0.3);
+        opacity: 0.4;
+    }
+    100% {
+        transform: scale(3.2);
+        opacity: 0;
+    }
+}
+
+.bubble-pin-rings--active .ring-1 {
+    animation-name: pin-wave-1;
+    animation-duration: 700ms;
+    animation-delay: 0ms;
+    animation-play-state: running;
+}
+
+.bubble-pin-rings--active .ring-2 {
+    animation-name: pin-wave-2;
+    animation-duration: 800ms;
+    animation-delay: 80ms;
+    animation-play-state: running;
+}
+
+.bubble-pin-rings--active .ring-3 {
+    animation-name: pin-wave-3;
+    animation-duration: 900ms;
+    animation-delay: 160ms;
+    animation-play-state: running;
+}
+
+/* ============================================================
+   Pinned Message Banner (sticky top strip)
+   ============================================================ */
+
+.pinned-message-banner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: oklch(from var(--card) l c h / 0.6);
+    backdrop-filter: blur(var(--blur-md, 12px));
+    -webkit-backdrop-filter: blur(var(--blur-md, 12px));
+    border-bottom: 1px solid oklch(from var(--border) l c h / 0.4);
+    min-width: 0;
+    cursor: pointer;
+    transition: background 150ms ease-out;
+}
+
+.pinned-message-banner:hover {
+    background: oklch(from var(--card) calc(l + 0.02) c h / 0.75);
+}
+
+.pinned-message-banner:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+}
+
+/* Accent bar — project-characteristic pulsing left-border indicator */
+.pinned-message-banner__accent {
+    flex-shrink: 0;
+    width: 3px;
+    height: 28px;
+    border-radius: 2px;
+    background: var(--primary);
+    animation: pin-accent-pulse 2.8s ease-in-out infinite;
+}
+
+@keyframes pin-accent-pulse {
+    0%,
+    100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.45;
+    }
+}
+
+.pinned-message-banner__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.pinned-message-banner__label {
+    display: block;
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 1px;
+}
+
+.pinned-message-banner__text {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--foreground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+/* ChevronDown inside expand button — CSS-driven rotation (no inline style) */
+.pinned-message-banner__chevron {
+    transition: transform 200ms ease-out;
+}
+
+.pinned-message-banner__chevron--up {
+    transform: rotate(180deg);
+}
+
+/* ── Collapsed mini-indicator ── */
+
+.pinned-message-mini {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    width: 100%;
+    padding: 3px 12px;
+    background: oklch(from var(--primary) l c h / 0.06);
+    border: none;
+    border-bottom: 1px solid oklch(from var(--border) l c h / 0.3);
+    cursor: pointer;
+    text-align: left;
+    transition: background 120ms ease-out;
+}
+
+.pinned-message-mini:hover {
+    background: oklch(from var(--primary) l c h / 0.1);
+}
+
+.pinned-message-mini:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+}
+
+.pinned-message-mini__pulse {
+    flex-shrink: 0;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--primary);
+    animation: pin-accent-pulse 2.8s ease-in-out infinite;
+}
+
+.pinned-message-mini__label {
+    font-size: 0.625rem;
+    font-weight: 600;
+    color: var(--primary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.pinned-message-mini__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: oklch(0.98 0 0);
+    font-size: 0.5rem;
+    font-weight: 700;
+    flex-shrink: 0;
+    margin-left: 2px;
+}
+
+.pinned-message-banner__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    background: var(--primary);
+    color: oklch(0.98 0 0);
+    font-size: 0.5rem;
+    font-weight: 700;
+    margin-left: 5px;
+    vertical-align: middle;
+}
+
+/* ── Expandable pin list ── */
+
+.pinned-message-list {
+    background: oklch(from var(--card) l c h / 0.55);
+    backdrop-filter: blur(var(--blur-md, 12px));
+    -webkit-backdrop-filter: blur(var(--blur-md, 12px));
+    border-bottom: 1px solid oklch(from var(--border) l c h / 0.3);
+    padding: 2px 0;
+}
+
+.pinned-message-list__item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    width: 100%;
+    padding: 6px 12px;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    transition: background 100ms ease-out;
+}
+
+.pinned-message-list__item:hover {
+    background: oklch(from var(--primary) l c h / 0.08);
+}
+
+.pinned-message-list__item:focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: -2px;
+}
+
+.pinned-message-list__index {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    border: 1px solid oklch(from var(--primary) l c h / 0.4);
+    color: var(--primary);
+    font-size: 0.5625rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+}
+
+.pinned-message-list__text {
+    flex: 1;
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+/* ============================================================
+   Multi-Select Toolbar (bottom pill bar)
+   ============================================================ */
+
+.multi-select-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 8px 12px;
+    background: oklch(from var(--card) l c h / 0.8);
+    backdrop-filter: blur(var(--blur-md, 12px));
+    -webkit-backdrop-filter: blur(var(--blur-md, 12px));
+    border-top: 1px solid oklch(from var(--border) l c h / 0.4);
+}
+
+.multi-select-toolbar__count {
+    font-size: 0.8125rem;
+    color: var(--muted-foreground);
+    min-width: 0;
+    white-space: nowrap;
+}
+
+/* ============================================================
+   Reply Preview Strip (above MessageInput)
+   Note: border-top is on the outer wrapper in MessageInput.tsx — not here.
+   ============================================================ */
+
+.reply-preview-strip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    /* Left accent border echoes the bubble-quote-block aesthetic */
+    border-left: 3px solid var(--primary);
+    /* Strong enough background for both light and dark modes */
+    background: oklch(from var(--primary) l c h / 0.08);
+    min-width: 0;
+}
+
+.reply-preview-strip__icon {
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+.reply-preview-strip__content {
+    flex: 1;
+    min-width: 0;
+}
+
+.reply-preview-strip__sender {
+    display: block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--primary);
+    margin-bottom: 1px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.reply-preview-strip__text {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+}
+
+/* ============================================================
+   Reduced Motion + Minimal Mode
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+    .bubble-action-icons,
+    .bubble-action-btn,
+    .bubble-context-menu,
+    .bubble-context-menu__item,
+    .bubble-quote-block,
+    .pinned-message-banner,
+    .pinned-message-mini,
+    .pinned-message-banner__chevron {
+        transition: none;
+        animation: none;
+    }
+
+    .pinned-message-banner__accent,
+    .pinned-message-mini__pulse {
+        animation: none;
+        opacity: 1;
+    }
+
+    .bubble-pin-indicator__dot {
+        animation: none;
+    }
+
+    .bubble-selected .bubble-card {
+        transition: none;
+    }
+
+    .bubble-pin-rings .ring,
+    .bubble-pin-rings--active .ring-1,
+    .bubble-pin-rings--active .ring-2,
+    .bubble-pin-rings--active .ring-3 {
+        animation: none;
+        opacity: 0;
+    }
+
+    .bubble-context-menu {
+        animation: none;
+    }
+}
+
+[data-aesthetic="minimal"] .bubble-action-icons,
+[data-aesthetic="minimal"] .bubble-action-btn {
+    transition: none;
+}
+
+[data-aesthetic="minimal"] .bubble-context-menu {
+    animation: none;
+}
+
+[data-aesthetic="minimal"] .bubble-selected .bubble-card {
+    transition: none;
+}
+
+[data-aesthetic="minimal"] .bubble-pin-rings .ring,
+[data-aesthetic="minimal"] .bubble-pin-rings--active .ring-1,
+[data-aesthetic="minimal"] .bubble-pin-rings--active .ring-2,
+[data-aesthetic="minimal"] .bubble-pin-rings--active .ring-3 {
+    animation: none;
+    opacity: 0;
+}
+
+[data-aesthetic="minimal"] .pinned-message-banner,
+[data-aesthetic="minimal"] .pinned-message-mini,
+[data-aesthetic="minimal"] .pinned-message-banner__chevron {
+    transition: none;
+}
+
+[data-aesthetic="minimal"] .pinned-message-banner__accent,
+[data-aesthetic="minimal"] .pinned-message-mini__pulse {
+    animation: none;
+    opacity: 1;
+}
+
+[data-aesthetic="minimal"] .bubble-pin-indicator__dot {
+    animation: none;
+}

@@ -40,6 +40,7 @@ import type { DateItem, ListItem, MessageItem, PendingItem, TypingItem } from "@
 
 import { InteractionEvent } from "./InteractionEvent"
 import { MessageBubble } from "./MessageBubble"
+import { MessageBubbleWrapper } from "./MessageBubbleWrapper"
 import { TypingIndicator } from "./TypingIndicator"
 
 // Re-export so consumers can import from a single location if needed
@@ -262,10 +263,12 @@ function MessageRow({ item, ctx }: { item: MessageItem; ctx: RenderContext }) {
                 )}
 
                 <div className={cn("min-w-0", isGroupReceived ? "flex-1" : "w-full")}>
-                    <MessageBubble
+                    <MessageBubbleWrapper
                         message={msg}
                         isOwn={isOwn}
                         shouldAnimate={isNewMessage(msg.createdAt)}
+                        conversationId={ctx.conversationId}
+                        currentUserId={ctx.currentUserId}
                     />
                 </div>
             </div>
@@ -321,10 +324,14 @@ export function MessageList({
             mutationKey: ["sendMessage", conversationId],
             status: "pending",
         },
-        select: (mutation) => ({
-            content: mutation.state.variables as string,
-            submittedAt: mutation.state.submittedAt,
-        }),
+        select: (mutation) => {
+            // variables may be a plain string (sendMutation) or
+            // { content, replyToMessageId } (replyMutation) — always extract content.
+            const vars = mutation.state.variables
+            const content =
+                typeof vars === "string" ? vars : ((vars as { content: string }).content ?? "")
+            return { content, submittedAt: mutation.state.submittedAt }
+        },
     })
 
     // Track when this conversation was opened. Messages created BEFORE this
@@ -394,6 +401,27 @@ export function MessageList({
         () => buildItems(messages, pendingMessages, typingUsers),
         [messages, pendingMessages, typingUsers]
     )
+
+    // Listen for "message:scrollTo" custom events dispatched by:
+    //   - PinnedMessageBanner (when user taps the pinned banner)
+    //   - ReplyQuoteBlock (when user taps a reply quote)
+    // Same dispatch pattern as "ritual:incoming" in ChatRoomOverlays.
+    useEffect(() => {
+        const handler = (e: Event) => {
+            const { messageId } = (e as CustomEvent<{ messageId: string }>).detail
+            const idx = items.findIndex(
+                (item) => item.kind === "message" && item.message.id === messageId
+            )
+            if (idx >= 0) {
+                // Child 0 = topSentinel, child 1 = optional spinner, then items.
+                // Offset by 1 always, +1 more when the "loading older messages" spinner is visible.
+                const vListIndex = idx + 1 + (isFetchingNextPage ? 1 : 0)
+                listRef.current?.scrollToIndex(vListIndex, { smooth: true })
+            }
+        }
+        window.addEventListener("message:scrollTo", handler)
+        return () => window.removeEventListener("message:scrollTo", handler)
+    }, [items, isFetchingNextPage])
 
     const ctx: RenderContext = useMemo(
         () => ({

@@ -60,3 +60,10 @@ export function formatConversationDate(iso: string): string {
 export function toLocalDateKey(date: Date): string {
     return getFormatters().dateParts.format(date)
 }
+
+// ─── Chat DOM events ───────────────────────────────────────────────────────────
+
+/** Dispatches "message:scrollTo" so MessageList can scroll to a specific message. */
+export function dispatchScrollToMessage(messageId: string): void {
+    window.dispatchEvent(new CustomEvent("message:scrollTo", { detail: { messageId } }))
+}

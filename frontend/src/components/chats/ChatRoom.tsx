@@ -18,12 +18,14 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { Link } from "@tanstack/react-router"
-import { ArrowLeft, Info, Users } from "lucide-react"
+import { useStore } from "@tanstack/react-store"
+import { ArrowLeft, Info, Trash2, Users } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
 import { useEffect, useMemo, useState } from "react"
 
 import {
     MARK_READ_MUTATION,
+    REPLY_TO_MESSAGE_MUTATION,
     SEND_MESSAGE_MUTATION,
     conversationQueryOptions,
     conversationsQueryOptions,
@@ -31,6 +33,7 @@ import {
 import { graphqlFetch } from "@/lib/graphql-client"
 import { resolveRitualLabels } from "@/lib/ritualLabels"
 import { cn } from "@/lib/utils"
+import { chatStore, exitMultiSelect, setReplyToMessage } from "@/stores/chatStore"
 import { uiStore } from "@/stores/uiStore"
 import type { Conversation, Message } from "@/types/conversations"
 
@@ -40,6 +43,7 @@ import { DirectInfoPanel } from "./DirectInfoPanel"
 import { GroupInfoPanel } from "./GroupInfoPanel"
 import { MessageInput } from "./MessageInput"
 import { MessageList } from "./MessageList"
+import { PinnedMessageBanner } from "./PinnedMessageBanner"
 import { RitualPickerButton } from "./RitualPickerButton"
 import { SonicPingButton } from "./SonicPingButton"
 
@@ -53,6 +57,10 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
 
     const [showInfo, setShowInfo] = useState(false)
     const [sendError, setSendError] = useState<string | null>(null)
+
+    const isMultiSelectMode = useStore(chatStore, (s) => s.isMultiSelectMode)
+    const selectedMessageIds = useStore(chatStore, (s) => s.selectedMessageIds)
+    const replyToMessage = useStore(chatStore, (s) => s.replyToMessage)
 
     const { data: conversation } = useQuery(conversationQueryOptions(conversationId))
 
@@ -75,11 +83,14 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
     // On entering a conversation:
     //  1. Register as active so socket handlers suppress unread increments.
     //  2. Mark existing messages as read immediately.
-    // Both actions share the same [conversationId] trigger — merging into one
+    //  3. Exit multi-select mode (clear selected messages from previous conversation).
+    // All actions share the same [conversationId] trigger — merging into one
     // effect avoids two separate effect runs on every conversation switch.
     useEffect(() => {
         uiStore.setState((s) => ({ ...s, activeConversationId: conversationId }))
         markReadMutation.mutate()
+        exitMultiSelect()
+        setReplyToMessage(null)
         return () => {
             uiStore.setState((s) => ({ ...s, activeConversationId: null }))
         }
@@ -127,6 +138,40 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
             setSendError("Failed to send message. Please try again.")
         },
     })
+
+    // Reply-to mutation: fires when chatActionsStore.replyToMessage is set.
+    const replyMutation = useMutation({
+        mutationKey: ["sendMessage", conversationId],
+        mutationFn: ({
+            content,
+            replyToMessageId,
+        }: {
+            content: string
+            replyToMessageId: string
+        }) =>
+            graphqlFetch<{ replyToMessage: Message }>(REPLY_TO_MESSAGE_MUTATION, {
+                conversationId,
+                content,
+                replyToMessageId,
+            }),
+        onSuccess: () => {
+            void queryClient.invalidateQueries({ queryKey: ["messages", conversationId] })
+            void queryClient.invalidateQueries({ queryKey: ["conversations"] })
+            setReplyToMessage(null)
+            setSendError(null)
+        },
+        onError: () => {
+            setSendError("Failed to send reply. Please try again.")
+        },
+    })
+
+    function handleSend(content: string) {
+        if (replyToMessage) {
+            replyMutation.mutate({ content, replyToMessageId: replyToMessage.id })
+        } else {
+            sendMutation.mutate(content)
+        }
+    }
 
     const isOneToOne = conversation?.type === "ONE_TO_ONE"
     const isGroup = conversation?.type === "GROUP"
@@ -233,31 +278,67 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                 </div>
             )}
 
-            {/* Message list — keyed by conversationId so the list remounts (scroll
-                  resets to bottom) when switching conversations, and fades in. */}
-            <motion.div
-                key={conversationId}
-                className="flex-1 min-h-0 flex flex-col"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ duration: 0.15, ease: "easeOut" }}
-            >
-                <MessageList
-                    conversationId={conversationId}
-                    currentUserId={currentUserId}
-                    conversationType={conversationType}
-                    ritualLabels={resolvedLabels}
-                />
-            </motion.div>
+            {/* Message list area — pinned banner overlays from top without pushing content down */}
+            <div className="relative flex-1 min-h-0 flex flex-col">
+                {/* Banner is absolute so it overlays messages instead of displacing them */}
+                <div className="absolute top-0 left-0 right-0 z-10">
+                    <PinnedMessageBanner conversationId={conversationId} />
+                </div>
+
+                {/* Message list — keyed by conversationId so the list remounts (scroll
+                      resets to bottom) when switching conversations, and fades in. */}
+                <motion.div
+                    key={conversationId}
+                    className="flex-1 min-h-0 flex flex-col"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.15, ease: "easeOut" }}
+                >
+                    <MessageList
+                        conversationId={conversationId}
+                        currentUserId={currentUserId}
+                        conversationType={conversationType}
+                        ritualLabels={resolvedLabels}
+                    />
+                </motion.div>
+            </div>
 
             <ChatRoomOverlays />
+
+            {/* Multi-select toolbar — shown when isMultiSelectMode is true */}
+            {isMultiSelectMode && (
+                <div className="multi-select-toolbar shrink-0">
+                    <span className="multi-select-toolbar__count">
+                        已選 {selectedMessageIds.size} 條
+                    </span>
+                    <div className="flex items-center gap-2">
+                        {/* Delete selected — only if all selected are own messages (simplified: show always) */}
+                        <button
+                            type="button"
+                            className="glass-button text-sm"
+                            style={{ color: "var(--destructive)" }}
+                            aria-label="Delete selected messages"
+                        >
+                            <Trash2 size={14} aria-hidden="true" />
+                        </button>
+                        <button
+                            type="button"
+                            className="glass-button text-sm"
+                            onClick={exitMultiSelect}
+                            aria-label="Cancel multi-select"
+                        >
+                            取消
+                        </button>
+                    </div>
+                </div>
+            )}
 
             {/* Message input */}
             <div className="shrink-0">
                 <MessageInput
                     conversationId={conversationId}
-                    onSend={(content) => sendMutation.mutate(content)}
-                    disabled={sendMutation.isPending}
+                    onSend={handleSend}
+                    disabled={sendMutation.isPending || replyMutation.isPending}
                 />
             </div>
 

@@ -11,6 +11,12 @@
  *   SENT      → Check (size 12)
  *   DELIVERED → CheckCheck (size 12)
  *   READ      → CheckCheck (size 12, primary color)
+ *
+ * Extensions:
+ *   - replyTo:        renders ReplyQuoteBlock above message text
+ *   - pinnedAt:       renders sonic wave rings via IntersectionObserver
+ *   - isSelected:     applies glow ring + scale(0.97)
+ *   - currentUserId:  passed to ReplyQuoteBlock for border direction
  */
 
 import { Check, CheckCheck } from "lucide-react"
@@ -18,7 +24,9 @@ import { motion } from "motion/react"
 
 import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
 import { cn, formatMessageTime } from "@/lib/utils"
-import type { Message, MessageStatusType } from "@/types/conversations"
+import type { Message, MessageReplyTo, MessageStatusType } from "@/types/conversations"
+
+import { ReplyQuoteBlock } from "./ReplyQuoteBlock"
 
 interface MessageBubbleProps {
     message: Message
@@ -31,6 +39,16 @@ interface MessageBubbleProps {
      * entrance animation so switching conversations doesn't shrink/expand.
      */
     shouldAnimate?: boolean
+    /** Reply-to metadata. When present a ReplyQuoteBlock renders above the text. */
+    replyTo?: MessageReplyTo | null
+    /** When set, sonic pin-wave rings animate in on first viewport entry. */
+    pinnedAt?: string | null
+    /** When true, applies the glow-ring multi-select style. */
+    isSelected?: boolean
+    /** Current user ID — forwarded to ReplyQuoteBlock for border direction. */
+    currentUserId?: string
+    /** Called when user taps a reply quote block to jump to that message. */
+    onScrollToOriginal?: (id: string) => void
 }
 
 // Status icon (own messages only)
@@ -50,8 +68,17 @@ export function MessageBubble({
     isOwn,
     isPending = false,
     shouldAnimate = false,
+    replyTo,
+    pinnedAt,
+    isSelected = false,
+    currentUserId,
+    onScrollToOriginal,
 }: MessageBubbleProps) {
     const { isMinimal } = useAestheticMode()
+
+    const resolvedReplyTo = replyTo ?? message.replyTo ?? null
+    const resolvedPinnedAt = pinnedAt ?? message.pinnedAt ?? null
+    const resolvedDeletedAt = message.deletedAt ?? null
 
     const bubbleContent = (
         <div
@@ -60,20 +87,55 @@ export function MessageBubble({
                 isOwn ? "bubble-card--send" : "bubble-card--receive"
             )}
         >
-            <p
-                className="text-sm"
-                style={{
-                    overflowWrap: "anywhere",
-                    wordBreak: "break-word",
-                    whiteSpace: "pre-wrap",
-                }}
-            >
-                {message.content}
-            </p>
+            {/* Pinned indicator — inline badge, no external positioning */}
+            {resolvedPinnedAt && !resolvedDeletedAt && (
+                <div className="bubble-pin-indicator" aria-label="Pinned message">
+                    <span className="bubble-pin-indicator__dot" aria-hidden="true" />
+                    <span className="bubble-pin-indicator__label">PINNED</span>
+                </div>
+            )}
+
+            {/* Reply quote block — renders above message text when present */}
+            {resolvedReplyTo && currentUserId && (
+                <ReplyQuoteBlock
+                    replyTo={resolvedReplyTo}
+                    currentUserId={currentUserId}
+                    onScrollToMessage={onScrollToOriginal ?? (() => {})}
+                />
+            )}
+
+            {/* Message text — shows placeholder when soft-deleted */}
+            {resolvedDeletedAt ? (
+                <p
+                    className="text-sm"
+                    style={{
+                        overflowWrap: "anywhere",
+                        wordBreak: "break-word",
+                        whiteSpace: "pre-wrap",
+                        fontStyle: "italic",
+                        color: "var(--muted-foreground)",
+                    }}
+                    aria-label="Message recalled"
+                >
+                    此訊息已收回
+                </p>
+            ) : (
+                <p
+                    className="text-sm"
+                    style={{
+                        overflowWrap: "anywhere",
+                        wordBreak: "break-word",
+                        whiteSpace: "pre-wrap",
+                    }}
+                >
+                    {message.content}
+                </p>
+            )}
+
             {/* Time + status inside the bubble, right-aligned */}
             <div className="bubble-card__time" suppressHydrationWarning>
                 {formatMessageTime(message.createdAt)}
-                {isOwn && <StatusIcon status={message.status} />}
+                {isOwn && !resolvedDeletedAt && <StatusIcon status={message.status} />}
             </div>
         </div>
     )
@@ -84,16 +146,22 @@ export function MessageBubble({
     const playAnimation = shouldAnimate || isPending
 
     return (
-        <div className={cn("flex flex-col w-full min-w-0", isOwn ? "items-end" : "items-start")}>
+        <div
+            className={cn(
+                "flex flex-col w-full min-w-0",
+                isOwn ? "items-end" : "items-start",
+                isSelected && "bubble-selected"
+            )}
+        >
             {isMinimal || !playAnimation ? (
                 // w-fit prevents this block wrapper from stretching to full column width,
                 // which would override bubble-card's width: fit-content sizing.
-                <div className="w-fit" style={{ opacity: isPending ? 0.6 : 1 }}>
+                <div className="w-fit relative" style={{ opacity: isPending ? 0.6 : 1 }}>
                     {bubbleContent}
                 </div>
             ) : (
                 <motion.div
-                    className="w-fit"
+                    className="w-fit relative"
                     initial={isOwn ? { x: 16, opacity: 0 } : { y: 10, opacity: 0 }}
                     animate={{ x: 0, y: 0, opacity: isPending ? 0.6 : 1 }}
                     transition={{ duration: 0.35, ease: [0.34, 1.56, 0.64, 1] }}

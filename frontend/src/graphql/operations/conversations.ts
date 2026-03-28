@@ -289,6 +289,79 @@ export const SET_RITUAL_LABEL_MUTATION = `
     }
 `
 
+// ============================================================================
+// Message Actions
+// ============================================================================
+
+/**
+ * Reply to a message within a conversation.
+ * Creates a new message with a replyToId pointing to the original message.
+ * Guards: replyToMessageId must belong to the same conversationId.
+ */
+export const REPLY_TO_MESSAGE_MUTATION = `
+    mutation ReplyToMessage($conversationId: ID!, $content: String!, $replyToMessageId: ID!) {
+        replyToMessage(conversationId: $conversationId, content: $content, replyToMessageId: $replyToMessageId) {
+            ...MessageFields
+        }
+    }
+    ${MESSAGE_FIELDS}
+    ${USER_CONVERSATION_FIELDS}
+`
+
+/**
+ * Pin a message in a conversation.
+ * Sets message.pinnedAt and conversation.pinnedMessageId.
+ * Idempotent: if already pinned, returns the existing pinnedAt unchanged.
+ */
+export const PIN_MESSAGE_MUTATION = `
+    mutation PinMessage($messageId: ID!) {
+        pinMessage(messageId: $messageId) {
+            id
+            pinnedAt
+        }
+    }
+`
+
+/**
+ * Unpin a previously pinned message in a conversation.
+ * Clears message.pinnedAt and conversation.pinnedMessageId.
+ * Idempotent: if already unpinned, returns null pinnedAt without error.
+ */
+export const UNPIN_MESSAGE_MUTATION = `
+    mutation UnpinMessage($messageId: ID!) {
+        unpinMessage(messageId: $messageId) {
+            id
+            pinnedAt
+        }
+    }
+`
+
+/**
+ * Delete a message with a specified scope.
+ * scope=OWN: soft-delete for current user only.
+ * scope=EVERYONE: soft-delete for all participants (sender only, within 24h).
+ */
+export const DELETE_MESSAGE_MUTATION = `
+    mutation DeleteMessage($messageId: ID!, $scope: DeleteMessageScope!) {
+        deleteMessage(messageId: $messageId, scope: $scope)
+    }
+`
+
+/**
+ * Forward a message to another conversation.
+ * Creates a new message in the target conversation with the same content.
+ * The forwarder becomes the sender of the new message.
+ */
+export const FORWARD_MESSAGE_MUTATION = `
+    mutation ForwardMessage($messageId: ID!, $targetConversationId: ID!) {
+        forwardMessage(messageId: $messageId, targetConversationId: $targetConversationId) {
+            ...MessageFields
+        }
+    }
+    ${MESSAGE_FIELDS}
+    ${USER_CONVERSATION_FIELDS}
+`
+
 /**
  * Send a ritual interaction message to another participant.
  * Creates a persisted ritual message and emits a ritual:incoming socket event

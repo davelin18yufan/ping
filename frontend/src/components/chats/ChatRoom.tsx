@@ -196,7 +196,7 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
             <div
                 className={cn(
                     "chat-room__header glass-card flex items-center gap-3 px-4 py-3 shrink-0",
-                    "rounded-none border-x-0 border-t-0"
+                    "rounded-none border-x-0 border-t-0 z-20"
                 )}
             >
                 <Link

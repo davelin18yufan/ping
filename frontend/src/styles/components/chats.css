@@ -2363,7 +2363,7 @@
 .ritual-picker {
     position: absolute;
     top: calc(100% + 8px);
-    right: 0;
+    right: -200%;
     z-index: 60;
     background: var(--glass-background-hover);
     backdrop-filter: blur(var(--blur-lg, 16px)) saturate(var(--glass-saturation-md, 160%));

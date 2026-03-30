@@ -29,7 +29,8 @@ export const USER_CONVERSATION_FIELDS = `
 `
 
 /**
- * Full message payload including sender identity and delivery status.
+ * Full message payload including sender identity, delivery status,
+ * reply context, pin and soft-delete timestamps.
  * Depends on: UserConversationFields (must be included by consumer).
  */
 export const MESSAGE_FIELDS = `
@@ -44,6 +45,18 @@ export const MESSAGE_FIELDS = `
         imageUrl
         createdAt
         status
+        replyTo {
+            id
+            content
+            deletedAt
+            sender {
+                id
+                name
+                image
+            }
+        }
+        pinnedAt
+        deletedAt
     }
 `
 
@@ -95,6 +108,15 @@ export const CONVERSATION_BASIC_FIELDS = `
             onlyOwnerCanInvite
             onlyOwnerCanKick
             onlyOwnerCanEdit
+        }
+        pinnedMessage {
+            id
+            content
+            createdAt
+            sender {
+                id
+                name
+            }
         }
     }
     ${MESSAGE_FIELDS}

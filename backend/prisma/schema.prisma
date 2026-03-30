@@ -119,6 +119,9 @@ model Conversation {
   allowRituals       Boolean          @default(false)
   createdAt          DateTime         @default(now())
 
+  pinnedMessageId String?
+  pinnedMessage   Message? @relation("ConversationPinnedMessage", fields: [pinnedMessageId], references: [id], onDelete: SetNull)
+
   participants ConversationParticipant[]
   messages     Message[]
   ritualLabels ConversationRitualLabel[]
@@ -163,12 +166,19 @@ model Message {
   messageType    MessageType @default(TEXT)
   imageUrl       String?
   createdAt      DateTime    @default(now())
+  replyToId      String?
+  pinnedAt       DateTime?
+  deletedAt      DateTime?
 
-  conversation Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
-  sender       User            @relation(fields: [senderId], references: [id], onDelete: Cascade)
-  statuses     MessageStatus[]
+  conversation         Conversation    @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender               User            @relation(fields: [senderId], references: [id], onDelete: Cascade)
+  statuses             MessageStatus[]
+  replyTo              Message?        @relation("MessageReply", fields: [replyToId], references: [id], onDelete: SetNull)
+  replies              Message[]       @relation("MessageReply")
+  pinnedInConversation Conversation[]  @relation("ConversationPinnedMessage")
 
   @@index([conversationId, createdAt(sort: Desc)])
+  @@index([replyToId])
 }
 
 model MessageStatus {

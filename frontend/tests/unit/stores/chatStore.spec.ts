@@ -5,10 +5,15 @@ import { chatStore } from "@/stores/chatStore"
 describe("chatStore", () => {
     beforeEach(() => {
         // Reset store state before each test
-        chatStore.setState(() => ({
+        chatStore.setState((s) => ({
+            ...s,
             currentConversationId: null,
             draftMessages: {},
             isTyping: {},
+            isMultiSelectMode: false,
+            selectedMessageIds: new Set<string>(),
+            multiSelectConversationId: null,
+            replyToMessage: null,
         }))
     })
 

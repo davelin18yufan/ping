@@ -51,6 +51,13 @@ export interface ConversationParticipant {
     joinedAt: string
 }
 
+export interface MessageReplyTo {
+    id: string
+    content: string | null
+    sender: { id: string; name: string | null; image: string | null }
+    deletedAt: string | null
+}
+
 export interface Message {
     id: string
     conversationId: string
@@ -60,6 +67,16 @@ export interface Message {
     imageUrl: string | null
     createdAt: string
     status: MessageStatusType
+    replyTo?: MessageReplyTo | null
+    pinnedAt?: string | null
+    deletedAt?: string | null
+}
+
+export interface PinnedMessagePreview {
+    id: string
+    content: string | null
+    createdAt: string
+    sender: { id: string; name: string | null }
 }
 
 export interface Conversation {
@@ -74,6 +91,7 @@ export interface Conversation {
     createdAt: string
     allowRituals: boolean
     ritualLabels: RitualLabel[]
+    pinnedMessage?: PinnedMessagePreview | null
 }
 
 export interface MessagePage {

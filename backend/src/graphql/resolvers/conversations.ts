@@ -86,6 +86,10 @@ async function persistRitualMessage(
         imageUrl: message.imageUrl,
         createdAt: message.createdAt.toISOString(),
         status: MessageStatusType.SENT,
+        replyToId: null,
+        pinnedAt: null,
+        deletedAt: null,
+        replyTo: null,
     }
 
     return { messageParent, senderName: message.sender?.name ?? null }
@@ -100,6 +104,15 @@ type RawMessageRow = {
     messageType: MessageType
     imageUrl: string | null
     createdAt: Date
+    replyToId?: string | null
+    pinnedAt?: Date | null
+    deletedAt?: Date | null
+    replyTo?: {
+        id: string
+        content: string | null
+        senderId: string
+        deletedAt: Date | null
+    } | null
 }
 
 function toMessageParent(m: RawMessageRow): MessageParent {
@@ -112,6 +125,17 @@ function toMessageParent(m: RawMessageRow): MessageParent {
         imageUrl: m.imageUrl,
         createdAt: m.createdAt.toISOString(),
         status: MessageStatusType.SENT,
+        replyToId: m.replyToId ?? null,
+        pinnedAt: m.pinnedAt ? m.pinnedAt.toISOString() : null,
+        deletedAt: m.deletedAt ? m.deletedAt.toISOString() : null,
+        replyTo: m.replyTo
+            ? {
+                  id: m.replyTo.id,
+                  content: m.replyTo.content,
+                  senderId: m.replyTo.senderId,
+                  deletedAt: m.replyTo.deletedAt ? m.replyTo.deletedAt.toISOString() : null,
+              }
+            : null,
     }
 }
 
@@ -205,6 +229,7 @@ const Query = {
             onlyOwnerCanEdit: c.onlyOwnerCanEdit,
             allowRituals: c.allowRituals,
             ritualLabels: labelsByConvId.get(c.id) ?? [],
+            pinnedMessageId: null, // not included in this raw query
             createdAt: c.createdAt.toISOString(),
         }))
     },
@@ -250,6 +275,7 @@ const Query = {
                 labelOwn: l.labelOwn,
                 labelOther: l.labelOther,
             })),
+            pinnedMessageId: conv.pinnedMessageId ?? null,
             createdAt: conv.createdAt.toISOString(),
         }
     },
@@ -335,6 +361,17 @@ const Query = {
                 messageType: true,
                 imageUrl: true,
                 createdAt: true,
+                replyToId: true,
+                pinnedAt: true,
+                deletedAt: true,
+                replyTo: {
+                    select: {
+                        id: true,
+                        content: true,
+                        senderId: true,
+                        deletedAt: true,
+                    },
+                },
             },
         })
 
@@ -434,6 +471,7 @@ const Mutation = {
                 onlyOwnerCanEdit: existing.onlyOwnerCanEdit,
                 allowRituals: existing.allowRituals,
                 ritualLabels: [],
+                pinnedMessageId: null,
                 createdAt: existing.createdAt.toISOString(),
             }
         }
@@ -461,6 +499,7 @@ const Mutation = {
             onlyOwnerCanEdit: conv.onlyOwnerCanEdit,
             allowRituals: conv.allowRituals,
             ritualLabels: [],
+            pinnedMessageId: null,
             createdAt: conv.createdAt.toISOString(),
         }
     },
@@ -525,6 +564,7 @@ const Mutation = {
             onlyOwnerCanEdit: conv.onlyOwnerCanEdit,
             allowRituals: conv.allowRituals,
             ritualLabels: [],
+            pinnedMessageId: null,
             createdAt: conv.createdAt.toISOString(),
         }
     },
@@ -624,6 +664,7 @@ const Mutation = {
             onlyOwnerCanEdit: conv.onlyOwnerCanEdit,
             allowRituals: conv.allowRituals,
             ritualLabels: [],
+            pinnedMessageId: null,
             createdAt: conv.createdAt.toISOString(),
         }
     },
@@ -920,6 +961,7 @@ const Mutation = {
                 labelOwn: l.labelOwn,
                 labelOther: l.labelOther,
             })),
+            pinnedMessageId: updated.pinnedMessageId ?? null,
             createdAt: updated.createdAt.toISOString(),
         }
     },
@@ -1007,6 +1049,9 @@ const Mutation = {
                 messageType: true,
                 imageUrl: true,
                 createdAt: true,
+                replyToId: true,
+                pinnedAt: true,
+                deletedAt: true,
             },
         })
 
@@ -1019,6 +1064,10 @@ const Mutation = {
             imageUrl: message.imageUrl,
             createdAt: message.createdAt.toISOString(),
             status: MessageStatusType.SENT,
+            replyToId: null,
+            pinnedAt: null,
+            deletedAt: null,
+            replyTo: null,
         }
 
         // Broadcast via Socket.io (non-fatal if not initialized)
@@ -1314,6 +1363,488 @@ const Mutation = {
 
         return true
     },
+
+    // =========================================================================
+    // Message Action Mutations (Feature 1.3.3)
+    // =========================================================================
+
+    /**
+     * Reply to an existing message within a conversation.
+     * Security: replyToMessage must belong to the same conversationId (cross-conversation injection guard).
+     */
+    replyToMessage: async (
+        _parent: unknown,
+        args: { conversationId: string; content: string; replyToMessageId: string },
+        context: GraphQLContext
+    ): Promise<MessageParent> => {
+        const userId = requireAuth(context)
+
+        // Validate content
+        if (!args.content || args.content.trim().length === 0) {
+            throw new GraphQLError("Message content cannot be empty", {
+                extensions: { code: "BAD_USER_INPUT", status: 400 },
+            })
+        }
+        if (args.content.length > 2000) {
+            throw new GraphQLError("Message content exceeds 2000 character limit", {
+                extensions: { code: "BAD_USER_INPUT", status: 400 },
+            })
+        }
+
+        // Verify caller is participant
+        const participant = await getParticipant(context.prisma, args.conversationId, userId)
+        if (!participant) {
+            throw new GraphQLError("Not a participant of this conversation", {
+                extensions: { code: "FORBIDDEN", status: 403 },
+            })
+        }
+
+        // Verify replyTo message exists
+        const replyToMsg = await context.prisma.message.findUnique({
+            where: { id: args.replyToMessageId },
+            select: {
+                id: true,
+                conversationId: true,
+                content: true,
+                senderId: true,
+                deletedAt: true,
+            },
+        })
+
+        if (!replyToMsg) {
+            throw new GraphQLError("Replied-to message not found", {
+                extensions: { code: "NOT_FOUND", status: 404 },
+            })
+        }
+
+        // Cross-conversation injection guard
+        if (replyToMsg.conversationId !== args.conversationId) {
+            throw new GraphQLError("Replied-to message does not belong to this conversation", {
+                extensions: { code: "BAD_USER_INPUT", status: 400 },
+            })
+        }
+
+        const message = await context.prisma.message.create({
+            data: {
+                conversationId: args.conversationId,
+                senderId: userId,
+                content: args.content,
+                messageType: MessageType.TEXT,
+                replyToId: args.replyToMessageId,
+            },
+            select: {
+                id: true,
+                conversationId: true,
+                senderId: true,
+                content: true,
+                messageType: true,
+                imageUrl: true,
+                createdAt: true,
+                replyToId: true,
+                pinnedAt: true,
+                deletedAt: true,
+                replyTo: {
+                    select: {
+                        id: true,
+                        content: true,
+                        senderId: true,
+                        deletedAt: true,
+                    },
+                },
+            },
+        })
+
+        const messageParent: MessageParent = toMessageParent(message)
+
+        try {
+            const io = getIO()
+            io.to(args.conversationId).emit("message:new", {
+                message: messageParent,
+                conversationId: args.conversationId,
+            })
+        } catch {
+            // Non-fatal in test environment
+        }
+
+        return messageParent
+    },
+
+    /**
+     * Pin a message within its conversation.
+     * Sets message.pinnedAt and conversation.pinnedMessageId.
+     * Idempotent: already-pinned messages return existing pinnedAt unchanged.
+     */
+    pinMessage: async (
+        _parent: unknown,
+        args: { messageId: string },
+        context: GraphQLContext
+    ): Promise<MessageParent> => {
+        const userId = requireAuth(context)
+
+        // Find message and verify it exists
+        const msg = await context.prisma.message.findUnique({
+            where: { id: args.messageId },
+            select: {
+                id: true,
+                conversationId: true,
+                pinnedAt: true,
+                replyToId: true,
+                deletedAt: true,
+            },
+        })
+
+        if (!msg) {
+            throw new GraphQLError("Message not found", {
+                extensions: { code: "NOT_FOUND", status: 404 },
+            })
+        }
+
+        // Verify caller is participant
+        const participant = await getParticipant(context.prisma, msg.conversationId, userId)
+        if (!participant) {
+            throw new GraphQLError("Not a participant of this conversation", {
+                extensions: { code: "FORBIDDEN", status: 403 },
+            })
+        }
+
+        // Idempotent: if already pinned, return as-is
+        if (msg.pinnedAt !== null) {
+            const existingMsg = await context.prisma.message.findUnique({
+                where: { id: args.messageId },
+                select: {
+                    id: true,
+                    conversationId: true,
+                    senderId: true,
+                    content: true,
+                    messageType: true,
+                    imageUrl: true,
+                    createdAt: true,
+                    replyToId: true,
+                    pinnedAt: true,
+                    deletedAt: true,
+                    replyTo: {
+                        select: { id: true, content: true, senderId: true, deletedAt: true },
+                    },
+                },
+            })
+            if (!existingMsg) {
+                throw new GraphQLError("Message not found", {
+                    extensions: { code: "NOT_FOUND", status: 404 },
+                })
+            }
+            return toMessageParent(existingMsg)
+        }
+
+        // Pin message and update conversation in a transaction
+        const [updatedMsg] = await context.prisma.$transaction([
+            context.prisma.message.update({
+                where: { id: args.messageId },
+                data: { pinnedAt: new Date() },
+                select: {
+                    id: true,
+                    conversationId: true,
+                    senderId: true,
+                    content: true,
+                    messageType: true,
+                    imageUrl: true,
+                    createdAt: true,
+                    replyToId: true,
+                    pinnedAt: true,
+                    deletedAt: true,
+                },
+            }),
+            context.prisma.conversation.update({
+                where: { id: msg.conversationId },
+                data: { pinnedMessageId: args.messageId },
+            }),
+        ])
+
+        const messageParent: MessageParent = {
+            ...toMessageParent({ ...updatedMsg, replyTo: null }),
+        }
+
+        try {
+            const io = getIO()
+            io.to(msg.conversationId).emit("message:pinned", {
+                messageId: args.messageId,
+                conversationId: msg.conversationId,
+                pinnedAt: messageParent.pinnedAt,
+            })
+        } catch {
+            // Non-fatal in test environment
+        }
+
+        return messageParent
+    },
+
+    /**
+     * Unpin a message from its conversation.
+     * Clears message.pinnedAt and conversation.pinnedMessageId.
+     * Idempotent: already-unpinned messages return null pinnedAt without error.
+     */
+    unpinMessage: async (
+        _parent: unknown,
+        args: { messageId: string },
+        context: GraphQLContext
+    ): Promise<MessageParent> => {
+        const userId = requireAuth(context)
+
+        // Find message
+        const msg = await context.prisma.message.findUnique({
+            where: { id: args.messageId },
+            select: { id: true, conversationId: true, pinnedAt: true },
+        })
+
+        if (!msg) {
+            throw new GraphQLError("Message not found", {
+                extensions: { code: "NOT_FOUND", status: 404 },
+            })
+        }
+
+        // Verify caller is participant
+        const participant = await getParticipant(context.prisma, msg.conversationId, userId)
+        if (!participant) {
+            throw new GraphQLError("Not a participant of this conversation", {
+                extensions: { code: "FORBIDDEN", status: 403 },
+            })
+        }
+
+        // Idempotent: if not pinned, return current state without broadcast
+        if (msg.pinnedAt === null) {
+            const existingMsg = await context.prisma.message.findUnique({
+                where: { id: args.messageId },
+                select: {
+                    id: true,
+                    conversationId: true,
+                    senderId: true,
+                    content: true,
+                    messageType: true,
+                    imageUrl: true,
+                    createdAt: true,
+                    replyToId: true,
+                    pinnedAt: true,
+                    deletedAt: true,
+                    replyTo: {
+                        select: { id: true, content: true, senderId: true, deletedAt: true },
+                    },
+                },
+            })
+            if (!existingMsg) {
+                throw new GraphQLError("Message not found", {
+                    extensions: { code: "NOT_FOUND", status: 404 },
+                })
+            }
+            return toMessageParent(existingMsg)
+        }
+
+        // Unpin message and clear conversation.pinnedMessageId in a transaction
+        const [updatedMsg] = await context.prisma.$transaction([
+            context.prisma.message.update({
+                where: { id: args.messageId },
+                data: { pinnedAt: null },
+                select: {
+                    id: true,
+                    conversationId: true,
+                    senderId: true,
+                    content: true,
+                    messageType: true,
+                    imageUrl: true,
+                    createdAt: true,
+                    replyToId: true,
+                    pinnedAt: true,
+                    deletedAt: true,
+                },
+            }),
+            // Always clear pinnedMessageId — handles both consistent and inconsistent state
+            context.prisma.conversation.update({
+                where: { id: msg.conversationId },
+                data: { pinnedMessageId: null },
+            }),
+        ])
+
+        const messageParent: MessageParent = toMessageParent({ ...updatedMsg, replyTo: null })
+
+        try {
+            const io = getIO()
+            io.to(msg.conversationId).emit("message:unpinned", {
+                messageId: args.messageId,
+                conversationId: msg.conversationId,
+            })
+        } catch {
+            // Non-fatal in test environment
+        }
+
+        return messageParent
+    },
+
+    /**
+     * Delete a message.
+     * scope=EVERYONE: sender-only, within 24h. Sets deletedAt and clears content.
+     * scope=OWN: stub — returns true (MessageHide table not yet implemented).
+     */
+    deleteMessage: async (
+        _parent: unknown,
+        args: { messageId: string; scope: "OWN" | "EVERYONE" },
+        context: GraphQLContext
+    ): Promise<boolean> => {
+        const userId = requireAuth(context)
+
+        const msg = await context.prisma.message.findUnique({
+            where: { id: args.messageId },
+            select: {
+                id: true,
+                conversationId: true,
+                senderId: true,
+                createdAt: true,
+                deletedAt: true,
+            },
+        })
+
+        if (!msg) {
+            throw new GraphQLError("Message not found", {
+                extensions: { code: "NOT_FOUND", status: 404 },
+            })
+        }
+
+        if (args.scope === "EVERYONE") {
+            // Only the sender can delete for everyone
+            if (msg.senderId !== userId) {
+                throw new GraphQLError("Only the message sender can retract for everyone", {
+                    extensions: { code: "FORBIDDEN", status: 403 },
+                })
+            }
+
+            // Already deleted — idempotent
+            if (msg.deletedAt !== null) {
+                return true
+            }
+
+            // 24-hour time limit
+            const hoursSinceCreated = (Date.now() - msg.createdAt.getTime()) / (1000 * 60 * 60)
+            if (hoursSinceCreated > 24) {
+                throw new GraphQLError("Cannot retract a message older than 24 hours", {
+                    extensions: { code: "FORBIDDEN", status: 403 },
+                })
+            }
+
+            await context.prisma.message.update({
+                where: { id: args.messageId },
+                data: { content: null, deletedAt: new Date() },
+            })
+
+            try {
+                const io = getIO()
+                io.to(msg.conversationId).emit("message:deleted", {
+                    messageId: args.messageId,
+                    conversationId: msg.conversationId,
+                    scope: "EVERYONE",
+                })
+            } catch {
+                // Non-fatal in test environment
+            }
+
+            return true
+        }
+
+        // scope=OWN: stub — MessageHide table not yet implemented
+        // Caller must still be a participant in the conversation to prevent data enumeration
+        const participant = await getParticipant(context.prisma, msg.conversationId, userId)
+        if (!participant) {
+            throw new GraphQLError("Not a participant of this conversation", {
+                extensions: { code: "FORBIDDEN", status: 403 },
+            })
+        }
+
+        return true
+    },
+
+    /**
+     * Forward a message to another conversation.
+     * Creates a new message with the same content. Cannot forward deleted messages.
+     */
+    forwardMessage: async (
+        _parent: unknown,
+        args: { messageId: string; targetConversationId: string },
+        context: GraphQLContext
+    ): Promise<MessageParent> => {
+        const userId = requireAuth(context)
+
+        // Load source message
+        const srcMsg = await context.prisma.message.findUnique({
+            where: { id: args.messageId },
+            select: {
+                id: true,
+                conversationId: true,
+                content: true,
+                deletedAt: true,
+                messageType: true,
+            },
+        })
+
+        if (!srcMsg) {
+            throw new GraphQLError("Message not found", {
+                extensions: { code: "NOT_FOUND", status: 404 },
+            })
+        }
+
+        // Cannot forward deleted messages
+        if (srcMsg.deletedAt !== null) {
+            throw new GraphQLError("Cannot forward a deleted message", {
+                extensions: { code: "BAD_USER_INPUT", status: 400 },
+            })
+        }
+
+        // Verify caller is participant in the target conversation
+        const targetParticipant = await getParticipant(
+            context.prisma,
+            args.targetConversationId,
+            userId
+        )
+        if (!targetParticipant) {
+            throw new GraphQLError("Not a participant of the target conversation", {
+                extensions: { code: "FORBIDDEN", status: 403 },
+            })
+        }
+
+        const newMessage = await context.prisma.message.create({
+            data: {
+                conversationId: args.targetConversationId,
+                senderId: userId,
+                content: srcMsg.content,
+                messageType: MessageType.TEXT,
+            },
+            select: {
+                id: true,
+                conversationId: true,
+                senderId: true,
+                content: true,
+                messageType: true,
+                imageUrl: true,
+                createdAt: true,
+                replyToId: true,
+                pinnedAt: true,
+                deletedAt: true,
+            },
+        })
+
+        const messageParent: MessageParent = toMessageParent({ ...newMessage, replyTo: null })
+
+        try {
+            const io = getIO()
+            io.to(args.targetConversationId).emit("message:new", {
+                message: messageParent,
+                conversationId: args.targetConversationId,
+            })
+            io.to(args.targetConversationId).emit("message:forwarded", {
+                newMessageId: newMessage.id,
+                targetConversationId: args.targetConversationId,
+            })
+        } catch {
+            // Non-fatal in test environment
+        }
+
+        return messageParent
+    },
 }
 
 // ---------------------------------------------------------------------------
@@ -1330,6 +1861,37 @@ const Conversation = {
 
     lastMessage: (parent: ConversationParent, _args: unknown, context: GraphQLContext) =>
         context.loaders.lastMessage.load(parent.id),
+
+    /**
+     * Resolve the pinned message for this conversation.
+     * Returns null if no message is pinned.
+     */
+    pinnedMessage: async (
+        parent: ConversationParent,
+        _args: unknown,
+        context: GraphQLContext
+    ): Promise<MessageParent | null> => {
+        if (!parent.pinnedMessageId) return null
+
+        const msg = await context.prisma.message.findUnique({
+            where: { id: parent.pinnedMessageId },
+            select: {
+                id: true,
+                conversationId: true,
+                senderId: true,
+                content: true,
+                messageType: true,
+                imageUrl: true,
+                createdAt: true,
+                replyToId: true,
+                pinnedAt: true,
+                deletedAt: true,
+                replyTo: { select: { id: true, content: true, senderId: true, deletedAt: true } },
+            },
+        })
+
+        return msg ? toMessageParent(msg) : null
+    },
 
     unreadCount: async (
         parent: ConversationParent,
@@ -1399,6 +1961,61 @@ const ConversationParticipant = {
 const Message = {
     sender: (parent: MessageParent, _args: unknown, context: GraphQLContext) =>
         context.loaders.user.load(parent.senderId),
+
+    replyToId: (parent: MessageParent): string | null => parent.replyToId,
+
+    pinnedAt: (parent: MessageParent): string | null => parent.pinnedAt,
+
+    deletedAt: (parent: MessageParent): string | null => parent.deletedAt,
+
+    /**
+     * Resolve the replyTo message from the already-loaded nested record.
+     * If the nested replyTo was not fetched, fall back to a DB lookup.
+     */
+    replyTo: async (
+        parent: MessageParent,
+        _args: unknown,
+        context: GraphQLContext
+    ): Promise<MessageParent | null> => {
+        if (!parent.replyToId) return null
+
+        if (parent.replyTo) {
+            // Already loaded inline — build a minimal MessageParent
+            return {
+                id: parent.replyTo.id,
+                conversationId: parent.conversationId,
+                senderId: parent.replyTo.senderId,
+                content: parent.replyTo.content,
+                messageType: MessageType.TEXT,
+                imageUrl: null,
+                createdAt: "",
+                status: MessageStatusType.SENT,
+                replyToId: null,
+                pinnedAt: null,
+                deletedAt: parent.replyTo.deletedAt,
+                replyTo: null,
+            }
+        }
+
+        // Fallback: load from DB
+        const msg = await context.prisma.message.findUnique({
+            where: { id: parent.replyToId },
+            select: {
+                id: true,
+                conversationId: true,
+                senderId: true,
+                content: true,
+                messageType: true,
+                imageUrl: true,
+                createdAt: true,
+                replyToId: true,
+                pinnedAt: true,
+                deletedAt: true,
+            },
+        })
+
+        return msg ? toMessageParent({ ...msg, replyTo: null }) : null
+    },
 }
 
 // ---------------------------------------------------------------------------

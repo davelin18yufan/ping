@@ -98,7 +98,11 @@ type GQLResult = {
     errors?: Array<{ message: string; extensions?: Record<string, unknown> }>
 }
 
-async function gql(query: string, variables?: Record<string, unknown>, token?: string): Promise<GQLResult> {
+async function gql(
+    query: string,
+    variables?: Record<string, unknown>,
+    token?: string
+): Promise<GQLResult> {
     const res = await executeGraphQL(query, variables, token)
     return parseGraphQLResponse(res) as Promise<GQLResult>
 }
@@ -263,7 +267,11 @@ describe("Feature 1.3.3 - Message Actions (Backend)", () => {
             `mutation Reply($conversationId: ID!, $content: String!, $replyToMessageId: ID!) {
                 replyToMessage(conversationId: $conversationId, content: $content, replyToMessageId: $replyToMessageId) { id }
             }`,
-            { conversationId: convId, content: "Hello", replyToMessageId: "00000000-0000-0000-0000-000000000000" },
+            {
+                conversationId: convId,
+                content: "Hello",
+                replyToMessageId: "00000000-0000-0000-0000-000000000000",
+            },
             aliceToken
         )
 
@@ -323,7 +331,7 @@ describe("Feature 1.3.3 - Message Actions (Backend)", () => {
             { messageId: msgId },
             aliceToken
         )
-        const firstPinnedAt = (first.data?.pinMessage as { pinnedAt: string }).pinnedAt
+        const firstPinnedAt = (first.data as { pinMessage: { pinnedAt: string } }).pinMessage.pinnedAt
 
         // Small delay to ensure timestamps would differ if not idempotent
         await new Promise((r) => setTimeout(r, 10))
@@ -333,7 +341,7 @@ describe("Feature 1.3.3 - Message Actions (Backend)", () => {
             { messageId: msgId },
             aliceToken
         )
-        const secondPinnedAt = (second.data?.pinMessage as { pinnedAt: string }).pinnedAt
+        const secondPinnedAt = (second.data as { pinMessage: { pinnedAt: string } }).pinMessage.pinnedAt
 
         expect(secondPinnedAt).toBe(firstPinnedAt)
     })
@@ -361,11 +369,7 @@ describe("Feature 1.3.3 - Message Actions (Backend)", () => {
         const aliceToken = await createSession(prisma, USER_ALICE.id)
 
         // Pin the message first
-        await gql(
-            `mutation { pinMessage(messageId: "${msgId}") { id } }`,
-            {},
-            aliceToken
-        )
+        await gql(`mutation { pinMessage(messageId: "${msgId}") { id } }`, {}, aliceToken)
 
         // Verify pinned state
         const dbConvBefore = await prisma.conversation.findUnique({ where: { id: convId } })
@@ -539,10 +543,7 @@ describe("Feature 1.3.3 - Message Actions (Backend)", () => {
     })
 
     test("TC-B-37d: deleteMessage unauthenticated returns UNAUTHENTICATED", async () => {
-        const result = await gql(
-            `mutation { deleteMessage(messageId: "x", scope: EVERYONE) }`,
-            {}
-        )
+        const result = await gql(`mutation { deleteMessage(messageId: "x", scope: EVERYONE) }`, {})
         expect(result.errors).toBeDefined()
         expect(result.errors?.[0]?.extensions?.code).toBe("UNAUTHENTICATED")
     })

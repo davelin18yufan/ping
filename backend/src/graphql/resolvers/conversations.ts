@@ -27,7 +27,6 @@ import type {
     ConversationParent,
     MessageRecord,
     RitualLabelRecord,
-    ReplyToRecord,
 } from "../types"
 import {
     requireAuth,
@@ -1403,7 +1402,13 @@ const Mutation = {
         // Verify replyTo message exists
         const replyToMsg = await context.prisma.message.findUnique({
             where: { id: args.replyToMessageId },
-            select: { id: true, conversationId: true, content: true, senderId: true, deletedAt: true },
+            select: {
+                id: true,
+                conversationId: true,
+                content: true,
+                senderId: true,
+                deletedAt: true,
+            },
         })
 
         if (!replyToMsg) {
@@ -1479,7 +1484,13 @@ const Mutation = {
         // Find message and verify it exists
         const msg = await context.prisma.message.findUnique({
             where: { id: args.messageId },
-            select: { id: true, conversationId: true, pinnedAt: true, replyToId: true, deletedAt: true },
+            select: {
+                id: true,
+                conversationId: true,
+                pinnedAt: true,
+                replyToId: true,
+                deletedAt: true,
+            },
         })
 
         if (!msg) {
@@ -1511,10 +1522,17 @@ const Mutation = {
                     replyToId: true,
                     pinnedAt: true,
                     deletedAt: true,
-                    replyTo: { select: { id: true, content: true, senderId: true, deletedAt: true } },
+                    replyTo: {
+                        select: { id: true, content: true, senderId: true, deletedAt: true },
+                    },
                 },
             })
-            return toMessageParent(existingMsg!)
+            if (!existingMsg) {
+                throw new GraphQLError("Message not found", {
+                    extensions: { code: "NOT_FOUND", status: 404 },
+                })
+            }
+            return toMessageParent(existingMsg)
         }
 
         // Pin message and update conversation in a transaction
@@ -1606,10 +1624,17 @@ const Mutation = {
                     replyToId: true,
                     pinnedAt: true,
                     deletedAt: true,
-                    replyTo: { select: { id: true, content: true, senderId: true, deletedAt: true } },
+                    replyTo: {
+                        select: { id: true, content: true, senderId: true, deletedAt: true },
+                    },
                 },
             })
-            return toMessageParent(existingMsg!)
+            if (!existingMsg) {
+                throw new GraphQLError("Message not found", {
+                    extensions: { code: "NOT_FOUND", status: 404 },
+                })
+            }
+            return toMessageParent(existingMsg)
         }
 
         // Unpin message and clear conversation.pinnedMessageId in a transaction
@@ -1695,8 +1720,7 @@ const Mutation = {
             }
 
             // 24-hour time limit
-            const hoursSinceCreated =
-                (Date.now() - msg.createdAt.getTime()) / (1000 * 60 * 60)
+            const hoursSinceCreated = (Date.now() - msg.createdAt.getTime()) / (1000 * 60 * 60)
             if (hoursSinceCreated > 24) {
                 throw new GraphQLError("Cannot retract a message older than 24 hours", {
                     extensions: { code: "FORBIDDEN", status: 403 },

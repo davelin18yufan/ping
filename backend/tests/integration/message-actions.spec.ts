@@ -331,7 +331,8 @@ describe("Feature 1.3.3 - Message Actions (Backend)", () => {
             { messageId: msgId },
             aliceToken
         )
-        const firstPinnedAt = (first.data as { pinMessage: { pinnedAt: string } }).pinMessage.pinnedAt
+        const firstPinnedAt = (first.data as { pinMessage: { pinnedAt: string } }).pinMessage
+            .pinnedAt
 
         // Small delay to ensure timestamps would differ if not idempotent
         await new Promise((r) => setTimeout(r, 10))
@@ -341,7 +342,8 @@ describe("Feature 1.3.3 - Message Actions (Backend)", () => {
             { messageId: msgId },
             aliceToken
         )
-        const secondPinnedAt = (second.data as { pinMessage: { pinnedAt: string } }).pinMessage.pinnedAt
+        const secondPinnedAt = (second.data as { pinMessage: { pinnedAt: string } }).pinMessage
+            .pinnedAt
 
         expect(secondPinnedAt).toBe(firstPinnedAt)
     })

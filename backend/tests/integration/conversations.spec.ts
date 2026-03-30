@@ -1118,7 +1118,9 @@ describe("Feature 1.3.1 - Conversations (Backend)", () => {
         expect(msgsResult.errors).toBeUndefined()
         const msgs = (
             msgsResult.data as {
-                messages: { messages: Array<{ id: string; messageType: string; content: string | null }> }
+                messages: {
+                    messages: Array<{ id: string; messageType: string; content: string | null }>
+                }
             }
         ).messages.messages
         const ritual = msgs.find((m) => m.id === ritualId)

@@ -144,6 +144,10 @@ function createLastMessageLoader(prisma: PrismaClient): DataLoader<string, Messa
                         imageUrl: m.imageUrl,
                         createdAt: m.createdAt.toISOString(),
                         status: MessageStatusType.SENT,
+                        replyToId: null,
+                        pinnedAt: null,
+                        deletedAt: null,
+                        replyTo: null,
                     })
                 }
             }

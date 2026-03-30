@@ -2199,11 +2199,11 @@
         clip-path: circle(0% at 50% 50%);
         opacity: 0;
     }
-    12% {
+    8% {
         clip-path: circle(55% at 50% 50%);
         opacity: 1;
     }
-    75% {
+    80% {
         clip-path: circle(55% at 50% 50%);
         opacity: 1;
     }
@@ -2223,7 +2223,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    animation: ritual-apology-clip-reveal 2600ms cubic-bezier(0.25, 1, 0.5, 1) forwards;
+    animation: ritual-apology-clip-reveal 5000ms cubic-bezier(0.25, 1, 0.5, 1) forwards;
     pointer-events: none;
     will-change: clip-path, opacity;
 }

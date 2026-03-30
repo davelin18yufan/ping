@@ -278,7 +278,9 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                 </div>
             )}
 
-            {/* Message list area — pinned banner overlays from top without pushing content down */}
+            {/* Message list area — pinned banner overlays from top without pushing content down.
+                  ChatRoomOverlays lives here so its inset:0 only covers the message area,
+                  not the header or input bar. */}
             <div className="relative flex-1 min-h-0 flex flex-col">
                 {/* Banner is absolute so it overlays messages instead of displacing them */}
                 <div className="absolute top-0 left-0 right-0 z-10">
@@ -301,9 +303,11 @@ export function ChatRoom({ conversationId, currentUserId }: ChatRoomProps) {
                         ritualLabels={resolvedLabels}
                     />
                 </motion.div>
-            </div>
 
-            <ChatRoomOverlays />
+                {/* Ritual overlays — scoped to the message area so they don't cover
+                      the header or input bar. */}
+                <ChatRoomOverlays />
+            </div>
 
             {/* Multi-select toolbar — shown when isMultiSelectMode is true */}
             {isMultiSelectMode && (

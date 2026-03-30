@@ -79,7 +79,7 @@ export const RITUAL_DEFINITIONS: RitualDef[] = [
         senderCls: "is-ritual-apology",
         senderDuration: 650,
         overlayCssClass: "ritual-overlay--apology",
-        overlayDuration: 2600,
+        overlayDuration: 5000,
         previewLabel: "[Apology]",
         labelOwn: "你道歉了",
         labelOther: (n) => `${n} 說對不起`,

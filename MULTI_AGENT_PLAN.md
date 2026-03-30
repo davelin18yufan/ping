@@ -118,14 +118,15 @@ removeFriend(friendshipId: ID!): Boolean!    # new — soft removal, no blacklis
 
 | 欄位 | 內容 |
 |------|------|
-| **狀態** | ⏳ 進行中（TDD 規格已建立，等待 Backend + Frontend 實作）|
+| **狀態** | ⏳ 進行中（Backend ✅ + Frontend Web ✅，Mobile 🔲 待開始）|
 | **優先級** | P0（Feature 1.4.2 Emoji Reactions 的前置條件）|
-| **負責** | Backend + Fullstack Frontend |
+| **負責** | Backend ✅ / Frontend Web ✅ / Mobile 🔲 |
 | **依賴** | Feature 1.3.1 ✅（對話與訊息端到端已通）|
 | **分支** | `feature/1.3.3-message-actions` |
 | **SDD 參考** | `docs/architecture/Feature-1.3.3-SDD.md`（待建立）|
 | **測試規格** | `docs/architecture/Feature-1.3.3-TDD-Tests.md` ✅ |
-| **預期完成日期** | 待評估 |
+| **Backend 完成日期** | 2026-03-29 |
+| **Frontend Web 完成日期** | 2026-03-30 |
 
 **功能描述**：每條訊息氣泡支援的完整操作系統：Reply（含 inline 引用）、Copy、Forward、Multi-select、Pin（Sonic Wave 動畫）、Delete（從我這裡移除 / 為彼此收回）。
 
@@ -202,15 +203,15 @@ type Mutation {
 | # | 子任務 | 負責 | 預估工時 | 狀態 |
 |---|--------|------|---------|------|
 | 1 | Architect：建立 TDD 規格文件 | Architect | 2h | ✅ 完成 |
-| 2 | Backend：Prisma migration（replyToId, pinnedAt, deletedAt, pinnedMessageId）| Backend | 1h | 🔲 |
-| 3 | Backend：實作 5 個新 GraphQL mutations | Backend | 4h | 🔲 |
-| 4 | Backend：Socket.io 廣播（message:pinned, message:deleted, message:forwarded）| Backend | 2h | 🔲 |
-| 5 | Frontend Web：MessageBubbleWrapper + MessageContextMenu | Frontend | 3h | 🔲 |
-| 6 | Frontend Web：ReplyQuoteBlock + PinnedMessageBanner | Frontend | 2h | 🔲 |
-| 7 | Frontend Web：DeleteMessageModal + ForwardPickerModal | Frontend | 2h | 🔲 |
-| 8 | Frontend Web：chatActionsStore + multi-select mode | Frontend | 2h | 🔲 |
-| 9 | Mobile：MessageBubbleWrapper.native + MessageActionSheet | Frontend | 3h | 🔲 |
-| 10 | All：重構與測試覆蓋率確認 | All | 1h | 🔲 |
+| 2 | Backend：Prisma migration（replyToId, pinnedAt, deletedAt, pinnedMessageId）| Backend | 1h | ✅ 完成 |
+| 3 | Backend：實作 5 個新 GraphQL mutations | Backend | 4h | ✅ 完成 |
+| 4 | Backend：Socket.io 廣播（message:pinned, message:deleted, message:forwarded）| Backend | 2h | ✅ 完成 |
+| 5 | Frontend Web：MessageBubbleWrapper + MessageContextMenu | Frontend | 3h | ✅ 完成 |
+| 6 | Frontend Web：ReplyQuoteBlock + PinnedMessageBanner | Frontend | 2h | ✅ 完成 |
+| 7 | Frontend Web：DeleteMessageModal + ForwardPickerModal | Frontend | 2h | ✅ 完成 |
+| 8 | Frontend Web：chatActionsStore + multi-select mode | Frontend | 2h | ✅ 完成 |
+| 9 | Mobile：MessageBubbleWrapper.native + MessageActionSheet | Frontend | 3h | 🔲 待開始 |
+| 10 | All：重構與測試覆蓋率確認 | All | 1h | ✅ 完成（289/289 tests passing）|
 
 ---
 

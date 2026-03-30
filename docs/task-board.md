@@ -1071,8 +1071,15 @@ E2E Tests: 目標涵蓋主要流程
 
 **更新頻率**: 每日更新
 **維護者**: All Agents
-**最後更新**: 2026-03-01
+**最後更新**: 2026-03-30
 **最新變更**:
+  - ⏳ **Feature 1.3.3 Backend + Frontend Web 完成（2026-03-30）— 訊息氣泡操作（Mobile 待完成）**
+    - Branch: `feature/1.3.3-message-actions`
+    - **Backend（TC-B-32~38）**：Prisma migration（replyToId/pinnedAt/deletedAt/pinnedMessageId）、5 個 mutations（replyToMessage/pinMessage/unpinMessage/deleteMessage/forwardMessage）、Socket.io 廣播
+    - **Frontend Web（TC-F-A1~A6）**：MessageBubbleWrapper、MessageContextMenu（glass portal + keyboard nav）、ReplyQuoteBlock（glassmorphism）、PinnedMessageBanner（BannerView 三狀態 + 多 pin 展開）、DeleteMessageModal、ForwardPickerModal、chatStore multi-select 擴充、reply strip spring 動畫、auto-focus
+    - **UI 修正**：ritual overlay 縮限至 message area、APOLOGY 動畫延長 5000ms、header z-20 修正 stacking context 衝突
+    - **測試**：289/289 全部通過 ✅
+    - **待完成**：Mobile（MessageBubbleWrapper.native + MessageActionSheet）
   - ✅ **removeFriend mutation 補完（2026-03-01）— 好友系統 8/8 100%**
     - Branch: `feature/1.2.2-backend`
     - `removeFriend(friendshipId: ID!): Boolean!` mutation 新增至 schema
@@ -1080,27 +1087,15 @@ E2E Tests: 目標涵蓋主要流程
     - 4 個整合測試（TC-B-15~B-18）：success、NOT_FOUND(404)、FORBIDDEN(403)、CONFLICT(409)
     - 112/112 後端測試全部通過，Linter 0 warnings
     - 設計邊界：removeFriend 不建立黑名單（blockUser 才建立），僅解除 ACCEPTED 關係
-  - ✅ **Feature 1.2.2 Backend 完成（2026-02-28）— 後端補完**
-    - Branch: `feature/1.2.2-backend` → PR #36
-    - `me` query：回傳完整用戶資料（isOnline、statusMessage、aestheticMode），14 tests TC-U-01~U-14
-    - `updateProfile` mutation：name/image/statusMessage/aestheticMode 欄位驗證
-    - `AestheticMode` Prisma enum + migration（ornate | minimal）
-    - typing indicators：`typing:start` / `typing:stop` + Redis TTL 8s，10 tests TC-T-01~T-10
-    - Socket.io 型別化：`ClientToServerEvents` / `ServerToClientEvents` interfaces
-    - `socket.rooms.has()` 授權：O(1) 取代 DB participant 查詢
-    - `clearTypingIndicatorIfExists`：原子性 DEL 避免虛假廣播
-    - 連線時推送現有 typing 狀態；`user:away` 清除 typing + 廣播
-    - Auth spec 整併：`auth.spec.ts` 12 tests（TC-A-01~A-12）取代兩個舊檔
-    - 108/108 tests 全部通過
-  - 📊 **進度更新**：
+  - 📊 **進度更新（2026-03-30）**：
     - 階段 1 (基礎設施)：100% 完成 ✅
-    - 階段 2 (認證用戶)：71.43% 完成（5/7 - OAuth + Session + searchUsers + me query + updateProfile）
+    - 階段 2 (認證用戶)：71.43% 完成（5/7）
     - 階段 2.5 (UI/UX 改版)：100% 完成 ✅
-    - 階段 3 (好友系統)：87.5% 完成（7/8）
-    - 階段 4 (對話/群組/黑名單)：100% 完成 ✅（Backend）
+    - 階段 3 (好友系統)：100% 完成 ✅（8/8）
+    - 階段 4 (對話/群組/黑名單)：100% 完成 ✅
     - 階段 5 (即時功能)：85.71% 完成（6/7）
-    - 階段 6 (前端開發)：70% 完成（7/10）
-    - 整體完成率：46.00%（23/50 features 完成）
+    - 階段 6 (前端開發)：80% 完成（8/10 — 1.3.3 Web ✅，Mobile 🔲）
+    - 整體完成率：48.00%（24/50 features 完成）
   - 🚀 **下一步**：
-    - Architect merge PR #36 `feature/1.2.2-backend` → `main`
-    - Feature 1.3.1 Frontend（對話列表 + 聊天室）← 前端主線
+    - Feature 1.3.3 Mobile（MessageBubbleWrapper.native + MessageActionSheet）
+    - Feature 1.3.2 訊息已讀/已送達狀態

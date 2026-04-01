@@ -55,7 +55,7 @@ export function PendingRequestCard({ request, onAccepted, onRejected }: PendingR
 
     return (
         <div
-            className={`glass-card glass-card--compact pending-request-card${isExiting ? " pending-request-card--exiting" : ""}`}
+            className={`pending-request-card${isExiting ? " pending-request-card--exiting" : ""}`}
             data-testid={`pending-request-card-${request.id}`}
         >
             {/* Avatar */}

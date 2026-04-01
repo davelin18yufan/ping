@@ -1,28 +1,30 @@
 /**
- * FriendsPage — Search, pending requests, and friends list
+ * FriendsPage — two-pane layout matching /chats structure.
  *
- * Sonar Ping Design Language:
- * - Unified sonar view: searching collapses pending/friends sections to summary rows
- * - Dot-grid background briefly activates on keystroke
- * - Sonar ring pulses from search zone on each query change (Motion key re-trigger)
- * - Signal Broadcast: light particle rises from Add Friend button on send
+ * Layout:
+ *   ┌────────────────┬────────────────────────────────┐
+ *   │  Sidebar       │  Main (empty state)             │
+ *   │  ~280px        │  flex: 1                        │
+ *   │  friends list  │  "Select a friend to message"   │
+ *   └────────────────┴────────────────────────────────┘
  *
- * Three sections:
- * 1. Search — FriendSearchInput with inline results and sonar zone
- * 2. Pending Requests — collapses to summary row during search
- * 3. Friends List — collapses to summary row during search
+ * Sidebar sections:
+ *   Header: "Friends" title + [+] Add Friend button → AddFriendModal
+ *   Search: filters existing friends list (name + email)
+ *   Filters: All [count] / Pending [badge]
+ *   List: FriendItem rows (All) or PendingRequestCard rows (Pending)
  */
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query"
 import { useNavigate } from "@tanstack/react-router"
-import { MessageCircle, UserCheck, Users } from "lucide-react"
+import { UserPlus, Users } from "lucide-react"
 import { AnimatePresence, motion } from "motion/react"
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useDeferredValue, useMemo, useState, useTransition } from "react"
 
-import { FriendSearchInput } from "@/components/friends/FriendSearchInput"
+import { AddFriendModal } from "@/components/friends/AddFriendModal"
+import { FriendItem } from "@/components/friends/FriendItem"
 import { PendingRequestCard } from "@/components/friends/PendingRequestCard"
-import { UserStatusAvatar } from "@/components/shared/UserStatusAvatar"
-import { useAestheticMode } from "@/contexts/aesthetic-mode-context"
+import { SearchInput } from "@/components/ui/SearchInput"
 import { GET_OR_CREATE_CONVERSATION_MUTATION } from "@/graphql/options/conversations"
 import {
     friendsListQueryOptions,
@@ -30,54 +32,38 @@ import {
     sentRequestsQueryOptions,
 } from "@/graphql/options/friends"
 import { graphqlFetch } from "@/lib/graphql-client"
+import { cn } from "@/lib/utils"
+import { uiStore } from "@/stores/uiStore"
 import type { Conversation } from "@/types/conversations"
 import type { FriendshipStatus } from "@/types/friends"
 
-// Motion variants for section expand/collapse during search
-// Cubic bezier must be typed as a 4-tuple for Motion's BezierDefinition
-const EASE_IN_OUT: [number, number, number, number] = [0.4, 0, 0.2, 1]
+type FriendFilter = "all" | "pending"
 
-const sectionVariants = {
-    expanded: {
-        height: "auto",
-        opacity: 1,
-        transition: { duration: 0.5, ease: EASE_IN_OUT },
-    },
-    collapsed: {
-        height: "3rem",
-        opacity: 0.6,
-        // overflow is not animatable — handled via style prop directly
-        transition: { duration: 0.35, ease: EASE_IN_OUT },
-    },
-}
-
-// Stagger variants for initial list entry animation (fires once on mount)
-const listContainerVariants = {
-    hidden: {},
-    show: {
-        transition: { staggerChildren: 0.06 },
-    },
-}
-
-const listItemVariants = {
-    hidden: { opacity: 0, y: -6 },
-    show: {
-        opacity: 1,
-        y: 0,
-        transition: { duration: 0.3, ease: EASE_IN_OUT },
-    },
+// Motion variants for list item enter/exit — opacity only (no y-translation avoids layout shift)
+const EASE: [number, number, number, number] = [0.4, 0, 0.2, 1]
+const itemVariants = {
+    hidden: { opacity: 0 },
+    show: { opacity: 1, transition: { duration: 0.18, ease: EASE } },
+    exit: { opacity: 0, transition: { duration: 0.12, ease: EASE } },
 }
 
 export function FriendsPage() {
-    const { data: pendingRequests = [] } = useQuery(pendingRequestsQueryOptions)
     const { data: friends = [] } = useQuery(friendsListQueryOptions)
+    const { data: pendingRequests = [] } = useQuery(pendingRequestsQueryOptions)
     const { data: sentRequests = [] } = useQuery(sentRequestsQueryOptions)
 
-    const { isMinimal } = useAestheticMode()
     const navigate = useNavigate()
     const queryClient = useQueryClient()
 
-    // Start or open a direct-message conversation with a friend
+    const [searchQuery, setSearchQuery] = useState("")
+    // useDeferredValue: search input updates instantly; filtering runs at idle time
+    const deferredSearch = useDeferredValue(searchQuery)
+    const [activeFilter, setActiveFilter] = useState<FriendFilter>("all")
+    // startTransition: filter switches are non-urgent — keep old tab visible while React prepares the new one
+    const [, startFilterTransition] = useTransition()
+    const [showAddFriend, setShowAddFriend] = useState(false)
+    const [loadingDMForId, setLoadingDMForId] = useState<string | null>(null)
+
     const startDMMutation = useMutation({
         mutationFn: (userId: string) =>
             graphqlFetch<{ getOrCreateConversation: Conversation }>(
@@ -85,289 +71,234 @@ export function FriendsPage() {
                 { userId }
             ),
         onSuccess: (data) => {
-            // Prime the conversations cache so the sidebar shows it immediately
             void queryClient.invalidateQueries({ queryKey: ["conversations"] })
+            const conversationId = data.getOrCreateConversation.id
+            uiStore.setState((s) => ({ ...s, activeConversationId: conversationId }))
             void navigate({
                 to: "/chats/$conversationId",
-                params: { conversationId: data.getOrCreateConversation.id },
+                params: { conversationId },
+                viewTransition: false,
             })
+            setLoadingDMForId(null)
         },
+        onError: () => setLoadingDMForId(null),
     })
 
-    const [searchQuery, setSearchQuery] = useState("")
-    const isSearching = searchQuery.trim().length >= 2
-
-    // Sonar ring — key counter triggers Motion remount, restarting animations from initial
-    const [sonarKey, setSonarKey] = useState(0)
-
-    // Dot-grid background state
-    const [bgActive, setBgActive] = useState(false)
-    const bgTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
-
-    // Detect dark mode for ring count (single ring in dark, triple ripple in light)
-    const isDark =
-        typeof document !== "undefined" && document.documentElement.classList.contains("dark")
-
-    // Trigger sonar ring and background flash on each search query change
-    useEffect(() => {
-        if (!isSearching || isMinimal) return
-
-        // Flash background dot-grid
-        setBgActive(true)
-        if (bgTimerRef.current) clearTimeout(bgTimerRef.current)
-        bgTimerRef.current = setTimeout(() => setBgActive(false), 800)
-
-        // Increment key — Motion remounts ring divs and restarts from initial
-        setSonarKey((k) => k + 1)
-
-        return () => {
-            if (bgTimerRef.current) clearTimeout(bgTimerRef.current)
-        }
-    }, [searchQuery, isSearching, isMinimal])
-
-    const handleQueryChange = useCallback((q: string) => {
-        setSearchQuery(q)
-    }, [])
-
-    const handleRequestResolved = () => {
-        // TODO: restore when backend is ready: void refetchPending()
-    }
+    const handleMessage = useCallback(
+        (userId: string) => {
+            if (startDMMutation.isPending) return
+            setLoadingDMForId(userId)
+            void startDMMutation.mutate(userId)
+        },
+        [startDMMutation]
+    )
 
     /**
-     * Build friendshipStatusMap from cached query data so search results reflect
-     * real friendship states (accepted friends, incoming pending, sent requests).
+     * friendshipStatusMap — passed to AddFriendModal so UserCard search results
+     * reflect current friendship state (already friends, pending sent, etc.)
      */
     const friendshipStatusMap = useMemo<Map<string, FriendshipStatus>>(() => {
         const map = new Map<string, FriendshipStatus>()
-        // Friends are ACCEPTED
-        for (const friend of friends) {
-            map.set(friend.id, "ACCEPTED")
-        }
-        // Incoming pending requests (they sent to us) = PENDING_RECEIVED
-        for (const req of pendingRequests) {
-            map.set(req.sender.id, "PENDING_RECEIVED")
-        }
-        // Outgoing sent requests (we sent, awaiting response) = PENDING_SENT
-        for (const req of sentRequests) {
-            map.set(req.receiver.id, "PENDING_SENT")
-        }
+        for (const friend of friends) map.set(friend.id, "ACCEPTED")
+        for (const req of pendingRequests) map.set(req.sender.id, "PENDING_RECEIVED")
+        for (const req of sentRequests) map.set(req.receiver.id, "PENDING_SENT")
         return map
     }, [friends, pendingRequests, sentRequests])
 
+    /** Friends filtered by search query — runs deferred to avoid blocking input */
+    const filteredFriends = useMemo(() => {
+        if (!deferredSearch.trim()) return friends
+        const q = deferredSearch.toLowerCase()
+        return friends.filter(
+            (f) => f.name.toLowerCase().includes(q) || f.email.toLowerCase().includes(q)
+        )
+    }, [friends, deferredSearch])
+
+    const filteredPendingRequests = useMemo(() => {
+        if (!deferredSearch.trim()) return pendingRequests
+        const q = deferredSearch.toLowerCase()
+        return pendingRequests.filter(
+            (f) =>
+                f.sender.name.toLowerCase().includes(q) || f.sender.email.toLowerCase().includes(q)
+        )
+    }, [pendingRequests, deferredSearch])
+
     return (
-        <div className="friends-page">
-            {/* Subtle dot-grid background — activates on keystroke, suppressed in minimal mode */}
-            <div
-                className={`friends-page__bg${bgActive ? " friends-page__bg--active" : ""}`}
-                aria-hidden="true"
-            />
-
-            {/* Section 1: Search with sonar zone */}
-            <section className="glass-card friends-page__section friends-page__section--search">
-                <h2 className="friends-page__section-title">Find Friends</h2>
-                <div className="friends-page__search-zone">
-                    <FriendSearchInput
-                        onQueryChange={handleQueryChange}
-                        friendshipStatusMap={friendshipStatusMap}
-                    />
-                    {/*
-                     * Sonar rings — Motion-driven circular rings expanding from search center.
-                     * key={sonarKey}: React remounts on each increment → Motion restarts from initial.
-                     * Suppressed in minimal aesthetic mode and prefers-reduced-motion (via CSS).
-                     */}
-                    {isSearching && sonarKey > 0 && !isMinimal && (
-                        <div
-                            key={sonarKey}
-                            aria-hidden="true"
-                            className="friends-page__sonar-rings"
+        <>
+            <div className="friends-layout">
+                {/* ── Sidebar ──────────────────────────────────── */}
+                <aside className="friends-layout__sidebar glass-card" aria-label="Friends">
+                    {/* Header */}
+                    <div className="friends-layout__sidebar-header">
+                        <h1 className="friends-layout__sidebar-title">Friends</h1>
+                        <button
+                            type="button"
+                            className="glass-button friends-layout__new-btn"
+                            onClick={() => setShowAddFriend(true)}
+                            aria-label="Add friend"
+                            title="Add friend"
                         >
-                            <motion.div
-                                className="friends-page__sonar-ring"
-                                initial={{ scale: 0.8, opacity: 0.75 }}
-                                animate={{ scale: 2.5, opacity: 0 }}
-                                transition={{
-                                    duration: isDark ? 0.25 : 0.45,
-                                    ease: "easeOut",
-                                }}
-                            />
-                            {/* Light mode only: two additional staggered rings (Kyoto Sunrise ripple) */}
-                            {!isDark && (
-                                <>
-                                    <motion.div
-                                        className="friends-page__sonar-ring"
-                                        initial={{ scale: 0.8, opacity: 0.55 }}
-                                        animate={{ scale: 2.5, opacity: 0 }}
-                                        transition={{
-                                            duration: 0.45,
-                                            ease: "easeOut",
-                                            delay: 0.08,
-                                        }}
-                                    />
-                                    <motion.div
-                                        className="friends-page__sonar-ring"
-                                        initial={{ scale: 0.8, opacity: 0.35 }}
-                                        animate={{ scale: 2.5, opacity: 0 }}
-                                        transition={{
-                                            duration: 0.45,
-                                            ease: "easeOut",
-                                            delay: 0.16,
-                                        }}
-                                    />
-                                </>
-                            )}
-                        </div>
-                    )}
-                </div>
-            </section>
+                            <UserPlus size={16} aria-hidden="true" />
+                        </button>
+                    </div>
 
-            {/* Section 2: Pending Requests — collapses to summary when searching */}
-            <AnimatePresence initial={false}>
-                {pendingRequests.length > 0 && (
-                    <motion.section
-                        key="pending-section"
-                        className="glass-card friends-page__section friends-page__section--pending"
-                        data-testid="pending-requests-section"
-                        variants={sectionVariants}
-                        initial="expanded"
-                        animate={isSearching ? "collapsed" : "expanded"}
-                        style={{ overflow: "hidden" }}
-                        tabIndex={isSearching ? 0 : undefined}
-                        role={isSearching ? "button" : undefined}
-                        aria-label={
-                            isSearching
-                                ? `Requests (${pendingRequests.length}) — click to expand`
-                                : undefined
-                        }
+                    {/* Search bar — filters existing friends list */}
+                    <div className="friends-layout__search-wrapper">
+                        <SearchInput
+                            wrapperClassName="friends-layout__search-input-row"
+                            iconClassName="friends-layout__search-icon"
+                            inputClassName="friends-layout__search-input"
+                            clearClassName="friends-layout__search-clear"
+                            placeholder="Search friends…"
+                            aria-label="Search friends"
+                            value={searchQuery}
+                            onChange={setSearchQuery}
+                            onClear={() => setSearchQuery("")}
+                        />
+                    </div>
+
+                    {/* Filter chips */}
+                    <div
+                        className="friends-layout__filters"
+                        role="group"
+                        aria-label="Filter friends"
                     >
-                        {isSearching ? (
-                            <p className="friends-page__section-summary">
-                                Requests
-                                <span className="friends-page__badge">
-                                    {pendingRequests.length}
-                                </span>
-                            </p>
-                        ) : (
-                            <>
-                                <h2 className="friends-page__section-title">
-                                    Friend Requests
-                                    <span className="friends-page__badge">
-                                        {pendingRequests.length}
-                                    </span>
-                                </h2>
-                                <motion.div
-                                    className="friends-page__list"
-                                    variants={listContainerVariants}
-                                    initial="hidden"
-                                    animate="show"
-                                >
-                                    {pendingRequests.map((request) => (
-                                        <motion.div key={request.id} variants={listItemVariants}>
-                                            <PendingRequestCard
-                                                request={request}
-                                                onAccepted={handleRequestResolved}
-                                                onRejected={handleRequestResolved}
-                                            />
-                                        </motion.div>
-                                    ))}
-                                </motion.div>
-                            </>
-                        )}
-                    </motion.section>
-                )}
-            </AnimatePresence>
-
-            {/* Section 3: Friends List — collapses to summary when searching */}
-            <motion.section
-                key="friends-section"
-                className="glass-card friends-page__section friends-page__section--friends"
-                variants={sectionVariants}
-                initial="expanded"
-                animate={isSearching ? "collapsed" : "expanded"}
-                style={{ overflow: "hidden" }}
-                tabIndex={isSearching ? 0 : undefined}
-                role={isSearching ? "button" : undefined}
-                aria-label={
-                    isSearching ? `Friends (${friends.length}) — click to expand` : undefined
-                }
-            >
-                {isSearching ? (
-                    <p className="friends-page__section-summary">
-                        <Users size={16} aria-hidden="true" />
-                        Friends
-                        {friends.length > 0 && (
-                            <span className="friends-page__count">{friends.length}</span>
-                        )}
-                    </p>
-                ) : (
-                    <>
-                        <h2 className="friends-page__section-title">
-                            <Users size={18} aria-hidden="true" />
-                            Friends
-                            {friends.length > 0 && (
-                                <span className="friends-page__count">{friends.length}</span>
+                        <button
+                            type="button"
+                            className={cn(
+                                "friends-filter-chip",
+                                activeFilter === "all" && "friends-filter-chip--active"
                             )}
-                        </h2>
-                        <motion.div
-                            className="friends-page__list"
-                            variants={listContainerVariants}
-                            initial="hidden"
-                            animate="show"
+                            onClick={() => startFilterTransition(() => setActiveFilter("all"))}
+                            aria-pressed={activeFilter === "all"}
                         >
-                            {friends.map((friend) => (
-                                <motion.div key={friend.id} variants={listItemVariants}>
-                                    <div className="glass-card glass-card--compact user-card">
-                                        {/* Avatar — image or UserStatusAvatar Facehash fallback */}
-                                        {friend.image ? (
-                                            <div className="user-card__avatar">
-                                                <img
-                                                    src={friend.image}
-                                                    alt={friend.name}
-                                                    className="user-card__avatar-img"
-                                                />
-                                            </div>
+                            All
+                            {filteredFriends.length > 0 && (
+                                <span className="friends-layout__count">
+                                    {filteredFriends.length}
+                                </span>
+                            )}
+                        </button>
+                        <button
+                            type="button"
+                            className={cn(
+                                "friends-filter-chip",
+                                activeFilter === "pending" && "friends-filter-chip--active"
+                            )}
+                            onClick={() => {
+                                startFilterTransition(() => setActiveFilter("pending"))
+                            }}
+                            aria-pressed={activeFilter === "pending"}
+                        >
+                            Pending
+                            {filteredPendingRequests.length > 0 && (
+                                <span className="friends-layout__badge">
+                                    {filteredPendingRequests.length}
+                                </span>
+                            )}
+                        </button>
+                    </div>
+
+                    {/* Scrollable list */}
+                    <div className="friends-layout__sidebar-list">
+                        {/*
+                         * Outer AnimatePresence keys on activeFilter.
+                         * mode="wait": old tab fully exits before new tab enters —
+                         * only one tab's DOM exists at a time, preventing height reflow.
+                         * startTransition above keeps the old tab visible while React prepares the new one.
+                         */}
+                        <AnimatePresence mode="wait" initial={false}>
+                            <motion.div
+                                key={activeFilter}
+                                initial={{ opacity: 0 }}
+                                animate={{ opacity: 1 }}
+                                exit={{ opacity: 0 }}
+                                transition={{ duration: 0.12, ease: EASE }}
+                                className="friends-layout__sidebar-list-tab"
+                            >
+                                {activeFilter === "pending" ? (
+                                    // Pending requests view
+                                    filteredPendingRequests.length === 0 ? (
+                                        <div className="friends-layout__list-empty">
+                                            <p>No pending requests</p>
+                                        </div>
+                                    ) : (
+                                        // Inner AnimatePresence handles individual card add/remove within the tab
+                                        <AnimatePresence initial={false}>
+                                            {filteredPendingRequests.map((request) => (
+                                                <motion.div
+                                                    key={request.id}
+                                                    variants={itemVariants}
+                                                    initial="hidden"
+                                                    animate="show"
+                                                    exit="exit"
+                                                >
+                                                    <PendingRequestCard
+                                                        request={request}
+                                                        onAccepted={() => {}}
+                                                        onRejected={() => {}}
+                                                    />
+                                                </motion.div>
+                                            ))}
+                                        </AnimatePresence>
+                                    )
+                                ) : // Friends list view
+                                filteredFriends.length === 0 ? (
+                                    <div className="friends-layout__list-empty">
+                                        {searchQuery.trim() ? (
+                                            <p>No friends match &quot;{searchQuery}&quot;</p>
                                         ) : (
-                                            <UserStatusAvatar
-                                                userId={friend.id}
-                                                userName={friend.name}
-                                                size={32}
-                                                showWaveRings={false}
-                                            />
+                                            <>
+                                                <Users size={32} aria-hidden="true" />
+                                                <p>No friends yet</p>
+                                                <p className="friends-layout__list-empty-hint">
+                                                    Click + to find friends
+                                                </p>
+                                            </>
                                         )}
-                                        <div className="user-card__info">
-                                            <span className="user-card__name">{friend.name}</span>
-                                            <span className="user-card__email">{friend.email}</span>
-                                        </div>
-                                        <div className="user-card__action">
-                                            <button
-                                                type="button"
-                                                className="glass-button glass-button--icon"
-                                                onClick={() =>
-                                                    void startDMMutation.mutate(friend.id)
-                                                }
-                                                aria-label={`Message ${friend.name}`}
-                                                disabled={
-                                                    startDMMutation.isPending &&
-                                                    startDMMutation.variables === friend.id
-                                                }
-                                                title={`Message ${friend.name}`}
-                                            >
-                                                <MessageCircle size={14} aria-hidden="true" />
-                                            </button>
-                                            <div
-                                                className="user-card__friends-badge"
-                                                aria-label="Friends"
-                                            >
-                                                <UserCheck size={14} aria-hidden="true" />
-                                                <span>Friends</span>
-                                            </div>
-                                        </div>
                                     </div>
-                                </motion.div>
-                            ))}
-                        </motion.div>
-                    </>
-                )}
-            </motion.section>
-        </div>
+                                ) : (
+                                    // Inner AnimatePresence handles individual item add/remove (e.g. new friend added)
+                                    <AnimatePresence initial={false}>
+                                        {filteredFriends.map((friend) => (
+                                            <motion.div
+                                                key={friend.id}
+                                                variants={itemVariants}
+                                                initial="hidden"
+                                                animate="show"
+                                                exit="exit"
+                                            >
+                                                <FriendItem
+                                                    friend={friend}
+                                                    onMessage={handleMessage}
+                                                    isLoading={loadingDMForId === friend.id}
+                                                />
+                                            </motion.div>
+                                        ))}
+                                    </AnimatePresence>
+                                )}
+                            </motion.div>
+                        </AnimatePresence>
+                    </div>
+                </aside>
+
+                {/* ── Main Content ─────────────────────────────── */}
+                <main className="friends-layout__main">
+                    <div className="friends-layout__empty-state">
+                        <Users size={40} aria-hidden="true" />
+                        <h2>Your Friends</h2>
+                        <p>
+                            Select a friend to send a message, or click&nbsp;+ to add new friends.
+                        </p>
+                    </div>
+                </main>
+            </div>
+
+            <AddFriendModal
+                open={showAddFriend}
+                onClose={() => setShowAddFriend(false)}
+                friendshipStatusMap={friendshipStatusMap}
+            />
+        </>
     )
 }

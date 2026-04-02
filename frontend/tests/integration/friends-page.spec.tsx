@@ -26,6 +26,7 @@ import {
     emptyFriendsHandler,
     emptyPendingRequestsHandler,
     emptySentRequestsHandler,
+    emptySearchResultsHandler,
     graphqlHandlers,
 } from "../mocks/graphql-handlers"
 import { mswServer } from "../mocks/server"
@@ -106,12 +107,19 @@ vi.mock("@/hooks/useScrollDirection", () => ({
 vi.mock("@tanstack/react-store", () => ({
     useStore: (
         _store: unknown,
-        selector: (s: { headerExpanded: boolean; isViewTransitioning: boolean }) => unknown
-    ) => selector({ headerExpanded: false, isViewTransitioning: false }),
+        selector: (s: {
+            headerExpanded: boolean
+            isViewTransitioning: boolean
+            presenceMap: Record<string, boolean>
+        }) => unknown
+    ) => selector({ headerExpanded: false, isViewTransitioning: false, presenceMap: {} }),
 }))
 
 vi.mock("@/stores/uiStore", () => ({
-    uiStore: { state: { headerExpanded: false, isViewTransitioning: false }, setState: vi.fn() },
+    uiStore: {
+        state: { headerExpanded: false, isViewTransitioning: false, presenceMap: {} },
+        setState: vi.fn(),
+    },
 }))
 
 vi.mock("@tanstack/react-router", () => ({
@@ -221,13 +229,13 @@ describe("TC-F-01: FriendsPage initial render", () => {
             </QueryClientProvider>
         )
 
-        // Search input must be present
+        // Sidebar search input must be present (filters existing friends)
         await waitFor(() => {
-            expect(screen.getByPlaceholderText(/search users/i)).toBeInTheDocument()
+            expect(screen.getByPlaceholderText(/search friends/i)).toBeInTheDocument()
         })
 
-        // No search results shown initially
-        expect(screen.queryByTestId("search-results")).not.toBeInTheDocument()
+        // User-search (Add Friend) is behind the modal — not shown on initial render
+        expect(screen.queryByPlaceholderText(/search users/i)).not.toBeInTheDocument()
     })
 })
 
@@ -256,6 +264,9 @@ describe("TC-F-04: Search results render UserCard", () => {
             </QueryClientProvider>
         )
 
+        // Open AddFriendModal — user search is now behind the modal
+        fireEvent.click(screen.getByRole("button", { name: /add friend/i }))
+
         const searchInput = await screen.findByPlaceholderText(/search users/i)
         fireEvent.change(searchInput, { target: { value: "Bob" } })
 
@@ -266,10 +277,9 @@ describe("TC-F-04: Search results render UserCard", () => {
             { timeout: 700 }
         )
 
-        // Scope to the user card to avoid matching "Bob Wang" in DUMMY_PENDING section
         const userCard = screen.getByTestId("user-card-user-bob")
         expect(within(userCard).getByText("Bob Wang")).toBeInTheDocument()
-        expect(screen.getByRole("button", { name: /add friend/i })).toBeInTheDocument()
+        expect(within(userCard).getByRole("button", { name: /add friend/i })).toBeInTheDocument()
     })
 })
 
@@ -320,16 +330,17 @@ describe("TC-F-06: Pending request card UI", () => {
             </QueryClientProvider>
         )
 
-        // Use findBy which automatically waits
-        const pendingSection = await screen.findByTestId(
-            "pending-requests-section",
-            {},
+        // Switch to the Pending tab — pending requests render under the filter chip list
+        const pendingChip = await screen.findByRole("button", { name: /pending/i })
+        fireEvent.click(pendingChip)
+
+        await waitFor(
+            () => {
+                expect(screen.getAllByRole("button", { name: /accept/i })).toHaveLength(2)
+                expect(screen.getAllByRole("button", { name: /reject/i })).toHaveLength(2)
+            },
             { timeout: 3000 }
         )
-        expect(pendingSection).toBeInTheDocument()
-
-        expect(screen.getAllByRole("button", { name: /accept/i })).toHaveLength(2)
-        expect(screen.getAllByRole("button", { name: /reject/i })).toHaveLength(2)
     })
 })
 
@@ -452,6 +463,9 @@ describe("TC-F-NEW-01: Search results show ACCEPTED status for friends", () => {
             </QueryClientProvider>
         )
 
+        // Open AddFriendModal — user search is behind the modal
+        fireEvent.click(screen.getByRole("button", { name: /add friend/i }))
+
         const searchInput = await screen.findByPlaceholderText(/search users/i)
         fireEvent.change(searchInput, { target: { value: "Carol" } })
 
@@ -526,6 +540,9 @@ describe("TC-F-NEW-02: Search results show PENDING_SENT for outgoing requests", 
             </QueryClientProvider>
         )
 
+        // Open AddFriendModal — user search is behind the modal
+        fireEvent.click(screen.getByRole("button", { name: /add friend/i }))
+
         const searchInput = await screen.findByPlaceholderText(/search users/i)
         fireEvent.change(searchInput, { target: { value: "Henry" } })
 
@@ -544,15 +561,14 @@ describe("TC-F-NEW-02: Search results show PENDING_SENT for outgoing requests", 
 })
 
 // ---------------------------------------------------------------------------
-// TC-F-NEW-03: Friends section collapses to summary row during search
+// TC-F-NEW-03: Sidebar search filters the friends list in place
 // ---------------------------------------------------------------------------
 
-describe("TC-F-NEW-03: Friends section collapses to summary when searching", () => {
-    it("shows collapsed summary row with count when query is active", async () => {
+describe("TC-F-NEW-03: Sidebar search filters friends list", () => {
+    it("shows only matching friends when query is active", async () => {
         mswServer.use(...graphqlHandlers)
 
         const queryClient = createTestQueryClient()
-        // Seed cache with 2 friends so the summary badge reflects real count
         queryClient.setQueryData(["friends", "list"], [mockUserBob, mockUserCarol])
         queryClient.setQueryData(["friends", "pending"], [])
         queryClient.setQueryData(["friends", "sent"], [])
@@ -562,56 +578,351 @@ describe("TC-F-NEW-03: Friends section collapses to summary when searching", () 
             </QueryClientProvider>
         )
 
-        const searchInput = await screen.findByPlaceholderText(/search users/i)
-        fireEvent.change(searchInput, { target: { value: "Bo" } })
-
-        // Summary row should appear with friends label
-        await waitFor(() => {
-            expect(screen.getByText(/^Friends$/i)).toBeInTheDocument()
-        })
-
-        // Count badge shows 2 (matching the seeded cache)
-        const summaryCount = screen.getAllByText("2")
-        expect(summaryCount.length).toBeGreaterThanOrEqual(1)
-    })
-})
-
-// ---------------------------------------------------------------------------
-// TC-F-NEW-04: Friends section re-expands when search is cleared
-// ---------------------------------------------------------------------------
-
-describe("TC-F-NEW-04: Friends section re-expands when search cleared", () => {
-    it("shows full friends list after clearing search input", async () => {
-        mswServer.use(...graphqlHandlers)
-
-        const queryClient = createTestQueryClient()
-        // Seed cache so the friends section has data to expand back to
-        queryClient.setQueryData(["friends", "list"], [mockUserBob, mockUserCarol])
-        queryClient.setQueryData(["friends", "pending"], [])
-        queryClient.setQueryData(["friends", "sent"], [])
-        render(
-            <QueryClientProvider client={queryClient}>
-                <FriendsPage />
-            </QueryClientProvider>
-        )
-
-        const searchInput = await screen.findByPlaceholderText(/search users/i)
-
-        // Start searching
-        fireEvent.change(searchInput, { target: { value: "Bo" } })
-
-        // Wait for collapsed state
-        await waitFor(() => {
-            expect(screen.getByText(/^Friends$/i)).toBeInTheDocument()
-        })
-
-        // Clear search
-        fireEvent.change(searchInput, { target: { value: "" } })
-
-        // Full friend names from cache should reappear
+        // Both friends visible initially
         await waitFor(() => {
             expect(screen.getByText("Bob Wang")).toBeInTheDocument()
             expect(screen.getByText("Carol Lin")).toBeInTheDocument()
         })
+
+        // Sidebar search filters existing friends — not a global user search
+        const searchInput = screen.getByPlaceholderText(/search friends/i)
+        fireEvent.change(searchInput, { target: { value: "Bo" } })
+
+        // Only Bob Wang matches "Bo"
+        await waitFor(() => {
+            expect(screen.getByText("Bob Wang")).toBeInTheDocument()
+            expect(screen.queryByText("Carol Lin")).not.toBeInTheDocument()
+        })
+    })
+})
+
+// ---------------------------------------------------------------------------
+// TC-F-NEW-04: Clearing sidebar search restores the full friends list
+// ---------------------------------------------------------------------------
+
+describe("TC-F-NEW-04: Clearing sidebar search restores full friends list", () => {
+    it("shows full friends list after clearing search input", async () => {
+        mswServer.use(...graphqlHandlers)
+
+        const queryClient = createTestQueryClient()
+        queryClient.setQueryData(["friends", "list"], [mockUserBob, mockUserCarol])
+        queryClient.setQueryData(["friends", "pending"], [])
+        queryClient.setQueryData(["friends", "sent"], [])
+        render(
+            <QueryClientProvider client={queryClient}>
+                <FriendsPage />
+            </QueryClientProvider>
+        )
+
+        const searchInput = screen.getByPlaceholderText(/search friends/i)
+
+        // Filter to only Bob
+        fireEvent.change(searchInput, { target: { value: "Bo" } })
+
+        await waitFor(() => {
+            expect(screen.getByText("Bob Wang")).toBeInTheDocument()
+            expect(screen.queryByText("Carol Lin")).not.toBeInTheDocument()
+        })
+
+        // Clear filter — full list restores
+        fireEvent.change(searchInput, { target: { value: "" } })
+
+        await waitFor(() => {
+            expect(screen.getByText("Bob Wang")).toBeInTheDocument()
+            expect(screen.getByText("Carol Lin")).toBeInTheDocument()
+        })
+    })
+})
+
+// ---------------------------------------------------------------------------
+// TC-F-NEW-05: AddFriendModal closes and resets on X button click
+// ---------------------------------------------------------------------------
+
+describe("TC-F-NEW-05: AddFriendModal closes and resets on close button", () => {
+    it("unmounts modal and resets search state when X is clicked", async () => {
+        mswServer.use(...graphqlHandlers)
+
+        const queryClient = createTestQueryClient()
+        queryClient.setQueryData(["friends", "list"], [])
+        queryClient.setQueryData(["friends", "pending"], [])
+        queryClient.setQueryData(["friends", "sent"], [])
+
+        render(
+            <QueryClientProvider client={queryClient}>
+                <FriendsPage />
+            </QueryClientProvider>
+        )
+
+        // Open modal and type a query
+        fireEvent.click(screen.getByRole("button", { name: /add friend/i }))
+        const searchInput = await screen.findByPlaceholderText(/search users/i)
+        fireEvent.change(searchInput, { target: { value: "Bob" } })
+
+        // Close via X button
+        fireEvent.click(screen.getByRole("button", { name: /close dialog/i }))
+
+        await waitFor(() => {
+            expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+        })
+
+        // Reopen — state must be reset to empty
+        fireEvent.click(screen.getByRole("button", { name: /add friend/i }))
+        const reopenedInput = await screen.findByPlaceholderText(/search users/i)
+        expect(reopenedInput).toHaveValue("")
+    })
+})
+
+// ---------------------------------------------------------------------------
+// TC-F-NEW-06: AddFriendModal closes on overlay (backdrop) click
+// ---------------------------------------------------------------------------
+
+describe("TC-F-NEW-06: AddFriendModal closes on overlay click", () => {
+    it("unmounts modal when user clicks outside the panel", async () => {
+        mswServer.use(...graphqlHandlers)
+
+        const queryClient = createTestQueryClient()
+        queryClient.setQueryData(["friends", "list"], [])
+        queryClient.setQueryData(["friends", "pending"], [])
+        queryClient.setQueryData(["friends", "sent"], [])
+
+        render(
+            <QueryClientProvider client={queryClient}>
+                <FriendsPage />
+            </QueryClientProvider>
+        )
+
+        fireEvent.click(screen.getByRole("button", { name: /add friend/i }))
+        await screen.findByRole("dialog")
+
+        // Click the overlay — it is the direct parent of the dialog panel.
+        // handleOverlayClick checks e.target === e.currentTarget, so clicking
+        // the overlay div itself (not a child) triggers the close.
+        const overlay = screen.getByRole("dialog").parentElement!
+        fireEvent.click(overlay)
+
+        await waitFor(() => {
+            expect(screen.queryByRole("dialog")).not.toBeInTheDocument()
+        })
+    })
+})
+
+// ---------------------------------------------------------------------------
+// TC-F-NEW-07: 1-char query does NOT fire SearchUsers (enabled guard)
+// ---------------------------------------------------------------------------
+
+describe("TC-F-NEW-07: Short query does not trigger search", () => {
+    it("shows hint text and no results list when query is 1 character", async () => {
+        mswServer.use(...graphqlHandlers)
+
+        const queryClient = createTestQueryClient()
+        queryClient.setQueryData(["friends", "list"], [])
+        queryClient.setQueryData(["friends", "pending"], [])
+        queryClient.setQueryData(["friends", "sent"], [])
+
+        render(
+            <QueryClientProvider client={queryClient}>
+                <FriendsPage />
+            </QueryClientProvider>
+        )
+
+        fireEvent.click(screen.getByRole("button", { name: /add friend/i }))
+        const searchInput = await screen.findByPlaceholderText(/search users/i)
+
+        // Type 1 char — enabled guard prevents SearchUsers from firing
+        fireEvent.change(searchInput, { target: { value: "B" } })
+
+        expect(screen.getByText(/type at least 2 characters/i)).toBeInTheDocument()
+        expect(screen.queryByRole("list", { name: /search results/i })).not.toBeInTheDocument()
+
+        // Type 2 chars — results list now appears
+        fireEvent.change(searchInput, { target: { value: "Bo" } })
+
+        await waitFor(
+            () => {
+                expect(screen.getByRole("list", { name: /search results/i })).toBeInTheDocument()
+            },
+            { timeout: 700 }
+        )
+    })
+})
+
+// ---------------------------------------------------------------------------
+// TC-F-NEW-08: Modal shows empty-results state when SearchUsers returns []
+// ---------------------------------------------------------------------------
+
+describe("TC-F-NEW-08: Modal empty-results state", () => {
+    it("shows no-results message when search returns empty array", async () => {
+        mswServer.use(
+            emptySearchResultsHandler,
+            emptyFriendsHandler,
+            emptyPendingRequestsHandler,
+            emptySentRequestsHandler
+        )
+
+        const queryClient = createTestQueryClient()
+        queryClient.setQueryData(["friends", "list"], [])
+        queryClient.setQueryData(["friends", "pending"], [])
+        queryClient.setQueryData(["friends", "sent"], [])
+
+        render(
+            <QueryClientProvider client={queryClient}>
+                <FriendsPage />
+            </QueryClientProvider>
+        )
+
+        fireEvent.click(screen.getByRole("button", { name: /add friend/i }))
+        const searchInput = await screen.findByPlaceholderText(/search users/i)
+        fireEvent.change(searchInput, { target: { value: "zzzzz" } })
+
+        await waitFor(
+            () => {
+                expect(screen.getByText(/no users found/i)).toBeInTheDocument()
+            },
+            { timeout: 700 }
+        )
+
+        expect(screen.queryByTestId("user-card-user-bob")).not.toBeInTheDocument()
+    })
+})
+
+// ---------------------------------------------------------------------------
+// TC-F-NEW-09: Modal shows SoundWaveLoader while search is in-flight
+// ---------------------------------------------------------------------------
+
+describe("TC-F-NEW-09: Modal loading state during search", () => {
+    it("shows loader while fetching, hides it once results arrive", async () => {
+        // Delay the SearchUsers response by 150ms to capture the in-flight state
+        mswServer.use(
+            graphql.query("SearchUsers", async () => {
+                await new Promise<void>((resolve) => setTimeout(resolve, 150))
+                return HttpResponse.json({ data: { searchUsers: [mockUserBob] } })
+            })
+        )
+
+        const queryClient = createTestQueryClient()
+        queryClient.setQueryData(["friends", "list"], [])
+        queryClient.setQueryData(["friends", "pending"], [])
+        queryClient.setQueryData(["friends", "sent"], [])
+
+        render(
+            <QueryClientProvider client={queryClient}>
+                <FriendsPage />
+            </QueryClientProvider>
+        )
+
+        fireEvent.click(screen.getByRole("button", { name: /add friend/i }))
+        const searchInput = await screen.findByPlaceholderText(/search users/i)
+        fireEvent.change(searchInput, { target: { value: "Bo" } })
+
+        // Loader appears after debounce (300ms) fires and the fetch is in-flight (+150ms MSW delay).
+        // waitFor polls until loading=true propagates to the DOM.
+        await waitFor(
+            () => {
+                expect(screen.getByTestId("loader")).toBeInTheDocument()
+            },
+            { timeout: 600 }
+        )
+
+        // Once MSW resolves (~150ms later) — loader gone, results visible
+        await waitFor(
+            () => {
+                expect(screen.queryByTestId("loader")).not.toBeInTheDocument()
+                expect(screen.getByTestId("user-card-user-bob")).toBeInTheDocument()
+            },
+            { timeout: 600 }
+        )
+    })
+})
+
+// ---------------------------------------------------------------------------
+// TC-F-NEW-10: Switching to Pending tab clears the sidebar search input
+// ---------------------------------------------------------------------------
+
+describe("TC-F-NEW-10: Pending tab switch clears sidebar search", () => {
+    it("resets sidebar search value to empty when Pending chip is clicked", async () => {
+        mswServer.use(...graphqlHandlers)
+
+        const queryClient = createTestQueryClient()
+        queryClient.setQueryData(["friends", "list"], [mockUserBob, mockUserCarol])
+        queryClient.setQueryData(["friends", "pending"], [])
+        queryClient.setQueryData(["friends", "sent"], [])
+
+        render(
+            <QueryClientProvider client={queryClient}>
+                <FriendsPage />
+            </QueryClientProvider>
+        )
+
+        // Type "Bob" — Carol disappears from the filtered list
+        const sidebarSearch = screen.getByPlaceholderText(/search friends/i)
+        fireEvent.change(sidebarSearch, { target: { value: "Bob" } })
+
+        await waitFor(() => {
+            expect(screen.getByText("Bob Wang")).toBeInTheDocument()
+            expect(screen.queryByText("Carol Lin")).not.toBeInTheDocument()
+        })
+
+        // Switch to Pending, then back to All.
+        // If setSearchQuery("") fired on Pending tab switch, Carol reappears on All.
+        fireEvent.click(screen.getByRole("button", { name: /pending/i }))
+        fireEvent.click(screen.getByRole("button", { name: /all/i }))
+
+        await waitFor(() => {
+            expect(screen.getByText("Bob Wang")).toBeInTheDocument()
+            expect(screen.getByText("Carol Lin")).toBeInTheDocument()
+        })
+    })
+})
+
+// ---------------------------------------------------------------------------
+// TC-F-NEW-11: Pending tab shows empty state when no pending requests exist
+// ---------------------------------------------------------------------------
+
+describe("TC-F-NEW-11: Pending tab empty state", () => {
+    it("shows no-pending-requests message when pending list is empty", async () => {
+        mswServer.use(...graphqlHandlers)
+
+        const queryClient = createTestQueryClient()
+        queryClient.setQueryData(["friends", "list"], [mockUserBob])
+        queryClient.setQueryData(["friends", "pending"], [])
+        queryClient.setQueryData(["friends", "sent"], [])
+
+        render(
+            <QueryClientProvider client={queryClient}>
+                <FriendsPage />
+            </QueryClientProvider>
+        )
+
+        fireEvent.click(await screen.findByRole("button", { name: /pending/i }))
+
+        await waitFor(() => {
+            expect(screen.getByText(/no pending requests/i)).toBeInTheDocument()
+        })
+
+        expect(screen.queryByRole("button", { name: /accept/i })).not.toBeInTheDocument()
+    })
+})
+
+// ---------------------------------------------------------------------------
+// TC-F-NEW-12: Pending chip badge reflects actual pending count
+// ---------------------------------------------------------------------------
+
+describe("TC-F-NEW-12: Pending chip badge count", () => {
+    it("shows correct count badge on the Pending filter chip", async () => {
+        mswServer.use(...graphqlHandlers)
+
+        const queryClient = createTestQueryClient()
+        queryClient.setQueryData(["friends", "list"], [])
+        queryClient.setQueryData(["friends", "pending"], [mockPendingRequest, mockPendingRequest2])
+        queryClient.setQueryData(["friends", "sent"], [])
+
+        render(
+            <QueryClientProvider client={queryClient}>
+                <FriendsPage />
+            </QueryClientProvider>
+        )
+
+        const pendingChip = await screen.findByRole("button", { name: /pending/i })
+        expect(within(pendingChip).getByText("2")).toBeInTheDocument()
     })
 })

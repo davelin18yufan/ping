@@ -186,6 +186,7 @@ export function FriendsPage() {
                                 activeFilter === "pending" && "friends-filter-chip--active"
                             )}
                             onClick={() => {
+                                setSearchQuery("")
                                 startFilterTransition(() => setActiveFilter("pending"))
                             }}
                             aria-pressed={activeFilter === "pending"}

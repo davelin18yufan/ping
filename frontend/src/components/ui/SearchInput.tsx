@@ -6,7 +6,8 @@
  *
  * Used by:
  *   - ChatsLayout sidebar search  (chats-layout__search-* classes)
- *   - FriendSearchInput           (friend-search__* / glass-input classes)
+ *   - FriendsPage sidebar search  (friends-layout__search-* classes)
+ *   - AddFriendModal search       (add-friend-modal__search-* classes)
  *
  * Accessibility:
  *   - aria-label required (no visible <label> by default — icon is decorative)

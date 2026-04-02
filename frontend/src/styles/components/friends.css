@@ -1,5 +1,5 @@
 /**
- * Friends Components — UserCard, PendingRequestCard, FriendSearchInput, FriendsPage
+ * Friends Components — FriendItem, UserCard, PendingRequestCard, AddFriendModal, FriendsPage
  *
  * Design tokens used:
  *   Colors:   var(--primary), var(--destructive), var(--status-online/away)
@@ -44,7 +44,7 @@
 }
 
 /* ============================================================
-   UserCard
+   UserCard (used in AddFriendModal search results)
    ============================================================ */
 
 .user-card {
@@ -132,7 +132,7 @@
 
 /* Pending button — amber tint */
 .user-card__btn--pending {
-    background: oklch(from var(--status-away, oklch(0.8 0.18 75)) l c h / 0.12);
+    background: oklch(from var(--status-away) l c h / 0.12);
     color: var(--status-away, oklch(0.7 0.2 75));
     opacity: 0.7;
 }
@@ -152,8 +152,17 @@
     gap: 0.375rem;
     font-size: 0.8125rem;
     font-weight: 500;
-    color: var(--status-online, oklch(0.68 0.18 145));
+    color: var(--status-online);
     padding: 0.5rem 1rem;
+}
+
+/* Search-mode UserCard — border reflects friendship status */
+.user-card--status-pending {
+    border-color: oklch(from var(--status-away) l c h / 0.5);
+}
+
+.user-card--status-accepted {
+    border-color: oklch(from var(--status-online) l c h / 0.5);
 }
 
 /* ============================================================
@@ -165,13 +174,47 @@
     flex-direction: row;
     align-items: center;
     gap: 0.75rem;
+    padding: 0.5rem 0.625rem 0.5rem 0.875rem;
+    overflow: hidden;
+    transform: none;
+    touch-action: manipulation;
+    position: relative;
+    background: linear-gradient(
+        90deg,
+        oklch(from var(--status-away) l c h / 0.1) 0%,
+        oklch(from var(--status-away) l c h / 0.03) 55%,
+        transparent 100%
+    );
     transition:
-        transform 250ms var(--ease-out, ease-out),
-        opacity 250ms var(--ease-out, ease-out);
+        background var(--duration-fast) var(--ease-out),
+        box-shadow var(--duration-fast) var(--ease-out),
+        transform 250ms var(--ease-out),
+        opacity 250ms var(--ease-out);
+}
+
+/* Amber signal band — always visible, not just on hover.
+   Communicates "pending / awaiting response" state. */
+.pending-request-card::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    border-radius: 0 2px 2px 0;
+    background: var(--status-away);
+    box-shadow: 0 0 8px oklch(from var(--status-away) l c h / 0.45);
+    pointer-events: none;
 }
 
 .pending-request-card:hover {
     transform: none;
+    background: linear-gradient(
+        90deg,
+        oklch(from var(--status-away) l c h / 0.17) 0%,
+        oklch(from var(--status-away) l c h / 0.06) 60%,
+        transparent 100%
+    );
 }
 
 .pending-request-card--exiting {
@@ -236,57 +279,814 @@
 
 /* Accept button — accent green tint */
 .pending-request-card__btn--accept {
-    background: oklch(from var(--status-online, oklch(0.68 0.18 145)) l c h / 0.12);
-    color: var(--status-online, oklch(0.68 0.18 145));
+    background: oklch(from var(--status-online) l c h / 0.12);
+    color: var(--status-online);
 }
 
 .pending-request-card__btn--accept:hover:not(:disabled) {
-    background: oklch(from var(--status-online, oklch(0.68 0.18 145)) l c h / 0.22);
+    background: oklch(from var(--status-online) l c h / 0.22);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .pending-request-card {
+        transition: none;
+    }
+
+    .pending-request-card--exiting {
+        transform: none;
+    }
+
+    /* Strip the stripe glow in reduced-motion — keep the color, remove the animation */
+    .pending-request-card::before {
+        box-shadow: none;
+    }
+}
+
+/*
+ * PendingRequestCard in sidebar context — collapse to icon-only action buttons.
+ * The card's text-label buttons break layout in the narrow sidebar (~240–330px).
+ * Buttons retain aria-label="Accept"/"Reject" for accessibility.
+ */
+.friends-layout__sidebar-list .pending-request-card__btn {
+    padding: 0 !important;
+    width: 1.75rem;
+    height: 1.75rem;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    flex-shrink: 0;
+}
+
+/* Hide text labels — icon only in sidebar */
+.friends-layout__sidebar-list .pending-request-card__btn span {
+    display: none;
+}
+
+.friends-layout__sidebar-list-tab {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 0.25rem;
 }
 
 /* ============================================================
-   FriendSearchInput
+   Signal particle — portal-rendered, animates from button upward
    ============================================================ */
 
-.friend-search {
-    position: relative;
+.signal-particle {
+    width: 8px;
+    height: 8px;
+    border-radius: 9999px;
+    background: var(--signal-color, var(--primary));
+    box-shadow: 0 0 12px 4px oklch(from var(--primary) l c h / 0.5);
+    pointer-events: none;
+    z-index: 9999;
+    transform: translate(-50%, -50%);
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .signal-particle {
+        display: none;
+    }
+}
+
+/* ============================================================
+   FriendItem — compact row in friends list sidebar
+   Mirrors ConversationItem structure and hover behaviors
+   ============================================================ */
+
+/* Button reset */
+button.friend-item {
+    appearance: none;
+    border: none;
+    font: inherit;
+    cursor: pointer;
+    text-align: left;
     width: 100%;
 }
 
-.friend-search__input-wrapper {
+.friend-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    gap: 0.625rem;
+    cursor: pointer;
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--radius-lg, 0.75rem);
+    /* Glassmorphism border: inset outline + top-edge light refraction */
+    box-shadow:
+        inset 0 0 0 1px oklch(from var(--foreground) l c h / 0.08),
+        inset 0 1px 0 oklch(1 0 0 / 0.14);
+    /* Subtle left-to-right depth gradient */
+    background: linear-gradient(
+        90deg,
+        oklch(from var(--card) l c h / 0.55) 0%,
+        oklch(from var(--card) l c h / 0.35) 100%
+    );
+    position: relative;
+    overflow: hidden;
+    transition:
+        background var(--duration-fast, 150ms) var(--ease-out, ease-out),
+        box-shadow var(--duration-fast, 150ms) var(--ease-out, ease-out);
+    transform: none;
+    touch-action: manipulation;
+}
+
+/* Left signal band — transparent by default, colored on hover */
+.friend-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    border-radius: 0 2px 2px 0;
+    background: transparent;
+    transition:
+        background var(--duration-fast, 150ms) var(--ease-out, ease-out),
+        box-shadow var(--duration-fast, 150ms) var(--ease-out, ease-out);
+    pointer-events: none;
+}
+
+.friend-item:hover {
+    background: linear-gradient(
+        90deg,
+        oklch(from var(--primary) l c h / 0.15) 0%,
+        oklch(from var(--card) calc(l + 0.05) c h / 0.6) 100%
+    );
+    box-shadow:
+        inset 0 0 0 1px oklch(from var(--primary) l c h / 0.3),
+        inset 0 1px 0 oklch(from var(--primary) l c h / 0.2),
+        inset 0 1px 0 oklch(1 0 0 / 0.14);
+}
+
+.friend-item:hover::before {
+    background: oklch(from var(--primary) l c h / 0.7);
+    box-shadow: 0 0 8px oklch(from var(--primary) l c h / 0.4);
+}
+
+.friend-item:hover .friend-item__avatar {
+    transform: scale(1.03);
+}
+
+/* Reveal message affordance on hover */
+.friend-item:hover .friend-item__action {
+    opacity: 1;
+}
+
+.friend-item:focus-visible {
+    outline: 2px solid var(--ring, var(--primary));
+    outline-offset: 2px;
+}
+
+.friend-item:active {
+    background: oklch(from var(--card) calc(l + 0.01) c h / 0.5);
+}
+
+.friend-item:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.friend-item__avatar {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    position: relative;
+    transition: transform 150ms var(--ease-out, ease-out);
+}
+
+/* Circular clip for both img and Facehash fallback */
+.friend-item__avatar-inner {
+    width: 36px;
+    height: 36px;
+    border-radius: 9999px;
+    overflow: hidden;
+}
+
+.friend-item__avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    border-radius: 9999px;
+}
+
+/* Online/offline status dot — bottom-right of avatar */
+.friend-item__status-dot {
+    position: absolute;
+    bottom: 0;
+    right: 0;
+    width: 10px;
+    height: 10px;
+    border-radius: 9999px;
+    border: 2px solid var(--background);
+    background: var(--muted-foreground);
+    opacity: 0.3;
+    transition:
+        background var(--duration-fast, 150ms) var(--ease-out, ease-out),
+        opacity var(--duration-fast, 150ms) var(--ease-out, ease-out);
+}
+
+.friend-item__status-dot--online {
+    background: var(--status-online);
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .friend-item__status-dot {
+        transition: none;
+    }
+}
+
+.friend-item__content {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.125rem;
+}
+
+.friend-item__name {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.friend-item__sub {
+    font-size: 0.75rem;
+    color: var(--muted-foreground);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Message affordance — hidden by default, revealed on parent hover */
+.friend-item__action {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    color: var(--muted-foreground);
+    opacity: 0;
+    transition: opacity var(--duration-fast, 150ms) var(--ease-out, ease-out);
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+    .friend-item {
+        transition: none;
+    }
+
+    .friend-item::before {
+        transition: none;
+    }
+
+    .friend-item:hover .friend-item__avatar {
+        transform: none;
+    }
+
+    .friend-item__action {
+        opacity: 1;
+        transition: none;
+    }
+}
+
+/* Minimal aesthetic */
+[data-aesthetic="minimal"] .friend-item:hover .friend-item__avatar {
+    transform: none;
+}
+
+[data-aesthetic="minimal"] .friend-item__action {
+    opacity: 1;
+}
+
+/* ============================================================
+   FriendsPage Two-Pane Layout
+   Mirrors .chats-layout structure exactly
+   ============================================================ */
+
+@layer components {
+    /* Root two-pane container — fills the full viewport */
+    .friends-layout {
+        display: flex;
+        flex-direction: row;
+        height: 100vh;
+        overflow: hidden;
+    }
+
+    /* ── Sidebar ──────────────────────────────────────────── */
+
+    .friends-layout__sidebar {
+        width: clamp(240px, 25vw, 330px);
+        min-width: 240px;
+        max-width: 330px;
+        flex-shrink: 1;
+        display: flex;
+        flex-direction: column;
+        /* Override glass-card defaults for sidebar use */
+        border-radius: 0 !important;
+        transform: none !important;
+        transition: none !important;
+        border-top: none;
+        border-bottom: none;
+        border-left: none;
+        border-right: 1px solid var(--border);
+        /* Lock background so glass-card hover doesn't brighten the sidebar */
+        background: oklch(from var(--card) l c h / 0.5) !important;
+    }
+
+    /* Suppress all glass-card hover effects on the sidebar container */
+    .friends-layout__sidebar:hover {
+        transform: none !important;
+        background: oklch(from var(--card) l c h / 0.5) !important;
+        box-shadow:
+            0 8px 32px var(--shadow-ambient),
+            0 16px 64px var(--shadow-diffuse),
+            0 24px 96px var(--shadow-deep) !important;
+    }
+
+    .friends-layout__sidebar-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.625rem 0.875rem;
+        flex-shrink: 0;
+        border-bottom: 1px solid var(--border);
+    }
+
+    .friends-layout__sidebar-title {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--foreground);
+    }
+
+    .friends-layout__new-btn {
+        padding: 0 !important;
+        width: 1.875rem !important;
+        height: 1.875rem !important;
+        display: inline-flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .friends-layout__sidebar-list {
+        flex: 1;
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        padding: 0.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+
+    /* ── Main Content ─────────────────────────────────────── */
+
+    .friends-layout__main {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+    }
+
+    /* ── Empty State (main pane) ──────────────────────────── */
+
+    .friends-layout__empty-state {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100%;
+        gap: 0.75rem;
+        color: var(--muted-foreground);
+        text-align: center;
+        padding: 2rem;
+    }
+
+    .friends-layout__empty-state h2 {
+        font-size: 0.9375rem;
+        font-weight: 600;
+        color: var(--foreground);
+    }
+
+    .friends-layout__empty-state p {
+        font-size: 0.8125rem;
+    }
+
+    /* ── Empty State (sidebar list) ──────────────────────── */
+
+    .friends-layout__list-empty {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        padding: 2rem 1rem;
+        color: var(--muted-foreground);
+        font-size: 0.875rem;
+        text-align: center;
+    }
+
+    .friends-layout__list-empty-hint {
+        font-size: 0.75rem;
+        opacity: 0.75;
+    }
+
+    /* ── Mobile: Full-Screen Stack ────────────────────────── */
+
+    @media (max-width: 767px) {
+        .friends-layout__sidebar {
+            width: 100%;
+            min-width: 100%;
+            max-width: 100%;
+            border-right: none;
+        }
+
+        .friends-layout__main {
+            display: none;
+        }
+    }
+}
+
+/* ============================================================
+   Search Bar (sidebar)
+   Mirrors .chats-layout__search-* exactly
+   ============================================================ */
+
+.friends-layout__search-wrapper {
+    padding: 0.25rem 0.625rem 0.375rem;
+}
+
+.friends-layout__search-input-row {
     position: relative;
     display: flex;
     align-items: center;
+    gap: var(--spacing-2);
+    background: oklch(from var(--card) l c h / 0.4);
+    border: 1px solid oklch(from var(--border) l c h / 0.5);
+    border-radius: var(--radius);
+    padding: 0 var(--spacing-3);
+    height: 34px;
+    transition:
+        border-color 150ms ease-out,
+        background 150ms ease-out;
 }
 
-.friend-search__icon {
-    position: absolute;
-    left: 0.75rem;
+.friends-layout__search-input-row:focus-within {
+    border-color: oklch(from var(--primary) l c h / 0.6);
+    background: oklch(from var(--card) l c h / 0.6);
+    box-shadow: 0 0 0 2px oklch(from var(--primary) l c h / 0.12);
+}
+
+.friends-layout__search-icon {
     color: var(--muted-foreground);
+    flex-shrink: 0;
     pointer-events: none;
+}
+
+.friends-layout__search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    font-size: 0.8125rem;
+    color: var(--foreground);
+    min-width: 0;
+}
+
+.friends-layout__search-input::placeholder {
+    color: var(--muted-foreground);
+}
+
+/* Remove browser default search input clear button */
+.friends-layout__search-input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.friends-layout__search-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: none;
+    background: oklch(from var(--muted-foreground) l c h / 0.2);
+    color: var(--muted-foreground);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 120ms ease-out;
+}
+
+.friends-layout__search-clear:hover {
+    background: oklch(from var(--muted-foreground) l c h / 0.35);
+}
+
+.friends-layout__search-clear:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+}
+
+/* ============================================================
+   Filter Chips
+   Mirrors .chats-filter-chip exactly
+   ============================================================ */
+
+.friends-layout__filters {
+    display: flex;
+    gap: var(--spacing-1\.5);
+    padding: 0 0.625rem 0.375rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+.friends-layout__filters::-webkit-scrollbar {
+    display: none;
+}
+
+.friends-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--spacing-1);
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid var(--border);
+    color: var(--muted-foreground);
+    background: oklch(from var(--card) l c h / 0.3);
+    cursor: pointer;
+    white-space: nowrap;
+    transition:
+        background 150ms ease-out,
+        border-color 150ms ease-out,
+        color 150ms ease-out,
+        box-shadow 150ms ease-out;
+    flex-shrink: 0;
+}
+
+.friends-filter-chip:hover {
+    background: oklch(from var(--card) l c h / 0.55);
+    color: var(--foreground);
+    border-color: oklch(from var(--primary) l c h / 0.4);
+}
+
+.friends-filter-chip:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+}
+
+.friends-filter-chip--active {
+    background: oklch(from var(--primary) l c h / 0.18);
+    border-color: oklch(from var(--primary) l c h / 0.6);
+    color: var(--primary);
+    box-shadow: 0 0 8px oklch(from var(--primary) l c h / 0.2);
+}
+
+.friends-filter-chip--active:hover {
+    background: oklch(from var(--primary) l c h / 0.25);
+    box-shadow: 0 0 12px oklch(from var(--primary) l c h / 0.3);
+}
+
+/* Pending chip badge — destructive red pill */
+.friends-layout__badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: var(--destructive);
+    color: oklch(1 0 0);
+    font-size: 10px;
+    font-weight: 700;
+    line-height: 16px;
+}
+
+/* All chip count — subtle primary pill */
+.friends-layout__count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 999px;
+    background: oklch(from var(--primary) l c h / 0.15);
+    color: var(--primary);
+    font-size: 10px;
+    font-weight: 600;
+    line-height: 16px;
+}
+
+/* Reduced motion overrides */
+@media (prefers-reduced-motion: reduce) {
+    .friends-layout__search-input-row,
+    .friends-filter-chip {
+        transition: none;
+    }
+}
+
+/* ============================================================
+   AddFriendModal — Sonar Ping Design Language
+   ============================================================ */
+
+/*
+ * Sonar tokens scoped to .add-friend-modal__panel.
+ * Light mode: Kyoto Sunrise — coral warm dots, ripple rings (3 waves, organic)
+ * Dark mode:  Steel Frost   — blue radar dots, sharp single ring (precision)
+ */
+.add-friend-modal__panel {
+    --sonar-color: oklch(0.65 0.18 50 / 0.25);
+    --sonar-dot-color: oklch(0.65 0.18 50 / 0.07);
+    --sonar-dot-size: 32px;
+    width: 100%;
+    max-width: 24rem;
+    position: relative;
     z-index: 1;
 }
 
-.friend-search__input {
-    /* padding-left is handled by .glass-input--search (2.5rem) */
-    padding-right: 2.5rem; /* space for loader */
+.dark .add-friend-modal__panel {
+    --sonar-color: oklch(0.6 0.18 250 / 0.35);
+    --sonar-dot-color: oklch(0.6 0.18 250 / 0.05);
+    --sonar-dot-size: 28px;
 }
 
-.friend-search__loader {
-    position: absolute;
-    right: 0.75rem;
+.add-friend-modal__overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
     display: flex;
     align-items: center;
+    justify-content: center;
+    padding: 1rem;
 }
 
-.friend-search__results {
+/* Dot-grid background — full overlay, briefly activates on keystroke */
+.add-friend-modal__bg {
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background-image: radial-gradient(circle, var(--sonar-dot-color) 1px, transparent 1px);
+    background-size: var(--sonar-dot-size) var(--sonar-dot-size);
+    opacity: 0;
+    transition: opacity var(--duration-slow, 400ms) var(--ease-out, ease-out);
+}
+
+.add-friend-modal__bg--active {
+    opacity: 1;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .add-friend-modal__bg {
+        display: none;
+    }
+}
+
+.add-friend-modal__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.add-friend-modal__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--foreground);
+}
+
+/* Search zone — sonar rings are centered on this element */
+.add-friend-modal__search-zone {
+    position: relative;
+}
+
+.add-friend-modal__search-row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-2);
+    background: oklch(from var(--card) l c h / 0.4);
+    border: 1px solid oklch(from var(--border) l c h / 0.5);
+    border-radius: var(--radius);
+    padding: 0 var(--spacing-3);
+    height: 34px;
+    transition:
+        border-color 150ms ease-out,
+        background 150ms ease-out;
+}
+
+.add-friend-modal__search-row:focus-within {
+    border-color: oklch(from var(--primary) l c h / 0.6);
+    background: oklch(from var(--card) l c h / 0.6);
+    box-shadow: 0 0 0 2px oklch(from var(--primary) l c h / 0.12);
+}
+
+.add-friend-modal__search-icon {
+    color: var(--muted-foreground);
+    flex-shrink: 0;
+    pointer-events: none;
+}
+
+.add-friend-modal__search-input {
+    flex: 1;
+    background: none;
+    border: none;
+    outline: none;
+    font-size: 0.8125rem;
+    color: var(--foreground);
+    min-width: 0;
+}
+
+.add-friend-modal__search-input::placeholder {
+    color: var(--muted-foreground);
+}
+
+.add-friend-modal__search-input::-webkit-search-cancel-button {
+    display: none;
+}
+
+.add-friend-modal__search-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    border: none;
+    background: oklch(from var(--muted-foreground) l c h / 0.2);
+    color: var(--muted-foreground);
+    cursor: pointer;
+    flex-shrink: 0;
+    transition: background 120ms ease-out;
+}
+
+.add-friend-modal__search-clear:hover {
+    background: oklch(from var(--muted-foreground) l c h / 0.35);
+}
+
+.add-friend-modal__search-clear:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 1px;
+}
+
+/*
+ * Sonar rings container — centered in search zone.
+ * Motion.js drives animation; key-based remount restarts on each query change.
+ */
+.add-friend-modal__sonar-rings {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    pointer-events: none;
+    z-index: 0;
+}
+
+.add-friend-modal__sonar-ring {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    translate: -50% -50%;
+    width: 160px;
+    height: 160px;
+    border-radius: 50%;
+    border: 2px solid var(--sonar-color);
+    box-shadow: 0 0 18px 4px var(--sonar-color);
+    pointer-events: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .add-friend-modal__sonar-rings {
+        display: none;
+    }
+}
+
+[data-aesthetic="minimal"] .add-friend-modal__sonar-rings {
+    display: none;
+}
+
+[data-aesthetic="minimal"] .add-friend-modal__bg {
+    display: none;
+}
+
+/* Results list */
+.add-friend-modal__results {
     margin-top: 0.5rem;
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
+    max-height: 20rem;
+    overflow-y: auto;
+    overscroll-behavior: contain;
 }
 
-.friend-search__result-item {
+.add-friend-modal__result-item {
     animation: search-result-enter 250ms var(--ease-out, ease-out) both;
 }
 
@@ -301,7 +1101,13 @@
     }
 }
 
-.friend-search__empty {
+@media (prefers-reduced-motion: reduce) {
+    .add-friend-modal__result-item {
+        animation: none;
+    }
+}
+
+.add-friend-modal__empty {
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -311,233 +1117,16 @@
     font-size: 0.875rem;
 }
 
-/* Override glass-card hover lift inside search results */
-.friend-search__result-card {
-    cursor: pointer;
-}
-
-.friend-search__result-card:hover {
-    transform: none;
-    background: oklch(from var(--card) calc(l + 0.02) c h / 0.7);
-}
-
-/* ============================================================
-   FriendsPage — Sonar Ping Design Language
-   ============================================================ */
-
-/*
- * Sonar design tokens scoped to .friends-page.
- * Light mode: Kyoto Sunrise — coral warm dots, ripple rings (3 waves, organic)
- * Dark mode:  Steel Frost   — blue radar dots, sharp single ring (precision)
- */
-.friends-page {
-    /* Light mode defaults — Kyoto Sunrise */
-    --sonar-color: oklch(0.65 0.18 50 / 0.25);
-    --sonar-dot-color: oklch(0.65 0.18 50 / 0.07);
-    --sonar-dot-size: 32px;
-    --sonar-ring-count: 3;
-    --sonar-ring-duration: 450ms;
-    --signal-color: oklch(0.65 0.18 50);
-    --collapse-duration: 500ms;
-
-    max-width: 640px;
-    margin: 0 auto;
-    /*
-     * padding-top calculation for floating capsule header:
-     *   top-offset(16px) + header-height(48px) + gap(8px) = 72px = 4.5rem
-     * Do NOT use 5rem+: the extra blank zone serves no purpose because the
-     * capsule is not full-width and content is visible around it at the top.
-     */
-    padding: 4.5rem 1rem 2rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-    position: relative;
-}
-
-/* Dark mode override — Steel Frost */
-.dark .friends-page {
-    --sonar-color: oklch(0.6 0.18 250 / 0.35);
-    --sonar-dot-color: oklch(0.6 0.18 250 / 0.05);
-    --sonar-dot-size: 28px;
-    --sonar-ring-count: 1;
-    --sonar-ring-duration: 250ms;
-    --signal-color: oklch(0.6 0.18 250);
-    --collapse-duration: 350ms;
-}
-
-/* Dot-grid background — pseudo-element so z-index stays behind content */
-.friends-page__bg {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    background-image: radial-gradient(circle, var(--sonar-dot-color) 1px, transparent 1px);
-    background-size: var(--sonar-dot-size) var(--sonar-dot-size);
-    opacity: 0;
-    transition: opacity var(--duration-slow, 400ms) var(--ease-out, ease-out);
-}
-
-/* Dot-grid appears briefly during search via JS-toggled class */
-.friends-page__bg--active {
-    opacity: 1;
-}
-
-/* Reduced motion: no dot grid flash */
-@media (prefers-reduced-motion: reduce) {
-    .friends-page__bg {
-        display: none;
-    }
-}
-
-/* Search zone — wraps input + sonar ring overlay */
-.friends-page__search-zone {
-    position: relative;
-}
-
-/*
- * Sonar rings container — centered in search zone, allows decorative overflow.
- * Motion.js drives the animation via scale + opacity; no CSS keyframes needed.
- * Key-based remount (sonarKey counter) restarts animations on each query change.
- */
-.friends-page__sonar-rings {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    translate: -50% -50%;
-    pointer-events: none;
-    z-index: 0;
-}
-
-/* Single sonar ring — circle, driven by Motion.js animate prop */
-.friends-page__sonar-ring {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    translate: -50% -50%;
-    width: 160px;
-    height: 160px;
-    border-radius: 50%;
-    border: 2px solid var(--sonar-color);
-    box-shadow: 0 0 18px 4px var(--sonar-color);
-    pointer-events: none;
-}
-
-/* Reduced motion: hide sonar rings entirely (Motion respects this via transform) */
-@media (prefers-reduced-motion: reduce) {
-    .friends-page__sonar-rings {
-        display: none;
-    }
-}
-
-/* Collapsed section header — summary row shown when searching */
-.friends-page__section--collapsed {
-    cursor: pointer;
-    overflow: hidden;
-}
-
-.friends-page__section--collapsed:focus-visible {
-    outline: 2px solid var(--primary);
-    outline-offset: 2px;
-}
-
-/* Collapsed summary title row */
-.friends-page__section-summary {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.875rem;
-    font-weight: 500;
+.add-friend-modal__hint {
+    margin-top: 0.75rem;
+    font-size: 0.8125rem;
     color: var(--muted-foreground);
-    margin-bottom: 0;
+    text-align: center;
 }
 
-/* Signal particle — portal-rendered, animates from button upward */
-.signal-particle {
-    width: 8px;
-    height: 8px;
-    border-radius: 9999px;
-    background: var(--signal-color, var(--primary));
-    box-shadow: 0 0 12px 4px oklch(from var(--primary) l c h / 0.5);
-    pointer-events: none;
-    z-index: 9999;
-    transform: translate(-50%, -50%);
-}
-
-/* Reduced motion: no signal particle */
+/* Reduced motion for search row */
 @media (prefers-reduced-motion: reduce) {
-    .signal-particle {
-        display: none;
+    .add-friend-modal__search-row {
+        transition: none;
     }
-}
-
-.friends-page__section {
-    /* Override glass-card hover lift — sections are static */
-    transition: none;
-    position: relative;
-    z-index: 1;
-}
-
-.friends-page__section:hover {
-    transform: none;
-    box-shadow:
-        0 8px 32px oklch(0 0 0 / 0.08),
-        0 16px 64px oklch(0 0 0 / 0.12),
-        0 24px 96px oklch(0 0 0 / 0.15);
-    background: oklch(from var(--card) l c h / 0.5);
-}
-
-.friends-page__section-title {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    gap: 0.5rem;
-    font-size: 0.9375rem;
-    font-weight: 600;
-    color: var(--foreground);
-    margin-bottom: 1rem;
-}
-
-.friends-page__badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: var(--destructive);
-    color: oklch(1 0 0);
-    font-size: 0.75rem;
-    font-weight: 700;
-}
-
-.friends-page__count {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 20px;
-    height: 20px;
-    padding: 0 6px;
-    border-radius: 999px;
-    background: oklch(from var(--primary) l c h / 0.15);
-    color: var(--primary);
-    font-size: 0.75rem;
-    font-weight: 600;
-}
-
-.friends-page__list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.625rem;
-}
-
-/* Search-mode UserCard — border reflects friendship status */
-.user-card--status-pending {
-    border-color: oklch(from var(--status-away, oklch(0.8 0.18 75)) l c h / 0.5);
-}
-
-.user-card--status-accepted {
-    border-color: oklch(from var(--status-online, oklch(0.68 0.18 145)) l c h / 0.5);
 }

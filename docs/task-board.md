@@ -1071,8 +1071,20 @@ E2E Tests: 目標涵蓋主要流程
 
 **更新頻率**: 每日更新
 **維護者**: All Agents
-**最後更新**: 2026-03-30
+**最後更新**: 2026-04-03
 **最新變更**:
+  - 🔧 **Friends Page UX 修正 + 測試補強（2026-04-03）**
+    - Branch: `feature/1.3.3-message-actions`
+    - **Bug 修正**：
+      - `/friends` 在線狀態改為從 `uiStore.presenceMap`（Redis-backed Socket.io）讀取，移除錯誤的 `UserStatusAvatar`（僅限當前用戶 picker）
+      - `PendingRequestCard` 窄側邊欄溢出修正（`overflow: hidden`、`flex-direction: row`、icon-only button 縮排）
+      - 切換至 Pending tab 時自動清除 sidebar 搜尋 query（`setSearchQuery("")`）
+      - `/friends` sidebar 切換 tab 高度 reflow 修正（`AnimatePresence mode="wait"` 移除，改為 `layout` FLIP 方式）
+    - **Design 改進**：`.pending-request-card` amber signal band（`::before` 3px stripe）+ bolder 風格 + 共用 CSS 變數（`var(--status-away)`、`var(--duration-fast)` 等，移除 inline fallback）
+    - **Backend 修正**：`lastMessage` DataLoader 補足 `MessageRecord` 缺少欄位；Oxlint 錯誤修正
+    - **測試**：新增 TC-F-NEW-05 ~ TC-F-NEW-12（8 個好友搜尋場景，含 modal close、overlay click、短查詢提示、空結果、loader 時序、pending-clears-search roundtrip、空 pending 狀態、badge 計數）
+    - **測試計數**：289 → **297/297 全部通過 ✅**
+    - **待完成**：Mobile（MessageBubbleWrapper.native + MessageActionSheet）
   - ⏳ **Feature 1.3.3 Backend + Frontend Web 完成（2026-03-30）— 訊息氣泡操作（Mobile 待完成）**
     - Branch: `feature/1.3.3-message-actions`
     - **Backend（TC-B-32~38）**：Prisma migration（replyToId/pinnedAt/deletedAt/pinnedMessageId）、5 個 mutations（replyToMessage/pinMessage/unpinMessage/deleteMessage/forwardMessage）、Socket.io 廣播

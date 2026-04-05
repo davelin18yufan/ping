@@ -211,7 +211,7 @@ type Mutation {
 | 7 | Frontend Web：DeleteMessageModal + ForwardPickerModal | Frontend | 2h | ✅ 完成 |
 | 8 | Frontend Web：chatActionsStore + multi-select mode | Frontend | 2h | ✅ 完成 |
 | 9 | Mobile：MessageBubbleWrapper.native + MessageActionSheet | Frontend | 3h | 🔲 待開始 |
-| 10 | All：重構與測試覆蓋率確認 | All | 1h | ✅ 完成（289/289 tests passing）|
+| 10 | All：重構與測試覆蓋率確認 | All | 1h | ✅ 完成（297/297 tests passing）|
 
 ---
 
